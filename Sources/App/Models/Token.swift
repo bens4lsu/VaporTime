@@ -15,8 +15,7 @@ struct Token: JWTPayload {
     var exp: Date
     var ip: String?
     
-    // TODO: implement verify
     func verify(using signer: JWTSigner) throws {
-        // nothing to verify yet
+        // see UserAndTokenController verifyJWT(req)
     }
 }

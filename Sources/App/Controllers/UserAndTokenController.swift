@@ -15,7 +15,7 @@ class UserAndTokenController: RouteCollection {
     
     // TODO:  move time interval and secret to configuration
     private let secretKey = "Daisywasasweetsweetdog"
-    private let tokenExpDuration: Double = 3600
+    private let tokenExpDuration: Double = 1000         // seconds
     
     enum ValidUser {
         case valid(UserJWTInfo)
@@ -112,9 +112,9 @@ class UserAndTokenController: RouteCollection {
     
     // MARK:  Methods used to validate JWT, potentially called by other controllers or routes
    
-    func getJWT(user: User, req: Request) throws -> Future<String> {
+    func getJWT(user: UserJWTInfo, req: Request) throws -> Future<String> {
         // generate a new token and send it back
-        let newToken = Token(user: user.jwtInfo()!,
+        let newToken = Token(user: user,
                              exp: Date().addingTimeInterval(self.tokenExpDuration),
                              ip: req.http.remotePeer.hostname)
         
@@ -122,8 +122,11 @@ class UserAndTokenController: RouteCollection {
             .sign(using: .hs256(key: self.secretKey))
         
         let jwtString = String(data: jwtToken, encoding: .utf8) ?? ""
-        print (jwtString)
         return req.future(jwtString)
+    }
+    
+    func getJWT(user: User, req: Request)  throws -> Future<String> {
+        return try getJWT(user: user.jwtInfo()!, req: req)
     }
     
     func verifyJWT(_ req: Request) throws -> UserAndTokenController.ValidUser {
@@ -134,6 +137,9 @@ class UserAndTokenController: RouteCollection {
         
         // parse JWT from token string, using HS-256 signer
         if let token = try? JWT<Token>(from: bearer.token, verifiedUsing: .hs256(key: self.secretKey)) {
+            if token.payload.exp < Date() {
+                return .invalid
+            }
             return .valid(token.payload.user)
         }
         return .invalid
