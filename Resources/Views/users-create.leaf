@@ -1,0 +1,19 @@
+
+#set("title") {Create account}
+
+#set("body") {
+    <h1>Create account</h1>
+
+    #if(error) {
+        <p class="error">User name #(attemptedUser) is already taken.</p>
+    }
+
+    <form method="post">
+    <p>Username: <input type="text" name="emailAddress" /></p>
+    <p>Password: <input type="password" name="password" /></p>
+    <p>Full Name: <input type="text" name="name" /></p>
+    <p><input type="submit" class="btn btn-lg btn-primary" /></p>
+    </form>
+}
+
+#embed("master")

@@ -1,0 +1,9 @@
+
+#set("title") {Time Table}
+
+#set("body") {
+    <h1>Time Table - You made it!</h1>
+
+}
+
+#embed("master")
