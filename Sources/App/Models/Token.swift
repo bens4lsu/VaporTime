@@ -8,14 +8,14 @@
 import Foundation
 import FluentMySQL
 import Vapor
-import JWT
 
-struct Token: JWTPayload {
-    var user: UserJWTInfo
+struct Token: Codable {
+    var user: UserPersistInfo
     var exp: Date
     var ip: String?
     
-    func verify(using signer: JWTSigner) throws {
-        // see UserAndTokenController verifyJWT(req)
+    func encode() throws -> String {
+        let jsonData = try JSONEncoder().encode(self)
+        return String(data: jsonData, encoding: .utf8)!
     }
 }

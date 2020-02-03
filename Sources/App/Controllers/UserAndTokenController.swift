@@ -9,27 +9,12 @@ import Foundation
 import Vapor
 import FluentMySQL
 import Crypto
-import JWT
 
 class UserAndTokenController: RouteCollection {
     
     // TODO:  move time interval and secret to configuration
     private let secretKey = "Daisywasasweetsweetdog"
-    private let tokenExpDuration: Double = 1000         // seconds
-    
-    enum ValidUser {
-        case valid(UserJWTInfo)
-        case invalid
-        
-        func asBool() -> Bool {
-            switch self {
-            case .valid:
-                return true
-            default:
-                return false
-            }
-        }
-    }
+    private let tokenExpDuration: Double = 3600         // seconds
     
     func boot(router: Router) throws {
         router.group("security") { group in
@@ -38,7 +23,6 @@ class UserAndTokenController: RouteCollection {
             
             group.post("login", use: login)
             group.post("create", use: createUser)
-            group.post("testJWT", use: testJwt)
         }
     }
     
@@ -54,7 +38,7 @@ class UserAndTokenController: RouteCollection {
     
     // MARK:  Methods connected to routes that return data
     
-    private func login(_ req: Request) throws -> Future<String> {
+    private func login(_ req: Request) throws -> Future<Response> {
         let email: String = try req.content.syncGet(at: "email")
         let password: String = try req.content.syncGet(at: "password")
         
@@ -62,7 +46,7 @@ class UserAndTokenController: RouteCollection {
             throw Abort(.badRequest)
         }
         
-        return User.query(on: req).filter(\User.emailAddress == email).all().flatMap(to: String.self) { userMatches in
+        return User.query(on: req).filter(\User.emailAddress == email).all().flatMap(to: Response.self) { userMatches in
             
             guard userMatches.count < 2 else {
                 throw Abort(.unauthorized, reason: "More than one user exists with that email address.")
@@ -77,8 +61,14 @@ class UserAndTokenController: RouteCollection {
             guard try BCrypt.verify(password, created: user.passwordHash) else {
                 throw Abort(.unauthorized, reason: "Could not verify password.")
             }
-            
-            return try self.getJWT(user: user, req: req)
+            // login success
+            let session = try req.session()
+            let userPersistInfo = user.persistInfo()!
+            let ip = req.http.remotePeer.hostname
+            let token = try Token(user: userPersistInfo, exp: Date().addingTimeInterval(self.tokenExpDuration), ip: ip).encode()
+            print (token)
+            session["token"] = token
+            return try user.redirectRouteAfterLogin(req)
         }
     }
     
@@ -101,47 +91,33 @@ class UserAndTokenController: RouteCollection {
         return newUser.create(on: req)
     }
 
-    private func testJwt(_ req: Request) throws -> Future<String> {
-        guard case .valid(_) = try verifyJWT(req) else {
-            return req.future("Error:  JWT signature is invalid, or JWT could not be decoded into <Token>")
-        }
-        return req.future("OK")
 
-    }
+// MARK: Static methods
     
-    
-    // MARK:  Methods used to validate JWT, potentially called by other controllers or routes
-   
-    func getJWT(user: UserJWTInfo, req: Request) throws -> Future<String> {
-        // generate a new token and send it back
-        let newToken = Token(user: user,
-                             exp: Date().addingTimeInterval(self.tokenExpDuration),
-                             ip: req.http.remotePeer.hostname)
-        
-        let jwtToken = try JWT(payload: newToken)
-            .sign(using: .hs256(key: self.secretKey))
-        
-        let jwtString = String(data: jwtToken, encoding: .utf8) ?? ""
-        return req.future(jwtString)
-    }
-    
-    func getJWT(user: User, req: Request)  throws -> Future<String> {
-        return try getJWT(user: user.jwtInfo()!, req: req)
-    }
-    
-    func verifyJWT(_ req: Request) throws -> UserAndTokenController.ValidUser {
-        // fetches the token from `Authorization: Bearer <token>` header
-        guard let bearer = req.http.headers.bearerAuthorization else {
-            throw Abort(.unauthorized)
+    static func redirectToLogin(_ req: Request) -> Future<Response> {
+        return req.future().map() {
+            // TODO:  Fix this.  Just putting /security/login -> 404
+            return req.redirect(to: "http://localhost:8080/security/login")
         }
-        
-        // parse JWT from token string, using HS-256 signer
-        if let token = try? JWT<Token>(from: bearer.token, verifiedUsing: .hs256(key: self.secretKey)) {
-            if token.payload.exp < Date() {
-                return .invalid
-            }
-            return .valid(token.payload.user)
-        }
-        return .invalid
     }
+    
+    static func verifyAccess(_ req: Request, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
+        guard let session = try? req.session(),
+              let tokenJSON = session["token"] else
+        {
+            return UserAndTokenController.redirectToLogin(req)
+        }
+        print (tokenJSON)
+        let decoder = JSONDecoder()
+        let token = try decoder.decode(Token.self, from: tokenJSON)
+        
+        guard token.exp >= Date() || token.ip != req.http.remotePeer.hostname else {
+            // token is expired, or ip address has changed
+            return UserAndTokenController.redirectToLogin(req)
+        }
+        return try onSuccess(token.user)
+    }
+
 }
+
+

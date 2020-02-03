@@ -14,7 +14,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt.git", .upToNextMinor(from: "3.0.0")),
     ],
     targets: [
-        .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL","JWT"]),
+        .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL"]),
         .target(name: "Run", dependencies: ["App"]),
         .testTarget(name: "AppTests", dependencies: ["App"])
     ]

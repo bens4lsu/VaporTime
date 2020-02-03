@@ -8,7 +8,6 @@
 import Foundation
 import FluentMySQL
 import Vapor
-import JWT
 
 struct User: Content, MySQLModel, Migration {
     var id: Int?
@@ -16,9 +15,18 @@ struct User: Content, MySQLModel, Migration {
     var emailAddress: String
     var passwordHash: String
     
-    func jwtInfo() -> UserJWTInfo? {
+    func persistInfo() -> UserPersistInfo? {
         guard let id = self.id else { return nil }
-        return UserJWTInfo (id: id, name: self.name, emailAddress: self.emailAddress)
+        return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress)
+    }
+    
+    func redirectRouteAfterLogin(_ req: Request) throws -> Future<Response> {
+        // TODO:  use the user's permissions and properties to figure out the
+        //        best default spot for them to be redirected.
+        return req.future().map() {
+            // TODO:  Fix this.  Just putting /security/login -> 404
+            return req.redirect(to: "http://localhost:8080/TBTable")
+        }
     }
 }
 
@@ -31,12 +39,9 @@ extension User: Validatable {
     }
 }
 
-struct UserJWTInfo: JWTPayload {
+struct UserPersistInfo: Codable {
+    // Non-secret struct represntation of a user that can be saved in the session
     var id: Int
     var name: String
     var emailAddress: String
-    
-    func verify(using signer: JWTSigner) throws {
-         // nothing to verify
-     }
 }
