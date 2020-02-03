@@ -18,20 +18,22 @@ class UserAndTokenController: RouteCollection {
     
     func boot(router: Router) throws {
         router.group("security") { group in
-            group.get("login", use: displayLogin)
-            group.get("create", use: displayUserCreate)
+            group.get("login", use: renderLogin)
+            group.get("create", use: renderUserCreate)
+            group.get("change-password", use: renderUserCreate)
             
             group.post("login", use: login)
             group.post("create", use: createUser)
+            group.post("change-password", use: changePassword)
         }
     }
     
     // MARK:  Methods connected to routes that return Views
-    private func displayLogin(_ req: Request) throws -> Future<View> {
+    private func renderLogin(_ req: Request) throws -> Future<View> {
         return try req.view().render("users-login")
     }
     
-    private func displayUserCreate(_ req: Request) throws -> Future<View> {
+    private func renderUserCreate(_ req: Request) throws -> Future<View> {
         return try req.view().render("users-create")
     }
     
@@ -72,6 +74,30 @@ class UserAndTokenController: RouteCollection {
         }
     }
     
+    private func changePassword(_ req: Request) throws -> Future<User> {
+        let email: String = try req.content.syncGet(at: "emailAddress")
+        let password: String = try req.content.syncGet(at: "password")
+        
+        guard email.count > 0, password.count > 0 else {
+            throw Abort(.badRequest)
+        }
+        
+        return User.query(on: req).filter(\User.emailAddress == email).all().flatMap(to: User.self) { userMatches in
+            
+            guard userMatches.count < 2 else {
+                throw Abort(.unauthorized, reason: "More than one user exists with that email address.")
+            }
+            
+            guard userMatches.count == 1 else {
+                throw Abort(.unauthorized, reason: "No user exists for that email address.")
+            }
+            
+            var user = userMatches[0]
+            let passwordHash = (try? BCrypt.hash(password)) ?? ""
+            user.passwordHash = passwordHash
+            return user.save(on: req)
+        }
+    }
     
     private func createUser(_ req: Request) throws -> Future<User> {
         struct FormData: Decodable {
@@ -92,7 +118,7 @@ class UserAndTokenController: RouteCollection {
     }
 
 
-// MARK: Static methods
+// MARK: Static methods - used for verification in other controllers
     
     static func redirectToLogin(_ req: Request) -> Future<Response> {
         return req.future().map() {
@@ -100,14 +126,14 @@ class UserAndTokenController: RouteCollection {
             return req.redirect(to: "http://localhost:8080/security/login")
         }
     }
+
     
-    static func verifyAccess(_ req: Request, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
+    static func verifyAccess(_ req: Request, requiresAdmin: Bool?, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
         guard let session = try? req.session(),
               let tokenJSON = session["token"] else
         {
             return UserAndTokenController.redirectToLogin(req)
         }
-        print (tokenJSON)
         let decoder = JSONDecoder()
         let token = try decoder.decode(Token.self, from: tokenJSON)
         
@@ -115,9 +141,17 @@ class UserAndTokenController: RouteCollection {
             // token is expired, or ip address has changed
             return UserAndTokenController.redirectToLogin(req)
         }
+        
+        if requiresAdmin == true && !token.user.isAdmin  {
+            // TODO: reroute to a no permission for this resource page
+            throw Abort (.unauthorized)
+        }
         return try onSuccess(token.user)
     }
-
+    
+    static func verifyAccess(_ req: Request, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
+        return try Self.verifyAccess(req, requiresAdmin: false, onSuccess: onSuccess)
+    }
 }
 
 

@@ -1,9 +1,153 @@
 
-#set("title") {Time Table}
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/infodrivenlife.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+       <script language="javascript" type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <style>
+        #main_table{width:95%;}
+        #timeTotal{font-weight:bold !important; padding-right:1em; !important}
+        .dur, #timeTotal {text-align:right;}
+        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
 
-#set("body") {
-    <h1>Time Table - You made it!</h1>
+    </style>
 
-}
+</head>
+<body class="mainbox" >
 
-#embed("master")
+    <script type="text/javascript">
+            
+        myVars = {};
+        myVars.initialLoad = true;
+        
+        myVars.reAdd = function() {
+            var sum = 0.0;
+            $('.dur:visible').each(function(index,element) {
+                $(element).text(parseFloat($(element).text()).toFixed(2));
+                sum += parseFloat($(element).text());
+            });
+            $('#timeTotal').text(sum.toFixed(2));
+            return this;
+        }
+        
+        myVars.saveFilterToSession = function() {
+            if (! myVars.initialLoad){
+                $.ajax({
+                    url: 'ajax/savesession.php',
+                    type: 'post',
+                    data: {
+                        sesContract : $('#cellContractFilter select option:selected').text(),
+                        sesProject : $('#cellProjectFilter select option:selected').text(),
+                        sesDateTo : $('#cellDateFilter input:eq(1)').val(),
+                        sesDateFrom : $('#cellDateFilter input:eq(0)').val(),
+                        sesDurTo : $('#cellDurFilter input:eq(1)').val(),
+                        sesDurFrom : $('#cellDurFilter input:eq(0)').val(),
+                        sesNote : $('#cellNoteFilter input').val(),
+                        sortCol : $.fn.dataTable.Api( '#main_table' ).context[0].aLastSort[0].col,
+                        sortDir : $.fn.dataTable.Api( '#main_table' ).context[0].aLastSort[0].dir
+                    },
+                    success: function(data, status) {
+                        if(data == "ok") {
+
+                        }
+                        else {
+                            console.log("Error response received:");
+                            console.log(data);
+                            alert("Error updating session.  Your change was not saved.");
+                        }
+                    },
+                    error: function(xhr, desc, err) {
+                        console.log(xhr);
+                        console.log("Details: " + desc + "\nError:" + err);
+                        alert("Error updating session.  Your change was not saved.");
+                    }
+                });  // end ajax call
+            }
+        }
+            
+        $(document).ready(function() {
+            var mTable = $("#main_table").dataTable( {
+                "iDisplayLength" : 50,
+                "order" : [[<?php print $sesSortCol; ?>, "<?php print $sesSortDir; ?>"]],
+                "aaSorting" : [[<?php print $sesSortCol; ?>, "<?php print $sesSortDir; ?>"]],
+                "fnDrawCallback": function() {
+                    myVars.reAdd();
+                    myVars.saveFilterToSession();
+                },
+                "aoColumns" : [null,
+                               null,
+                               null,
+                               null,
+                               null,
+                               null,
+                               {'bSortable' : false},
+                               {'bSortable' : false}],
+                "filter" : function (value, index){
+                    
+                    
+                }
+            })
+                .columnFilter({
+                    "aoColumns" : [ null,
+                                   {type: "select", values: <?php print $cOpts; ?>, selected : '<?php print trim($sesContract); ?>' },
+                                   {type: "select", values: <?php print $pOpts; ?>, selected : '<?php print trim($sesProject); ?>' },
+                                   {type: "date-range", min: '<?php print $sesDateFrom; ?>', max : '<?php print $sesDateTo; ?>' },
+                                   {type: "number-range", min: '<?php print $sesDurFrom; ?>', max : '<?php print $sesDurTo; ?>'},
+                                   {type: "text", bRegex: true, val : '<?php print $sesNote; ?>'},
+                                   null,
+                                   null]
+                });
+
+            $('#row<?php print $highlightRow; ?>').ready(function() {
+                var theRow = $('#row<?php print $highlightRow; ?> td');
+                var origColor = $('#row<?php print $highlightRow; ?> td').css("backgroundColor");
+                $(theRow).css({backgroundColor: '#ffff00'});
+                setTimeout(function() {
+                    $(theRow).animate({backgroundColor: origColor}, 3000);
+                }, 500);
+            });
+            
+        myVars.initialLoad = false;
+        });
+        
+        
+        
+
+
+    </script>
+    
+    <table id="main_table"><thead>
+    <tr><th>ID</th><th>Contract</th><th>Project</th><th>Date</th><th>Duration</th><th>Notes</th><th>&nbsp;</th><th>&nbsp;</th></tr>
+    </thead><tbody>
+    
+    #for(row in rows) {
+        <tr id=row#(row.TimeID)>
+            <td>#(row.timeId)
+            </td><td>#(row.description)
+            </td><td>#if(row.projectNumber { #(row.projectNumber) - } #(row.projectDescription)
+                #if(row.preDeliveryFlag) { <img src="./images/preDeliv.png" title="Pre-delivery: early concept or design work" alt="pre-deliv" style="height: 13px;"> }
+                #if(row.useOTRate) { <img src="./images/ot.png" title="Night, weekend, or overtime rate" alt="ot rate" style="height: 13px;"> }
+                #if(row.exportStatus) { <img src="./images/exported.png" title="Information has been exported" alt="exported" style="height: 13px;"> }
+            </td><td>#(row.workDate)
+            </td><td class="dur">#(row.duration)
+            </td><td>#(row.notes)
+            </td><td><a href=frTBAddFormphp?projecdtId=#projectId><img src=images/edit-benpng style=border-style:hidden></a>
+            </td><td><a href=frTBDeleteConfirmphp?timeId=#(row.TimeID)><img src=images/delete-benpng style=border-style:hidden></a>
+            </td>
+        </tr>
+    }
+ 
+    
+
+    
+
+</body>
+</html>
+

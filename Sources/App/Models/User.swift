@@ -9,15 +9,70 @@ import Foundation
 import FluentMySQL
 import Vapor
 
-struct User: Content, MySQLModel, Migration {
+struct User: Content, MySQLModel, Migration, Codable {
     var id: Int?
     var name: String
     var emailAddress: String
+    var isActive: Bool
+    var isTimeBiller: Bool
+    var isAdmin: Bool
+    var isReportViewer: Bool
+    var isCRMUser: Bool
+    var isDocUser: Bool
+    var workPhone: String?
+    var mobilePhone: String?
+    var personalNote: String?
     var passwordHash: String
+    
+    
+    // MARK: Map to MySQL database and columns
+    
+    typealias Database = MySQLDatabase
+    typealias ID = Int
+    static let idKey: IDKey = \.id
+    static let entity = "LuPeople"
+    
+    private enum CodingKeys: String, CodingKey {
+        case id = "PersonID",
+             name = "Name",
+             emailAddress = "Email",
+             isActive = "ActiveUser",
+             isTimeBiller = "BillsTime",
+             isAdmin = "SysAdmin",
+             isReportViewer = "ReportViewer",
+             isCRMUser = "CRMUser",
+             isDocUser = "DocUser",
+             workPhone = "WorkPhone",
+             mobilePhone = "MobilePhone",
+             personalNote = "PersonalNote",
+             passwordHash = "PasswordHash"
+    }
+    
+    
+    // MARK: Public methods
+    
+    
+    init(id: Int?, name: String, emailAddress: String, passwordHash: String) {
+        self.id = id
+        self.name = name
+        self.emailAddress = emailAddress
+        self.isActive = true
+        self.isTimeBiller = true
+        self.isAdmin = false
+        self.isReportViewer = false
+        self.isCRMUser = false
+        self.isDocUser = false
+        self.workPhone = ""
+        self.mobilePhone = ""
+        self.personalNote = ""
+        self.passwordHash = passwordHash
+    }
+    
     
     func persistInfo() -> UserPersistInfo? {
         guard let id = self.id else { return nil }
-        return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress)
+        let isAdmin: Bool = self.isAdmin
+        return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress, isAdmin: isAdmin)
     }
     
     func redirectRouteAfterLogin(_ req: Request) throws -> Future<Response> {
@@ -27,6 +82,10 @@ struct User: Content, MySQLModel, Migration {
             // TODO:  Fix this.  Just putting /security/login -> 404
             return req.redirect(to: "http://localhost:8080/TBTable")
         }
+    }
+    
+    static func prepare(on: MySQLConnection) {
+        
     }
 }
 
@@ -39,9 +98,11 @@ extension User: Validatable {
     }
 }
 
+
 struct UserPersistInfo: Codable {
     // Non-secret struct represntation of a user that can be saved in the session
     var id: Int
     var name: String
     var emailAddress: String
+    var isAdmin: Bool
 }

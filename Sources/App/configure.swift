@@ -14,7 +14,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     // Register database
     try services.register(FluentMySQLProvider())
-    let databaseConfig = MySQLDatabaseConfig(hostname: "192.168.56.20", port: 3306, username: "devuser", password: "6ZoLeCKL8X86", database: "swiftvapor") //, transport: .unverifiedTLS)
+    let databaseConfig = MySQLDatabaseConfig(hostname: "192.168.56.20", port: 3306, username: "devuser", password: "6ZoLeCKL8X86", database: "apps_timebill") //, transport: .unverifiedTLS)
     services.register(databaseConfig)
     
     try services.register(MySQLProvider())
