@@ -18,26 +18,19 @@ class MySQLDirect {
     }
     
     func getTBTable(_ req: Request, userId: Int) throws -> Future<[TBTableColumns]> {
-         let sql = "select t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription, t.WorkDate , t.Duration, t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus from fTime t join fProjects p on t.ProjectID = p.ProjectID join fContracts c on p.ContractID = c.ContractID where t.PersonID = \(userId) and ExportStatus = 0 order by t.WorkDate"
+        let sql = "select t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription, t.WorkDate , t.Duration, t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus, t.ProjectID from fTime t join fProjects p on t.ProjectID = p.ProjectID join fContracts c on p.ContractID = c.ContractID where t.PersonID = \(userId) and ExportStatus = 0 order by t.WorkDate"
         return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self)
     }
-
-
-    struct MySQLVersion: Codable {
-        let version: String
+    
+    func getTBTableCOpts(_ req: Request) throws -> Future<[TBTableSelectOpts]> {
+        let sql = "select distinct left (Description, 30) AS description from fContracts c join fProjects p on c.ContractID = p.ContractID join fTime t on p.ProjectID = t.ProjectID where t.ExportStatus = 0 order by description"
+        return try getResultsRows(req, query: sql, decodeUsing: TBTableSelectOpts.self)
     }
     
-    struct TBTableColumns: Codable {
-        var timeId: Int
-        var description: String
-        var projectNumber: String
-        var projectDescription: String
-        var workDate: Date
-        var duration: Double
-        var useOTRate: Bool
-        var notes: String
-        var preDeliveryFlag: Bool
-        var exportStatus: Int8
+    func getTBTablePOpts(_ req: Request) throws -> Future<[TBTableSelectOpts]> {
+        let sql = "select distinct left(ProjectDescription, 30) AS description from fProjects p join fTime t on p.ProjectID = t.ProjectID where t.ExportStatus = 0 order by description"
+        return try getResultsRows(req, query: sql, decodeUsing: TBTableSelectOpts.self)
     }
+
 }
 

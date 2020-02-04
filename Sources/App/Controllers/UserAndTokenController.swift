@@ -10,11 +10,18 @@ import Vapor
 import FluentMySQL
 import Crypto
 
+enum UserAccessLevel: String, Codable {
+    case timeBilling = "T"
+    case admin = "A"
+    case report = "R"
+    case doc = "D"
+    case crm = "C"
+}
+
+
 class UserAndTokenController: RouteCollection {
     
-    // TODO:  move time interval and secret to configuration
-    private let secretKey = "Daisywasasweetsweetdog"
-    private let tokenExpDuration: Double = 3600         // seconds
+    static let tokenExpDuration: Double = 3600         // seconds
     
     func boot(router: Router) throws {
         router.group("security") { group in
@@ -27,6 +34,7 @@ class UserAndTokenController: RouteCollection {
             group.post("change-password", use: changePassword)
         }
     }
+    
     
     // MARK:  Methods connected to routes that return Views
     private func renderLogin(_ req: Request) throws -> Future<View> {
@@ -63,13 +71,17 @@ class UserAndTokenController: RouteCollection {
             guard try BCrypt.verify(password, created: user.passwordHash) else {
                 throw Abort(.unauthorized, reason: "Could not verify password.")
             }
+            
             // login success
+            guard user.isActive else {
+                throw Abort(.unauthorized, reason: "User's system access has been revoked.")
+            }
+            
             let session = try req.session()
             let userPersistInfo = user.persistInfo()!
             let ip = req.http.remotePeer.hostname
-            let token = try Token(user: userPersistInfo, exp: Date().addingTimeInterval(self.tokenExpDuration), ip: ip).encode()
-            print (token)
-            session["token"] = token
+            let tokenStringified = try Token(user: userPersistInfo, exp: Date().addingTimeInterval(Self.tokenExpDuration), ip: ip).encode()
+            session["token"] = tokenStringified
             return try user.redirectRouteAfterLogin(req)
         }
     }
@@ -128,29 +140,38 @@ class UserAndTokenController: RouteCollection {
     }
 
     
-    static func verifyAccess(_ req: Request, requiresAdmin: Bool?, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
+    static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
         guard let session = try? req.session(),
               let tokenJSON = session["token"] else
         {
             return UserAndTokenController.redirectToLogin(req)
         }
         let decoder = JSONDecoder()
-        let token = try decoder.decode(Token.self, from: tokenJSON)
+        var token = try decoder.decode(Token.self, from: tokenJSON)
         
         guard token.exp >= Date() || token.ip != req.http.remotePeer.hostname else {
             // token is expired, or ip address has changed
             return UserAndTokenController.redirectToLogin(req)
         }
         
-        if requiresAdmin == true && !token.user.isAdmin  {
+        if !token.user.access.contains(accessLevel)  {
             // TODO: reroute to a no permission for this resource page
             throw Abort (.unauthorized)
         }
+        token.exp = (Date().addingTimeInterval(Self.tokenExpDuration))
+        let tokenStringified = try token.encode()
+        session["token"] = tokenStringified
         return try onSuccess(token.user)
     }
-    
-    static func verifyAccess(_ req: Request, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
-        return try Self.verifyAccess(req, requiresAdmin: false, onSuccess: onSuccess)
+        
+    static func user(_ req: Request) throws -> UserPersistInfo? {
+        guard let session = try? req.session(),
+            let tokenJSON = session["token"] else {
+                return nil
+        }
+        let decoder = JSONDecoder()
+        let token = try? decoder.decode(Token.self, from: tokenJSON)
+        return token?.user
     }
 }
 

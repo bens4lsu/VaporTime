@@ -25,9 +25,16 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     
     try services.register(LeafProvider())
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)
+    /// Leaf add tags
+    services.register { container -> LeafTagConfig in
+        var config = LeafTagConfig.default()
+        config.use(Raw(), as: "raw")   // #raw(<myVar>) to print it as raw html in leaf vars
+        return config
+    }
     
     var middlewareConfig = MiddlewareConfig.default()
     middlewareConfig.use(SessionsMiddleware.self)
+    middlewareConfig.use(FileMiddleware.self)
     services.register(middlewareConfig)
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
     

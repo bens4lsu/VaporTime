@@ -40,7 +40,7 @@
         myVars.saveFilterToSession = function() {
             if (! myVars.initialLoad){
                 $.ajax({
-                    url: 'ajax/savesession.php',
+                    url: 'ajax/savesession',
                     type: 'post',
                     data: {
                         sesContract : $('#cellContractFilter select option:selected').text(),
@@ -75,8 +75,8 @@
         $(document).ready(function() {
             var mTable = $("#main_table").dataTable( {
                 "iDisplayLength" : 50,
-                "order" : [[<?php print $sesSortCol; ?>, "<?php print $sesSortDir; ?>"]],
-                "aaSorting" : [[<?php print $sesSortCol; ?>, "<?php print $sesSortDir; ?>"]],
+                "order" : [[#(filter.sortColumn), "#(filter.sortDirection)"]],
+                "aaSorting" : [[#(filter.sortColumn), "#(filter.sortDirection)"]],
                 "fnDrawCallback": function() {
                     myVars.reAdd();
                     myVars.saveFilterToSession();
@@ -96,18 +96,18 @@
             })
                 .columnFilter({
                     "aoColumns" : [ null,
-                                   {type: "select", values: <?php print $cOpts; ?>, selected : '<?php print trim($sesContract); ?>' },
-                                   {type: "select", values: <?php print $pOpts; ?>, selected : '<?php print trim($sesProject); ?>' },
-                                   {type: "date-range", min: '<?php print $sesDateFrom; ?>', max : '<?php print $sesDateTo; ?>' },
-                                   {type: "number-range", min: '<?php print $sesDurFrom; ?>', max : '<?php print $sesDurTo; ?>'},
-                                   {type: "text", bRegex: true, val : '<?php print $sesNote; ?>'},
+                                   {type: "select", values: #raw(cOpts), selected : '#(filter.contract)' },
+                                   {type: "select", values: #raw(pOpts), selected : '#(filter.project)' },
+                                   {type: "date-range", min: '#(filter.dateFrom)', max : '#(filter.dateTo)' },
+                                   {type: "number-range", min: '#(filter.durationFrom)', max : '#(filter.durationTo)'},
+                                   {type: "text", bRegex: true, val : '#(filter.noteFilter)'},
                                    null,
                                    null]
                 });
 
-            $('#row<?php print $highlightRow; ?>').ready(function() {
-                var theRow = $('#row<?php print $highlightRow; ?> td');
-                var origColor = $('#row<?php print $highlightRow; ?> td').css("backgroundColor");
+            $('#row#(highlightRow)').ready(function() {
+                var theRow = $('#row#(highlightRow) td');
+                var origColor = $('#row#(highlightRow) td').css("backgroundColor");
                 $(theRow).css({backgroundColor: '#ffff00'});
                 setTimeout(function() {
                     $(theRow).animate({backgroundColor: origColor}, 3000);
@@ -123,31 +123,42 @@
 
     </script>
     
+    <h1>#(who)</h1>
     <table id="main_table"><thead>
     <tr><th>ID</th><th>Contract</th><th>Project</th><th>Date</th><th>Duration</th><th>Notes</th><th>&nbsp;</th><th>&nbsp;</th></tr>
     </thead><tbody>
     
-    #for(row in rows) {
-        <tr id=row#(row.TimeID)>
-            <td>#(row.timeId)
-            </td><td>#(row.description)
-            </td><td>#if(row.projectNumber { #(row.projectNumber) - } #(row.projectDescription)
-                #if(row.preDeliveryFlag) { <img src="./images/preDeliv.png" title="Pre-delivery: early concept or design work" alt="pre-deliv" style="height: 13px;"> }
-                #if(row.useOTRate) { <img src="./images/ot.png" title="Night, weekend, or overtime rate" alt="ot rate" style="height: 13px;"> }
-                #if(row.exportStatus) { <img src="./images/exported.png" title="Information has been exported" alt="exported" style="height: 13px;"> }
-            </td><td>#(row.workDate)
-            </td><td class="dur">#(row.duration)
-            </td><td>#(row.notes)
-            </td><td><a href=frTBAddFormphp?projecdtId=#projectId><img src=images/edit-benpng style=border-style:hidden></a>
-            </td><td><a href=frTBDeleteConfirmphp?timeId=#(row.TimeID)><img src=images/delete-benpng style=border-style:hidden></a>
+    
+    #for(row in entries) { 
+        <tr id="row#(row.TimeID)">
+            <td>#(row.TimeID)
+            </td><td>#(row.Description)
+            </td><td>#if(row.ProjectNumber) { #(row.ProjectNumber) - } #(row.ProjectDescription)
+                #if(row.PreDeliveryFlag) { <img src="./images/preDeliv.png" title="Pre-delivery: early concept or design work" alt="pre-deliv" style="height: 13px;"> }
+                #if(row.UseOTRate) { <img src="./images/ot.png" title="Night, weekend, or overtime rate" alt="ot rate" style="height: 13px;"> }
+                #if(row.ExportStatus) { <img src="./images/exported.png" title="Information has been exported" alt="exported" style="height: 13px;"> }
+            </td><td>#date(row.WorkDate, "MM/dd/yyyy")
+            </td><td class="dur">#(row.Duration)
+            </td><td>#(row.Notes)
+            </td><td><a href=frTBAddForm?timeId=#(row.TimeID)><img src=images/edit-ben.png style=border-style:hidden></a>
+            </td><td><a href=frTBDeleteConfirm?timeId=#(row.TimeID)><img src=images/delete-ben.png style=border-style:hidden></a>
             </td>
         </tr>
     }
+    
+    </tbody>
+    <tfoot><tr>
+       <th>Filter Results:</th>
+       <th id="cellContractFilter">&nbsp;</th>
+       <th id="cellProjectFilter">&nbsp;</th>
+       <th id="cellDateFilter">&nbsp;</th>
+       <th id="cellDurFilter">&nbsp;</th>
+       <th id="cellNoteFilter"></th>
+       <th>&nbsp;</th><th>&nbsp;</th>
+    </tr><tr>
+    <th>Total:</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th id="timeTotal">&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th></tr>
+    </tfoot></table>'
  
-    
-
-    
-
 </body>
 </html>
 

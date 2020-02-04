@@ -71,8 +71,13 @@ struct User: Content, MySQLModel, Migration, Codable {
     
     func persistInfo() -> UserPersistInfo? {
         guard let id = self.id else { return nil }
-        let isAdmin: Bool = self.isAdmin
-        return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress, isAdmin: isAdmin)
+        var access = Set<UserAccessLevel>()
+        if self.isAdmin { access.insert(.admin) }
+        if self.isTimeBiller { access.insert(.timeBilling) }
+        if self.isReportViewer { access.insert(.report) }
+        if self.isCRMUser { access.insert(.crm) }
+        if self.isDocUser { access.insert(.doc) }
+        return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress, access: access)
     }
     
     func redirectRouteAfterLogin(_ req: Request) throws -> Future<Response> {
@@ -104,5 +109,5 @@ struct UserPersistInfo: Codable {
     var id: Int
     var name: String
     var emailAddress: String
-    var isAdmin: Bool
+    var access: Set<UserAccessLevel>
 }
