@@ -31,6 +31,27 @@ class MySQLDirect {
         let sql = "select distinct left(ProjectDescription, 30) AS description from fProjects p join fTime t on p.ProjectID = t.ProjectID where t.ExportStatus = 0 order by description"
         return try getResultsRows(req, query: sql, decodeUsing: TBTableSelectOpts.self)
     }
+    
+    func getTBTree(_ req: Request, userId: Int) throws -> Future<[TBTreeColumn]> {
+        let sql = """
+            SELECT ppp.ContractID,
+                ppp.ProjectID,
+                c.Description AS ContractDescription,
+                cc.CompanyName AS BillToCompany,
+                p.ProjectNumber,
+                p.ProjectDescription,
+                pc.CompanyName AS ServicesForCompany
+            FROM vwPersonProjectPermissions ppp
+                JOIN fContracts c ON ppp.ContractID = c.ContractID
+                JOIN LuCompanies cc ON c.BillToCompany = cc.CompanyID
+                JOIN fProjects p ON ppp.ProjectID = p.ProjectID
+                JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
+            WHERE c.ContractCompleted = 0
+                AND p.IsActive = 1
+                AND ppp.PersonID = \(userId)
+        """
+        return try getResultsRows(req, query: sql, decodeUsing: TBTreeColumn.self)
+    }
 
 }
 

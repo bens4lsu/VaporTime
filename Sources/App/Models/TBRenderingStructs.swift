@@ -7,6 +7,7 @@
 
 import Foundation
 
+// MARK: TBTable
 struct TBTableColumns: Codable {
     var timeId: Int
     var description: String
@@ -69,6 +70,8 @@ struct TimeBillingSessionFilter: Codable {
     var sortDirection: String = "desc"
 }
 
+// MARK: Used for the filtering drop downs at the bottom of the TB Table
+
 struct TBTableSelectOpts: Codable {
     var description: String
 }
@@ -79,5 +82,40 @@ extension Array where Element == TBTableSelectOpts {
         let flattened = self.map({$0.description})
         guard let flatJson = try? encoder.encode(flattened) else { return nil }
         return String(data: flatJson, encoding: .utf8)
+    }
+}
+
+// MARK: TBTree
+struct TBTreeItem: Codable {
+    var levels: Int
+    var level1: String
+    var level2: String?
+    var level3: String?
+    var projectId: Int
+    var contractId: Int
+}
+
+struct TBTreeContext: Codable {
+    var items: [TBTreeItem]
+    var welcome = "Hi Ben!"
+}
+
+struct TBTreeColumn: Codable {
+    var contractId: Int
+    var projectId: Int
+    var contractDescription: String
+    var billToCompany: String
+    var projectNumber: String?
+    var projectDescription: String
+    var servicesForCompany: String
+    
+    private enum CodingKeys: String, CodingKey {
+        case contractId = "ContractID",
+        projectId = "ProjectID",
+        contractDescription = "ContractDescription",
+        billToCompany = "BillToCompany",
+        projectNumber = "ProjectNumber",
+        projectDescription = "ProjectDescription",
+        servicesForCompany = "ServicesForCompany"
     }
 }

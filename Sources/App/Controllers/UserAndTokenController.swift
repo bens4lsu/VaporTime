@@ -18,7 +18,6 @@ enum UserAccessLevel: String, Codable {
     case crm = "C"
 }
 
-
 class UserAndTokenController: RouteCollection {
     
     static let tokenExpDuration: Double = 3600         // seconds
@@ -162,16 +161,6 @@ class UserAndTokenController: RouteCollection {
         let tokenStringified = try token.encode()
         session["token"] = tokenStringified
         return try onSuccess(token.user)
-    }
-        
-    static func user(_ req: Request) throws -> UserPersistInfo? {
-        guard let session = try? req.session(),
-            let tokenJSON = session["token"] else {
-                return nil
-        }
-        let decoder = JSONDecoder()
-        let token = try? decoder.decode(Token.self, from: tokenJSON)
-        return token?.user
     }
 }
 
