@@ -25,6 +25,7 @@ class TimeBillingController: RouteCollection {
         router.get("TBTable", use: renderTimeTable)
         router.post("ajax/savesession", use: updateSessionFilters)
         router.get("TBTree", use: renderTimeTree)
+        router.get("TBAddEdit", use: renderTimeAddEdit)
     }
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
@@ -55,9 +56,23 @@ class TimeBillingController: RouteCollection {
     private func renderTimeTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             return try db.getTBTree(req, userId: user.id).flatMap(to:Response.self) { items in
-                let treeItems = self.dbItems2TreeItems(items: items)
+                let treeItems = self.convertDbItemsToTreeItems(items: items)
                 let context = TBTreeContext(items: treeItems)
                 return try req.view().render("time-tree", context).encode(for: req)
+            }
+        }
+    }
+    
+    private func renderTimeAddEdit(_ req: Request) throws -> Future<Response> {
+        guard let projectId = req.query[Int.self, at: "projectId"] else {
+            throw Abort(.badRequest, reason: "Time edit requested with no projectId.")
+        }
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { _ in
+            return try db.getTBAdd(req, projectId: projectId).flatMap(to: Response.self) { project in
+                guard let project = project else {
+                    throw Abort(.badRequest, reason: "Database lookup for project returned no records.")
+                }
+                return try req.view().render("time-add-edit", project).encode(for: req)
             }
         }
     }
@@ -74,7 +89,7 @@ class TimeBillingController: RouteCollection {
     
     // MARK:  Helpers
     
-    private func dbItems2TreeItems(items: [TBTreeColumn]) -> [TBTreeItem] {
+    private func convertDbItemsToTreeItems(items: [TBTreeColumn]) -> [TBTreeItem] {
     /*
         Build the tree.  We want to meet these requirements...
         
@@ -84,6 +99,11 @@ class TimeBillingController: RouteCollection {
         D) If we have >1 services for and >1 project, need three levels.
 
     */
+        
+        // Build dictionaries of sets, which keep listings from being
+        // duplicated and let us pluck information that we need in the
+        // main logic below
+
         var contractProjectDictionary = [Int: Set<Int>]()
         var contractCompanyDictionary = [Int: Set<String>]()
         var contracts = Set<Int>()
@@ -101,6 +121,8 @@ class TimeBillingController: RouteCollection {
             contractCompanyDictionary[contract]!.insert(item.servicesForCompany)
         }
         
+        
+        // Here's the logic -- iterate over each contract (top level)
         var treeItems = [TBTreeItem]()
         for contract in contracts {
             let projCount = contractProjectDictionary[contract]!.count
@@ -110,50 +132,70 @@ class TimeBillingController: RouteCollection {
                 // A
                 let row = items.filter { $0.projectId == contractProjectDictionary[contract]!.first }.first!
                 let level1 = "\(row.contractDescription) - \(row.projectDescription)"
-                let item = TBTreeItem(levels: 1, level1: level1, level2: nil, level3:nil, projectId: row.projectId, contractId: row.contractId)
+                let branch = TBTreeItemBranch(label: level1, projectId: row.projectId)
+                let item = TBTreeItem(levels: 1, level1: branch, contractId: row.contractId)
                 treeItems.append(item)
             }
                 
             else if projCount > 1 && sfCount == 1 {
                 // B
                 let rows = items.filter { contractProjectDictionary[contract]!.contains($0.projectId) }
-                let level1 = "\(rows.first!.contractDescription) - \(rows.first!.servicesForCompany)"
+                var level1 = TBTreeItemBranch(label: "\(rows.first!.contractDescription) - \(rows.first!.servicesForCompany)")
+                var level2 = [TBTreeItemBranch]()
                 for row in rows {
-                    var level2: String
+                    var label: String
                     if let projectNumber = row.projectNumber {
-                        level2 = projectNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-                        level2 = level2.count > 0 ? "\(level2) - \(row.projectDescription)" : row.projectDescription
+                        label = projectNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+                        label = level2.count > 0 ? "\(level2) - \(row.projectDescription)" : row.projectDescription
                     } else {
-                        level2 = row.projectDescription
+                        label = row.projectDescription
                     }
-                    let item = TBTreeItem(levels: 2, level1: level1, level2: level2, level3: nil, projectId: row.projectId, contractId: row.contractId)
-                    treeItems.append(item)
+                    level2.append(TBTreeItemBranch(label: label, projectId: row.projectId))
                 }
+                level1.children = level2.sorted()
+                let item = TBTreeItem(levels: 2, level1: level1, contractId: contract)
+                treeItems.append(item)
             }
+                
             else if projCount == 1 && sfCount > 1 {
                 // C
                 let rows = items.filter { contractCompanyDictionary[contract]!.contains($0.servicesForCompany) }
-                let level1 = "\(rows.first!.contractDescription)"
+                var level1 = TBTreeItemBranch(label: "\(rows.first!.contractDescription)")
+                var level2 = [TBTreeItemBranch]()
                 for row in rows {
-                    let level2 = "\(row.servicesForCompany) - \(row.projectDescription)"
-                    let item = TBTreeItem(levels: 2, level1: level1, level2: level2, level3: nil, projectId: row.projectId, contractId: row.contractId)
-                    treeItems.append(item)
+                    level2.append(TBTreeItemBranch(label: "\(row.servicesForCompany) - \(row.projectDescription)", projectId: row.projectId))
                 }
+                level1.children = level2.sorted()
+                let item = TBTreeItem(levels: 2, level1: level1, contractId: contract)
+                treeItems.append(item)
             }
+                
             else {
                 // D
                 let companies = contractCompanyDictionary[contract]!
+                let contractStruct = items.filter { $0.contractId == contract }.first!
+                var level1 = TBTreeItemBranch(label: contractStruct.contractDescription, projectId: nil, children: Array())
                 for company in companies {
+                    var level2 = TBTreeItemBranch(label: company)
+                    var level3 = [TBTreeItemBranch]()
                     let rows = items.filter { $0.servicesForCompany == company && $0.contractId == contract}
                     for row in rows {
-                        let item = TBTreeItem(levels: 3, level1: row.contractDescription, level2: company, level3: row.projectDescription, projectId: row.projectId, contractId: row.contractId)
-                        treeItems.append(item)
+                        level3.append(TBTreeItemBranch(label: row.projectDescription, projectId: row.projectId))
                     }
-                    
+                    level2.children = level3.sorted()
+                    // if level2 only has one child, flatten it
+                    if level2.children!.count == 1 {
+                        let child = level2.children!.first!
+                        level2 = TBTreeItemBranch(label: "\(level2.label) - \(child.label)")
+                    }
+                    level1.children!.append(level2)
                 }
+                level1.children!.sort()
+                let item = TBTreeItem(levels: 3, level1: level1, contractId: contractStruct.contractId)
+                treeItems.append(item)
             }
         }
-        return treeItems
+        return treeItems.sorted { $0.level1.label < $1.level1.label }
     }
 }
 

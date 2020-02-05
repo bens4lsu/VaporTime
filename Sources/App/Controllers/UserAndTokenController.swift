@@ -16,6 +16,7 @@ enum UserAccessLevel: String, Codable {
     case report = "R"
     case doc = "D"
     case crm = "C"
+    case activeOnly = "X"
 }
 
 class UserAndTokenController: RouteCollection {

@@ -1,2 +1,78 @@
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
 
-#(welcome)
+    <link rel="stylesheet" type="text/css" href="./css/jstree.style.css">
+      <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+      <script type="text/javascript" src="./js/jquery.ui.touch.js"></script>
+      <script type="text/javascript" src="./js/jstree.js"></script>
+    <style>
+        #tree .jstree-closed > a > i { background-image:url("./images/folder.png");  background-position:left center;}
+        #tree .jstree-open > a > i { background-image:url("./images/folder.png");  background-position:left center;}
+        #tree .jstree-leaf > a > i { background-image:url("./images/blueplus.png"); background-position:left center;  }
+        h2 {font-size:90%; width:100%; background-color: #C4C4C4; padding:4px 1.8em; font-family:Verdana, Arial, Sans-Serif; }
+        #tree {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+    
+    </style>
+
+</head>
+<body>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+            $("#tree").jstree();
+            
+        /*    $('.node_addTime > .jstree-anchor').css({"background-image": "url('../images/blueplus.png')",
+                                   "background-position": "left center",
+                                   "background-repeat": "no-repeat"});*/
+        });
+    </script>
+
+    <h2>Add New</h2>
+    
+    <div id="tree"><ul>
+    
+     #for(item in items) {
+     
+         #if(item.levels == 1) {
+         
+             <li class="node_addTime"><a href="#" title="#(item.level1.label)" onclick="parent.window.frames['frTBTable'].location='TBAddEdit?projectId=#(item.level1.projectId)'">#(item.level1.label)</a></li>
+        }
+
+        #if(item.levels == 2) {
+        
+            <li><a href="#">#(item.level1.label)</a><ul>
+            
+            #for(itemlev2 in item.level1.children) {
+            
+                <li class="node_addTime"><a href="#" title="#(itemlev2.label)" onclick="parent.window.frames['frTBTable'].location='TBAddEdit?projectId=#(itemlev2.projectId)'">#(itemlev2.label)</a></li>
+                
+            }
+            </ul>
+        }
+        
+        #if(item.levels == 3) {
+        
+            <li><a href="#">#(item.level1.label)</a><ul>
+            
+            #for(itemlevel2 in item.level1.children) {
+            
+                <li><a href="#">#(itemlevel2.label)</a><ul>
+                
+                #for(itemlev3 in itemlevel2.children) {
+                
+                    <li class="node_addTime"><a href="#" title="#(itemlev3.label)" onclick="parent.window.frames['frTBTable'].location='TBAddEdit?projectId=#(itemlev3.projectId)'">#(itemlev3.label)</a></li>
+                }
+            
+                </ul>
+            }
+            </ul>
+
+        }
+
+    }
+    
+</body>
+</html>

@@ -1,0 +1,107 @@
+
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/infodrivenlife.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+   <style>
+        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+    </style>
+
+</head>
+<body class="mainbox" >
+
+    <script type="text/javascript">
+
+
+            
+            
+        $(document).ready(function() {
+
+            jQuery.fn.checkAll = function() {
+                 $('input[type=text]').each(function(index, element) {
+                       if ($(this).val() == '') {
+                             $('input[type=submit]').attr("disabled","disabled");
+                             return false;
+                       } else {
+                             $('input[type=submit]').removeAttr('disabled');
+                       }
+                 });
+            }
+        
+            $("#formmain").validate({
+                rules: {
+                    datepicker: {
+                          required: true,
+                          date: true
+                    },
+                    duration: {
+                        required: true,
+                        min: 0.1,
+                        numeric: true
+                      }
+                  }
+            });
+            
+            $('input[type=text]').bind('mouseenter mouseleave focus blur keypress', function() {
+                $(this).checkAll();
+            });
+
+    
+            $("#datepicker").datepicker();
+            
+            //$("#btnCancel").attr("disabled","disabled");
+            $("#btnCancel").click(function(){
+                window.location = "TBTable";
+            });
+
+        });
+
+
+    </script>
+    
+    <h3>Add time to Project</h3>
+    <table>
+        <tr><td style="align:right;">Contract:</td><td>#(Description)</td></tr>
+        <tr><td style="align:right;">Services For:</td><td>#(CompanyName)</td></tr>
+        <tr><td style="align:right;">Project:</td><td>#if(ProjectNumber) { #(ProjectNumber) - }#(ProjectDescription)</td></tr>
+        <tr><td style="align:right;">Project ID:</td><td>#(ProjectID)</td></tr>
+        #if(TimeID) {
+            <tr><td style="align:right;">Time ID:</td><td>#(TimeID)</td></tr>
+        }
+    </table>
+    
+    <form method="post" action="postTimeAdd" id="formmain">
+        <span style="display:none;">
+            <input name="projectId" value="#(projectId)"></input>
+            <input name="timeId" value="#(timeId)"></input>
+        </span>
+        <table>
+            <tr>
+                <td>Date:</td><td><input type="text" id="datepicker" name="datepicker" tabindex="1"></input></td>
+                <td>Duration:</td><td><input type="text" id="duration" name="duration" tabindex="2"></td>
+                <td>OT:</td><td><input type="checkbox" id="ot" name="ot" tabindex="3" class="required"></input></td>
+            </tr>
+            <tr>
+                <td colspan="4">Notes:</td>
+                <td>Pre-deliv:</td><td><input type="checkbox" id="pre" name="pre" tabindex="4"></input></td>
+            </tr>
+            <tr>
+                <td rowspan="2" colspan="4"><textarea name="notes" tabindex="5" style="width:400px; height:8em;"></textarea></td>
+                <td>Do Not Bill:</td><td><input type="checkbox" id="nobill" name="nobill" tabindex="6"></input></td>
+            </tr>
+        </table>
+        <input type="submit" value="Submit" tabindex="7" >
+        <button type="button" value="Cancel" tabindex="8" onclick="window.location='frTBTable.php'" id="btnCancel">Cancel</button>
+    </form>
+                            
+    
+        
+
+</body>
+</html>

@@ -88,16 +88,22 @@ extension Array where Element == TBTableSelectOpts {
 // MARK: TBTree
 struct TBTreeItem: Codable {
     var levels: Int
-    var level1: String
-    var level2: String?
-    var level3: String?
-    var projectId: Int
+    var level1: TBTreeItemBranch
     var contractId: Int
+}
+
+struct TBTreeItemBranch: Codable, Comparable {
+    var label: String
+    var projectId: Int?
+    var children: [TBTreeItemBranch]?
+    
+    static func < (lhs: TBTreeItemBranch, rhs: TBTreeItemBranch) -> Bool {
+        lhs.label < rhs.label
+    }
 }
 
 struct TBTreeContext: Codable {
     var items: [TBTreeItem]
-    var welcome = "Hi Ben!"
 }
 
 struct TBTreeColumn: Codable {
@@ -117,5 +123,23 @@ struct TBTreeColumn: Codable {
         projectNumber = "ProjectNumber",
         projectDescription = "ProjectDescription",
         servicesForCompany = "ServicesForCompany"
+    }
+}
+
+
+// MARK:  TB Add/Edit
+struct TBEditProjectLabel: Codable {
+    var description: String
+    var companyName: String
+    var projectDescription: String
+    var projectNumber: String?
+    var projectId: Int
+    
+    private enum CodingKeys: String, CodingKey {
+        case description = "Description"
+        case companyName = "CompanyName"
+        case projectDescription = "ProjectDescription"
+        case projectNumber = "ProjectNumber"
+        case projectId = "ProjectID"
     }
 }

@@ -17,6 +17,13 @@ class MySQLDirect {
         }
     }
     
+    private func getResultRow<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> Future<T?> {
+        return req.withPooledConnection(to: .mysql) { conn in
+            return conn.raw(query).first(decoding: T.self)
+        }
+    }
+    
+    
     func getTBTable(_ req: Request, userId: Int) throws -> Future<[TBTableColumns]> {
         let sql = "select t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription, t.WorkDate , t.Duration, t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus, t.ProjectID from fTime t join fProjects p on t.ProjectID = p.ProjectID join fContracts c on p.ContractID = c.ContractID where t.PersonID = \(userId) and ExportStatus = 0 order by t.WorkDate"
         return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self)
@@ -51,6 +58,17 @@ class MySQLDirect {
                 AND ppp.PersonID = \(userId)
         """
         return try getResultsRows(req, query: sql, decodeUsing: TBTreeColumn.self)
+    }
+    
+    func getTBAdd(_ req: Request, projectId: Int) throws -> Future<TBEditProjectLabel?> {
+            let sql = """
+                SELECT c.Description, co.CompanyName, p.ProjectDescription, p.ProjectNumber, p.ProjectID
+                FROM fProjects p
+                    JOIN fContracts c ON p.ContractID = c.ContractID
+                    JOIN LuCompanies co ON p.ServicesForCompany = co.CompanyID
+                WHERE p.ProjectID = \(projectId)
+            """
+        return try getResultRow(req, query: sql, decodeUsing: TBEditProjectLabel.self)
     }
 
 }

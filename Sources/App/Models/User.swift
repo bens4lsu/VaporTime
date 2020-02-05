@@ -72,6 +72,7 @@ struct User: Content, MySQLModel, Migration, Codable {
     func persistInfo() -> UserPersistInfo? {
         guard let id = self.id else { return nil }
         var access = Set<UserAccessLevel>()
+        access.insert(.activeOnly)
         if self.isAdmin { access.insert(.admin) }
         if self.isTimeBiller { access.insert(.timeBilling) }
         if self.isReportViewer { access.insert(.report) }
@@ -85,7 +86,7 @@ struct User: Content, MySQLModel, Migration, Codable {
         //        best default spot for them to be redirected.
         return req.future().map() {
             // TODO:  Fix this.  Just putting /security/login -> 404
-            return req.redirect(to: "http://localhost:8080/TBTable")
+            return req.redirect(to: "/")
         }
     }
     
@@ -110,4 +111,14 @@ struct UserPersistInfo: Codable {
     var name: String
     var emailAddress: String
     var access: Set<UserAccessLevel>
+    
+    func accessDictionary() -> [String: Bool] {
+        var dict = [String: Bool]()
+        dict["timeBilling"] = access.contains(.timeBilling)
+        dict["admin"] = access.contains(.admin)
+        dict["report"] = access.contains(.report)
+        dict["doc"] = access.contains(.doc)
+        dict["crm"] = access.contains(.crm)
+        return dict
+    }
 }
