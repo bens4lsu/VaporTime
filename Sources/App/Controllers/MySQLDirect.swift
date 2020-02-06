@@ -10,7 +10,7 @@ import MySQL
 import Vapor
 
 class MySQLDirect {
-            
+    
     private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> Future<[T]> {
         return req.withPooledConnection(to: .mysql) { conn in
             return conn.raw(query).all(decoding: T.self)
@@ -25,7 +25,15 @@ class MySQLDirect {
     
     
     func getTBTable(_ req: Request, userId: Int) throws -> Future<[TBTableColumns]> {
-        let sql = "select t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription, t.WorkDate , t.Duration, t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus, t.ProjectID from fTime t join fProjects p on t.ProjectID = p.ProjectID join fContracts c on p.ContractID = c.ContractID where t.PersonID = \(userId) and ExportStatus = 0 order by t.WorkDate"
+        let sql = """
+            SELECT t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription,
+                t.WorkDate, t.Duration,
+                t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus, t.ProjectID
+            FROM fTime t
+                JOIN fProjects p on t.ProjectID = p.ProjectID
+                JOIN fContracts c ON p.ContractID = c.ContractID
+            WHERE t.PersonID = \(userId) AND ExportStatus = 0 ORDER BY t.WorkDate
+        """
         return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self)
     }
     

@@ -26,6 +26,7 @@
             
         myVars = {};
         myVars.initialLoad = true;
+        myVars.rowToDelete = null;
         
         myVars.reAdd = function() {
             var sum = 0.0;
@@ -114,8 +115,36 @@
                 }, 500);
             });
             
-        myVars.initialLoad = false;
+            $('#dlgConfirmDelete').dialog({
+                autoOpen: false,
+               // position: {my: "left-400", at: "right", of: '#group-3'},
+                title: 'Confirmation',
+                width: 315,
+                modal : true,
+                open: function(){
+                    var row = myVars.rowToDelete
+                    var id = $("#main_table tbody tr td").filter(function() {
+                        return $(this).text() == row;
+                    });
+                    $("#spanConfirmID").text(id.text());
+                    var contract = id.next();
+                    $("#spanConfirmContract").text(contract.text());
+                    var project = contract.next();
+                    var date = project.next();
+                    var duration = date.next();
+                    var notes = duration.next()
+                    
+                    
+                },
+                close: function(){
+                    
+                }
+            });
+  
+            myVars.initialLoad = false;
         });
+        
+            
         
         
         
@@ -129,7 +158,7 @@
     </thead><tbody>
     
     
-    #for(row in entries) { 
+    #for(row in entries) {
         <tr id="row#(row.TimeID)">
             <td>#(row.TimeID)
             </td><td>#(row.Description)
@@ -140,7 +169,7 @@
             </td><td>#date(row.WorkDate, "MM/dd/yyyy")
             </td><td class="dur">#(row.Duration)
             </td><td>#(row.Notes)
-            </td><td><a href=frTBAddForm?timeId=#(row.TimeID)><img src=images/edit-ben.png style=border-style:hidden></a>
+            </td><td><a href=TBAddEdit?timeId=#(row.TimeID)&projectId=#(row.ProjectID)><img src=images/edit-ben.png style=border-style:hidden></a>
             </td><td><a href=frTBDeleteConfirm?timeId=#(row.TimeID)><img src=images/delete-ben.png style=border-style:hidden></a>
             </td>
         </tr>
@@ -158,6 +187,17 @@
     </tr><tr>
     <th>Total:</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th id="timeTotal">&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th></tr>
     </tfoot></table>'
+    
+    <div id="dlgConfirmDelete">
+        <h3> Are you sure you want to delete this record?</h3>
+        <p>TimeID:  <span id="spanConfirmID"></span></p>
+        <p>Contract: <span id="spanConfirmContract"></span></p>
+        <p>Project: <span id="spanConfirmProject"></span></p>
+        <p>Date: <span id="spanConfirmDate"></span></p>
+        <p>Duration: <span id="spanConfirmDuration"></span></p>
+        <p>Note: <span id="spanConfirmNote"></span></p>
+        <button id="btnCloseConfirmDialog">Done</button>
+    </div>
  
 </body>
 </html>

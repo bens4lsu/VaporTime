@@ -80,16 +80,7 @@ struct User: Content, MySQLModel, Migration, Codable {
         if self.isDocUser { access.insert(.doc) }
         return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress, access: access)
     }
-    
-    func redirectRouteAfterLogin(_ req: Request) throws -> Future<Response> {
-        // TODO:  use the user's permissions and properties to figure out the
-        //        best default spot for them to be redirected.
-        return req.future().map() {
-            // TODO:  Fix this.  Just putting /security/login -> 404
-            return req.redirect(to: "/")
-        }
-    }
-    
+        
     static func prepare(on: MySQLConnection) {
         
     }

@@ -67,33 +67,33 @@
     
     <h3>Add time to Project</h3>
     <table>
-        <tr><td style="align:right;">Contract:</td><td>#(Description)</td></tr>
-        <tr><td style="align:right;">Services For:</td><td>#(CompanyName)</td></tr>
-        <tr><td style="align:right;">Project:</td><td>#if(ProjectNumber) { #(ProjectNumber) - }#(ProjectDescription)</td></tr>
-        <tr><td style="align:right;">Project ID:</td><td>#(ProjectID)</td></tr>
-        #if(TimeID) {
-            <tr><td style="align:right;">Time ID:</td><td>#(TimeID)</td></tr>
+        <tr><td style="align:right;">Contract:</td><td>#(project.Description)</td></tr>
+        <tr><td style="align:right;">Services For:</td><td>#(project.CompanyName)</td></tr>
+        <tr><td style="align:right;">Project:</td><td>#if(project.ProjectNumber) { #(project.ProjectNumber) - }#(project.ProjectDescription)</td></tr>
+        <tr><td style="align:right;">Project ID:</td><td>#(project.ProjectID)</td></tr>
+        #if(time) {
+            <tr><td style="align:right;">Time ID:</td><td>#(time.id)</td></tr>
         }
     </table>
     
-    <form method="post" action="postTimeAdd" id="formmain">
+    <form method="post" id="formmain">
         <span style="display:none;">
-            <input name="projectId" value="#(projectId)"></input>
-            <input name="timeId" value="#(timeId)"></input>
+            <input name="projectId" value="#(project.ProjectID)"></input>
+            <input name="timeId" value="#(TimeID)"></input>
         </span>
         <table>
             <tr>
-                <td>Date:</td><td><input type="text" id="datepicker" name="datepicker" tabindex="1"></input></td>
-                <td>Duration:</td><td><input type="text" id="duration" name="duration" tabindex="2"></td>
-                <td>OT:</td><td><input type="checkbox" id="ot" name="ot" tabindex="3" class="required"></input></td>
+                <td>Date:</td><td><input type="text" id="datepicker" name="datepicker" tabindex="1" value="#date(time.WorkDate, "MM/dd/yyyy")"></input></td>
+                <td>Duration:</td><td><input type="text" id="duration" name="duration" tabindex="2" value="#(time.Duration)"></td>
+                <td>OT:</td><td><input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.PreDeliveryFlag) { checked }></input></td>
             </tr>
             <tr>
                 <td colspan="4">Notes:</td>
-                <td>Pre-deliv:</td><td><input type="checkbox" id="pre" name="pre" tabindex="4"></input></td>
+                <td>Pre-deliv:</td><td><input type="checkbox" id="pre" name="pre" tabindex="4" #if(time.UseOTRate) { checked }></input></td>
             </tr>
             <tr>
-                <td rowspan="2" colspan="4"><textarea name="notes" tabindex="5" style="width:400px; height:8em;"></textarea></td>
-                <td>Do Not Bill:</td><td><input type="checkbox" id="nobill" name="nobill" tabindex="6"></input></td>
+                <td rowspan="2" colspan="4"><textarea name="notes" tabindex="5" style="width:400px; height:8em;">#(time.Notes)</textarea></td>
+                <td>Do Not Bill:</td><td><input type="checkbox" id="nobill" name="nobill" tabindex="6" #if(time.DoNotBillFlag) { checked }></input></td>
             </tr>
         </table>
         <input type="submit" value="Submit" tabindex="7" >

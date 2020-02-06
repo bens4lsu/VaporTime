@@ -11,6 +11,12 @@ import FluentMySQL
 import Leaf
 
 
+// TODO:  For rendered views that show up inside a frame, if the session has become invalid, don't redirect to login,
+//        because then you have a login screen inside a frame.  Just go to a session-exipred page.
+//          Is there a way to redirect the top page of the browser?  maybe I can send a post to a javascript listener
+//          on index?
+//
+
 class TimeBillingController: RouteCollection {
     
     let userAndTokenController: UserAndTokenController
@@ -26,6 +32,7 @@ class TimeBillingController: RouteCollection {
         router.post("ajax/savesession", use: updateSessionFilters)
         router.get("TBTree", use: renderTimeTree)
         router.get("TBAddEdit", use: renderTimeAddEdit)
+        router.post("TBAddEdit", use: addEditTimeEntry)
     }
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
@@ -41,11 +48,12 @@ class TimeBillingController: RouteCollection {
     // MARK:  Methods connected to routes that return Views
     
     private func renderTimeTable(_ req: Request) throws -> Future<Response> {
+        let highlightRow = try? req.query.get(Int.self, at: "highlightRow")
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             return try db.getTBTableCOpts(req).flatMap(to: Response.self) { cOpts in
                 return try self.db.getTBTablePOpts(req).flatMap(to: Response.self) {pOpts in
                     return try self.db.getTBTable(req, userId: user.id).flatMap(to: Response.self) { entries in
-                        let context = TBTableContext(entries: entries, filter: self.sessionSortOptions(req), cOpts: cOpts.toJSON(), pOpts: pOpts.toJSON())
+                        let context = TBTableContext(entries: entries, filter: self.sessionSortOptions(req), highlightRow: highlightRow, cOpts: cOpts.toJSON(), pOpts: pOpts.toJSON())
                         return try req.view().render("time-table", context).encode(for: req)
                     }
                 }
@@ -64,26 +72,67 @@ class TimeBillingController: RouteCollection {
     }
     
     private func renderTimeAddEdit(_ req: Request) throws -> Future<Response> {
-        guard let projectId = req.query[Int.self, at: "projectId"] else {
+        guard let projectId = try? req.query.get(Int.self, at: "projectId") else {
             throw Abort(.badRequest, reason: "Time edit requested with no projectId.")
         }
+        let timeId = try? req.query.get(Int.self, at: "timeId")
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { _ in
             return try db.getTBAdd(req, projectId: projectId).flatMap(to: Response.self) { project in
                 guard let project = project else {
                     throw Abort(.badRequest, reason: "Database lookup for project returned no records.")
                 }
-                return try req.view().render("time-add-edit", project).encode(for: req)
+                var context = TBAddEditContext(project: project)
+                if let timeId = timeId {
+                    return Time.find(timeId, on: req).flatMap(to: Response.self) { time in
+                        guard var time = time else {
+                            return try req.view().render("time-add-edit", context).encode(for: req)
+                        }
+                        time.workDate = time.workDate.addingTimeInterval(12*3600)
+                        context.time = time
+                        return try req.view().render("time-add-edit", context).encode(for: req)
+                    }
+                } else {
+                    return try req.view().render("time-add-edit", context).encode(for: req)
+                }
+                
             }
         }
     }
     
     
-    // MARK:  Methods connected to routes that return data
+    // MARK:  Methods connected to routes that return data or redirect
     
     private func updateSessionFilters(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             // TODO:  save selected info change in the session
             return try "ok".encode(for: req)
+        }
+    }
+    
+    private func addEditTimeEntry(_ req: Request) throws -> Future<Response> {
+        let timeId = try? req.query.get(Int.self, at: "timeId")
+        let projectIdOpt = try? req.query.get(Int.self, at: "projectId")
+        let workDateOpt = (try? req.content.syncGet(at: "datepicker")).toDate()
+        let durationOpt: Double? = try? req.content.syncGet(at: "duration")
+        let useOtRate = (try? req.content.syncGet(at: "ot")).toBool()
+        let preDelivery = (try? req.content.syncGet(at: "pre")).toBool()
+        let notes: String = (try? req.content.syncGet(at: "notes")) ?? ""
+        let doNotBill = (try? req.content.syncGet(at: "nobill")).toBool()
+    
+        guard let projectId = projectIdOpt, let workDate = workDateOpt, let duration = durationOpt else {
+            throw Abort(.badRequest, reason: "Time entry submitted without at least one required value (project, date, duration).")
+        }
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+            let time = Time(id: timeId, personId: user.id, projectId: projectId, workDate: workDate, duration: duration, useOTRate: useOtRate, notes: notes, exportStatus: 0, preDeliveryFlag: preDelivery, doNotBillFlag: doNotBill)
+            return time.save(on: req).map(to: Response.self) { timeRow in
+                var urlAddString = ""
+                if timeRow.id != nil {
+                    // i can't think of how this comes back nil, but I'll stick this line in an if, just in case...
+                    urlAddString = "?highlightRow=\(timeRow.id!)"
+                }
+                return req.redirect(to: "TBTable\(urlAddString)")
+            }
+            
         }
     }
     

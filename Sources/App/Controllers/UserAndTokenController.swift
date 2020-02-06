@@ -82,7 +82,9 @@ class UserAndTokenController: RouteCollection {
             let ip = req.http.remotePeer.hostname
             let tokenStringified = try Token(user: userPersistInfo, exp: Date().addingTimeInterval(Self.tokenExpDuration), ip: ip).encode()
             session["token"] = tokenStringified
-            return try user.redirectRouteAfterLogin(req)
+            return req.future().map() {
+                return req.redirect(to: "/")
+            }
         }
     }
     

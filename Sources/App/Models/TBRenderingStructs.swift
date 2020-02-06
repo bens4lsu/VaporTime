@@ -4,6 +4,9 @@
 //
 //  Created by Ben Schultz on 2/3/20.
 //
+//  I like to write my database queries with select statements that join columns from other
+//  tables, and who leave columns out of tables.  These models map to select statement results
+//  from the direct database queries in MySQLDirect.swift
 
 import Foundation
 
@@ -19,6 +22,7 @@ struct TBTableColumns: Codable {
     var notes: String
     var preDeliveryFlag: Bool
     var exportStatus: Int
+    var projectId: Int
     
     // MARK: Map to MySQL database and columns
     
@@ -32,7 +36,8 @@ struct TBTableColumns: Codable {
         useOTRate = "useOTRate",
         notes = "Notes",
         preDeliveryFlag = "PreDeliveryFlag",
-        exportStatus = "ExportStatus"
+        exportStatus = "ExportStatus",
+        projectId = "ProjectID"
     }
 
     init(from decoder: Decoder) throws {
@@ -41,19 +46,20 @@ struct TBTableColumns: Codable {
         self.description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
         self.projectNumber = try container.decodeIfPresent(String.self, forKey: .projectNumber)
         self.projectDescription = try container.decodeIfPresent(String.self, forKey: .projectDescription) ?? ""
-        self.workDate = try container.decodeIfPresent(Date.self, forKey: .workDate)!
+        self.workDate = try container.decodeIfPresent(Date.self, forKey: .workDate)!.addingTimeInterval(12*3600)
         self.duration = try container.decodeIfPresent(Double.self, forKey: .duration) ?? 0.0
         self.useOTRate = (try? container.decodeIfPresent(String.self, forKey: .useOTRate)) == "1" ? true : false
         self.notes = try container.decodeIfPresent(String.self, forKey: .notes) ?? ""
         self.preDeliveryFlag = (try? container.decodeIfPresent(String.self, forKey: .useOTRate)) == "1" ? true : false
         self.exportStatus = try container.decodeIfPresent(Int.self, forKey: .exportStatus) ?? 0
+        self.projectId = try container.decodeIfPresent(Int.self, forKey: .projectId)!
     }
 }
 
 struct TBTableContext: Encodable {
     var entries: [TBTableColumns]
     var filter: TimeBillingSessionFilter
-    var highlightRow = 3631
+    var highlightRow: Int?
     var cOpts: String?
     var pOpts: String?
 }
@@ -142,4 +148,9 @@ struct TBEditProjectLabel: Codable {
         case projectNumber = "ProjectNumber"
         case projectId = "ProjectID"
     }
+}
+
+struct TBAddEditContext: Codable {
+    var project: TBEditProjectLabel
+    var time: Time?
 }
