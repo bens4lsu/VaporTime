@@ -16,6 +16,7 @@
         #timeTotal{font-weight:bold !important; padding-right:1em; !important}
         .dur, #timeTotal {text-align:right;}
         body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+        .spanDeleteConfirmLabel {font-weight: bold; width: 8em;}
 
     </style>
 
@@ -119,7 +120,7 @@
                 autoOpen: false,
                // position: {my: "left-400", at: "right", of: '#group-3'},
                 title: 'Confirmation',
-                width: 315,
+                width: 515,
                 modal : true,
                 open: function(){
                     var row = myVars.rowToDelete
@@ -130,16 +131,37 @@
                     var contract = id.next();
                     $("#spanConfirmContract").text(contract.text());
                     var project = contract.next();
+                    $("#spanConfirmProject").text(project.text());
                     var date = project.next();
+                    $("#spanConfirmDate").text(date.text());
                     var duration = date.next();
+                    $("#spanConfirmDuration").text(duration.text());
                     var notes = duration.next()
-                    
-                    
-                },
-                close: function(){
-                    
+                    $("#spanConfirmNotes").text(notes.text());
+                    $("#btnCancelDelete").focus();
                 }
             });
+            
+            $("#btnConfirmDelete").button().click(function(){
+                $.ajax({
+                    url: "ajax/deleteTimeRecord",
+                    dataType:"json",
+                    async: false,
+                    data: {timeId: myVars.rowToDelete},
+                    type: "post",
+                    success: function(data, textStatus ){
+                        location.reload(true);
+                    },
+                    fail: function(xhr, textStatus, errorThrown){
+                       alert('The request to delete');
+                    }
+                })
+            });
+            
+            $("#btnCancelDelete").button().click(function(){
+                $('#dlgConfirmDelete').dialog('close');
+            });
+            
   
             myVars.initialLoad = false;
         });
@@ -170,7 +192,7 @@
             </td><td class="dur">#(row.Duration)
             </td><td>#(row.Notes)
             </td><td><a href=TBAddEdit?timeId=#(row.TimeID)&projectId=#(row.ProjectID)><img src=images/edit-ben.png style=border-style:hidden></a>
-            </td><td><a href=frTBDeleteConfirm?timeId=#(row.TimeID)><img src=images/delete-ben.png style=border-style:hidden></a>
+            </td><td><a onclick="myVars.rowToDelete = #(row.TimeID); $('#dlgConfirmDelete').dialog('open');"><img src=images/delete-ben.png style=border-style:hidden></a>
             </td>
         </tr>
     }
@@ -190,13 +212,16 @@
     
     <div id="dlgConfirmDelete">
         <h3> Are you sure you want to delete this record?</h3>
-        <p>TimeID:  <span id="spanConfirmID"></span></p>
-        <p>Contract: <span id="spanConfirmContract"></span></p>
-        <p>Project: <span id="spanConfirmProject"></span></p>
-        <p>Date: <span id="spanConfirmDate"></span></p>
-        <p>Duration: <span id="spanConfirmDuration"></span></p>
-        <p>Note: <span id="spanConfirmNote"></span></p>
-        <button id="btnCloseConfirmDialog">Done</button>
+        <table>
+        <tr><td class="spanDeleteConfirmLabel">TimeID:</td><td id="spanConfirmID"></td></tr>
+        <tr><td class="spanDeleteConfirmLabel">Contract:</td><td id="spanConfirmContract"></td></tr>
+        <tr><td class="spanDeleteConfirmLabel">Project:</td><td id="spanConfirmProject"></td></tr>
+        <tr><td class="spanDeleteConfirmLabel">Date:</td><td id="spanConfirmDate"></td></tr>
+        <tr><td class="spanDeleteConfirmLabel">Duration:</td><td id="spanConfirmDuration"></td></tr>
+        <tr><td class="spanDeleteConfirmLabel">Note:</td><td id="spanConfirmNote"></td></tr>
+        </table>
+        <button id="btnConfirmDelete">Delete</button>
+        <button id="btnCancelDelete">Never Mind - Keep This</button>
     </div>
  
 </body>

@@ -33,6 +33,7 @@ class TimeBillingController: RouteCollection {
         router.get("TBTree", use: renderTimeTree)
         router.get("TBAddEdit", use: renderTimeAddEdit)
         router.post("TBAddEdit", use: addEditTimeEntry)
+        router.post("ajax/deleteTimeRecord", use: deleteTimeEntry)
     }
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
@@ -132,8 +133,19 @@ class TimeBillingController: RouteCollection {
                 }
                 return req.redirect(to: "TBTable\(urlAddString)")
             }
-            
         }
+    }
+    
+    private func deleteTimeEntry(_ req: Request) throws -> Future<Response> {
+        //return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+            let timeId = try? req.content.syncGet(Int.self, at: "timeId")
+            guard let time = timeId else {
+                return try ["Error" : "request for delete recieved with no id."].encode(for: req)
+            }
+            return Time.query(on:req).filter(\.id == time).delete().flatMap(to: Response.self) {
+                return try ["OK" : "OK"].encode(for: req)
+            }
+        //}
     }
     
     // MARK:  Helpers
