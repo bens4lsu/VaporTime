@@ -37,30 +37,39 @@ class TimeBillingController: RouteCollection {
     }
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
-        guard let session = try? req.session(),
-            let tokenJSON = session["sorts"] else {
-                return TimeBillingSessionFilter()
+        guard let temp: TimeBillingSessionFilter? = try? UserAndTokenController.getSessionInfo(req: req, sessionKey: "filter"),
+              let data = temp else {                // have to double-unwrap this thing
+            return TimeBillingSessionFilter()
         }
-        let decoder = JSONDecoder()
-        let filter = (try? decoder.decode(TimeBillingSessionFilter.self, from: tokenJSON))  ?? TimeBillingSessionFilter()
-        return filter
+        return data
     }
     
     // MARK:  Methods connected to routes that return Views
     
+    
     private func renderTimeTable(_ req: Request) throws -> Future<Response> {
         let highlightRow = try? req.query.get(Int.self, at: "highlightRow")
+        
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+            
             return try db.getTBTableCOpts(req).flatMap(to: Response.self) { cOpts in
+                
                 return try self.db.getTBTablePOpts(req).flatMap(to: Response.self) {pOpts in
+                    
                     return try self.db.getTBTable(req, userId: user.id).flatMap(to: Response.self) { entries in
-                        let context = TBTableContext(entries: entries, filter: self.sessionSortOptions(req), highlightRow: highlightRow, cOpts: cOpts.toJSON(), pOpts: pOpts.toJSON())
+                        
+                        let context = TBTableContext(entries: entries,
+                                                     filter: self.sessionSortOptions(req),
+                                                     highlightRow: highlightRow,
+                                                     cOpts: cOpts.toJSON(),
+                                                     pOpts: pOpts.toJSON())
                         return try req.view().render("time-table", context).encode(for: req)
                     }
                 }
             }
         }
     }
+    
     
     private func renderTimeTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
@@ -105,7 +114,28 @@ class TimeBillingController: RouteCollection {
     
     private func updateSessionFilters(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            // TODO:  save selected info change in the session
+            let sesContract = try? req.content.syncGet(String.self, at: "sesContract").trimmingCharacters(in: .whitespaces)
+            
+            let sesProject = try? req.content.syncGet(String.self, at: "sesProject").trimmingCharacters(in: .whitespaces)
+            
+            let sesDateTo = try? req.content.syncGet(String.self, at: "sesDateFrom").trimmingCharacters(in: .whitespaces)
+            
+            let sesDateFrom = try? req.content.syncGet(String.self, at: "sesDateFrom").trimmingCharacters(in: .whitespaces)
+            
+            let sesDurTo = try? req.content.syncGet(String.self, at: "sesDurTo").trimmingCharacters(in: .whitespaces)
+            
+            let sesDurFrom = try? req.content.syncGet(String.self, at: "sesDurFrom").trimmingCharacters(in: .whitespaces)
+            
+            let sesNote = try? req.content.syncGet(String.self, at: "sesNote").trimmingCharacters(in: .whitespaces)
+            
+            let sortCol = try? req.content.syncGet(Int.self, at: "sortCol")
+            
+            let sortDir = try? req.content.syncGet(String.self, at: "sortDir").trimmingCharacters(in: .whitespaces)
+            
+            let filter = TimeBillingSessionFilter(contract: sesContract, project: sesProject, dateFrom: sesDateFrom, dateTo: sesDateTo, durationFrom: sesDurFrom, durationTo: sesDurTo, noteFilter: sesNote, sortColumn: sortCol ?? 3, sortDirection: sortDir ?? "desc")
+            
+            try UserAndTokenController.saveSessionInfo(req: req, info: filter, sessionKey: "filter")
+            print ("Saved to session: \(filter)")
             return try "ok".encode(for: req)
         }
     }
@@ -137,7 +167,7 @@ class TimeBillingController: RouteCollection {
     }
     
     private func deleteTimeEntry(_ req: Request) throws -> Future<Response> {
-        //return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             let timeId = try? req.content.syncGet(Int.self, at: "timeId")
             guard let time = timeId else {
                 return try ["Error" : "request for delete recieved with no id."].encode(for: req)
@@ -145,7 +175,7 @@ class TimeBillingController: RouteCollection {
             return Time.query(on:req).filter(\.id == time).delete().flatMap(to: Response.self) {
                 return try ["OK" : "OK"].encode(for: req)
             }
-        //}
+        }
     }
     
     // MARK:  Helpers
@@ -247,7 +277,7 @@ class TimeBillingController: RouteCollection {
                     // if level2 only has one child, flatten it
                     if level2.children!.count == 1 {
                         let child = level2.children!.first!
-                        level2 = TBTreeItemBranch(label: "\(level2.label) - \(child.label)")
+                        level2 = TBTreeItemBranch(label: "\(level2.label) - \(child.label)", projectId: child.projectId)
                     }
                     level1.children!.append(level2)
                 }

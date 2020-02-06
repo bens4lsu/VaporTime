@@ -65,12 +65,15 @@ struct TBTableContext: Encodable {
 }
 
 struct TimeBillingSessionFilter: Codable {
+    // These can all stay as String? type.
+    // There's no processing, and no storage, except in the session.
+    // It's just test to write back to the screen when the screen reloads.
     var contract: String?
     var project: String?
-    var dateFrom: Date?
-    var dateTo: Date?
-    var durationFrom: Double?
-    var durationTo: Double?
+    var dateFrom: String?
+    var dateTo: String?
+    var durationFrom: String?
+    var durationTo: String?
     var noteFilter: String?
     var sortColumn: Int = 3
     var sortDirection: String = "desc"

@@ -59,14 +59,20 @@
             
             #for(itemlevel2 in item.level1.children) {
             
-                <li><a href="#">#(itemlevel2.label)</a><ul>
+                #if(itemlevel2.children) {
+                    <li><a href="#">#(itemlevel2.label)</a><ul>
+                } else {
+                    <li class="node_addTime"><a href="#" title="#(itemlevel2.label)" onclick="parent.window.frames['frTBTable'].location='TBAddEdit?projectId=#(itemlevel2.projectId)'">#(itemlevel2.label)</a></li>
+                }
                 
                 #for(itemlev3 in itemlevel2.children) {
                 
                     <li class="node_addTime"><a href="#" title="#(itemlev3.label)" onclick="parent.window.frames['frTBTable'].location='TBAddEdit?projectId=#(itemlev3.projectId)'">#(itemlev3.label)</a></li>
                 }
             
-                </ul>
+                #if(itemlevel2.children) {
+                    </ul>
+                }
             }
             </ul>
 

@@ -77,11 +77,10 @@ class UserAndTokenController: RouteCollection {
                 throw Abort(.unauthorized, reason: "User's system access has been revoked.")
             }
             
-            let session = try req.session()
             let userPersistInfo = user.persistInfo()!
             let ip = req.http.remotePeer.hostname
-            let tokenStringified = try Token(user: userPersistInfo, exp: Date().addingTimeInterval(Self.tokenExpDuration), ip: ip).encode()
-            session["token"] = tokenStringified
+            let token = Token(user: userPersistInfo, exp: Date().addingTimeInterval(Self.tokenExpDuration), ip: ip)
+            try Self.saveSessionInfo(req: req, info: token, sessionKey: "token")
             return req.future().map() {
                 return req.redirect(to: "/")
             }
@@ -130,7 +129,8 @@ class UserAndTokenController: RouteCollection {
         let newUser = User(id: nil, name: name, emailAddress: emailAddress, passwordHash: passwordHash)
         return newUser.create(on: req)
     }
-
+    
+    
 
 // MARK: Static methods - used for verification in other controllers
     
@@ -143,14 +143,11 @@ class UserAndTokenController: RouteCollection {
 
     
     static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
-        guard let session = try? req.session(),
-              let tokenJSON = session["token"] else
-        {
+        guard let temp: Token? =  try? getSessionInfo(req: req, sessionKey: "token"),
+            var token = temp else {
             return UserAndTokenController.redirectToLogin(req)
         }
-        let decoder = JSONDecoder()
-        var token = try decoder.decode(Token.self, from: tokenJSON)
-        
+                
         guard token.exp >= Date() || token.ip != req.http.remotePeer.hostname else {
             // token is expired, or ip address has changed
             return UserAndTokenController.redirectToLogin(req)
@@ -160,10 +157,31 @@ class UserAndTokenController: RouteCollection {
             // TODO: reroute to a no permission for this resource page
             throw Abort (.unauthorized)
         }
+        
         token.exp = (Date().addingTimeInterval(Self.tokenExpDuration))
-        let tokenStringified = try token.encode()
-        session["token"] = tokenStringified
+        try saveSessionInfo(req: req, info: token, sessionKey: "token")
+        
         return try onSuccess(token.user)
+    }
+    
+    
+    static func getSessionInfo<T: Codable>(req: Request, sessionKey: String) throws -> T?  {
+        let session = try req.session()
+        guard let stringifiedData = session[sessionKey] else {
+            return nil
+        }
+        let decoder = JSONDecoder()
+        guard let data: T = try? decoder.decode(T.self, from: stringifiedData) else {
+            return nil
+        }
+        return data
+    }
+    
+    static func saveSessionInfo<T: Codable>(req: Request, info: T, sessionKey: String) throws {
+        let session = try req.session()
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(info)
+        session[sessionKey] = String(data: data, encoding: .utf8)
     }
 }
 
