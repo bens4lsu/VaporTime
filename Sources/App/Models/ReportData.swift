@@ -129,7 +129,7 @@ struct ReportRendererGroup: Codable, Comparable {
     }
 }
 
-struct ReportContext {
+struct ReportContext: Codable {
     var top: [ReportRendererGroup]
     var levels: Int
     var startDate: Date

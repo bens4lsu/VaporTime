@@ -27,7 +27,17 @@ class ReportController: RouteCollection {
     
     private func renderReportSelector(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
-            return try req.view().render("report-selector").encode(for: req)
+            
+            return try db.getLookupTrinity(req).flatMap(to: Response.self) { lookupTrinity in
+                return try self.db.getLookupPerson(req).flatMap(to: Response.self) { lookupPerson in
+                    
+                    let context = LookupContext(contracts: lookupTrinity.contracts,
+                                                companies: lookupTrinity.companies,
+                                                projects: lookupTrinity.projects,
+                                                timeBillers: lookupPerson)
+                    return try req.view().render("report-selector", context).encode(for: req)
+                }
+            }
         }
     }
         
@@ -148,7 +158,30 @@ extension Array where Element == ReportRendererGroup {
             }
         }
     }
+}
+
+extension Array where Element == LookupTrinity {
+    var contracts: [Int : String] {
+        var set = [Int : String]()
+        for elem in self {
+            set[elem.contractId] = elem.contractDescription
+        }
+        return set
+    }
     
+    var companies: [Int : String] {
+        var set = [Int : String]()
+        for elem in self {
+            set[elem.companyId] = elem.servicesForCompany
+        }
+        return set
+    }
     
-    
+    var projects: [Int : String] {
+        var set = [Int : String]()
+        for elem in self {
+            set[elem.projectId] = elem.projectDescription
+        }
+        return set
+    }
 }

@@ -1,0 +1,94 @@
+
+
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/infodrivenlife.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+   <style>
+        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+    </style>
+
+</head>
+<body class="mainbox" >
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            jQuery.fn.checkAll = function() {
+                 $('input[type=text]').each(function(index, element) {
+                       if ($(this).val() == '') {
+                             $('input[type=submit]').attr("disabled","disabled");
+                             return false;
+                       } else {
+                             $('input[type=submit]').removeAttr('disabled');
+                       }
+                 });
+            }
+        
+            $("#formmain").validate({
+                rules: {
+                    datepicker: {
+                          required: true,
+                          date: true
+                    },
+                    duration: {
+                        required: true,
+                        min: 0.1,
+                        numeric: true
+                      }
+                  }
+            });
+            
+            $('input[type=text]').bind('mouseenter mouseleave focus blur keypress', function() {
+                $(this).checkAll();
+            });
+
+    
+            $(".datepicker").datepicker();
+            
+            //$("#btnCancel").attr("disabled","disabled");
+            $("#btnCancel").click(function(){
+                window.location = "TBTable";
+            });
+
+        });
+
+
+    </script>
+    
+    <h3>Time Reporting</h3>
+    
+    <form>
+    <h4>Date Range</h4>
+    <table>
+        <tr><td style="align:right;">From:</td><td><input type="date" class="datepicker" name="dateFrom" id="startDate"></input></td>
+        <td style="align:right;">To:</td><td><input type="date" class="datepicker" name="dateTo" id="endDate"></input></td></tr>
+    </table>
+    
+    <h4>Filter By</h4>
+    <table>
+        <tr><td style="align:right;">Contract:</td><td><select id="contractId" name="contractId" class="lookupselect"></select></td></tr>
+        <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="contractId" class="lookupselect"></select></td></tr>
+        <tr><td style="align:right;">Project:</td><td><select id="projectId" name="projectId" class="lookupselect"></select></td></tr>
+        <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="contractId" class="lookupselect"></select></td></tr>
+    </table>
+    
+    <h4>Group and Subtotal By</h4>
+    <table>
+        <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="dateFrom" id="startDate"></select></td>
+        <td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="dateTo" id="endDate"></select></td></tr>
+    </table>
+    
+    <input type="submit" value="Submit" tabindex="7" >
+    </form>
+                        
+
+</body>
+</html>

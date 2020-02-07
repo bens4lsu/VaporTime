@@ -87,23 +87,22 @@ class MySQLDirect {
     
     func getReportData(_ req: Request, filters: ReportFilters) throws -> Future<[ReportData]> {
         var sql = """
-            SELECT FirstDayOfWeekMonday + INTERVAL 12 HOUR AS FirstOfMonth,
+            SELECT FirstDayOfWeekMonday + INTERVAL 12 HOUR AS firstOfMonth,
                 FirstOfMonth + INTERVAL 12 HOUR AS FirstOfMonth,
-                Duration,
-                WorkDate + INTERVAL 12 HOUR AS WorkDate,
-                c.Description AS ContractDescription,
-                p.ProjectNumber,
-                p.ProjectDescription,
-                pc.CompanyName AS ServicesForCompany,
-                pe.`Name`
+                duration,
+                WorkDate + INTERVAL 12 HOUR AS workDate,
+                c.Description AS contractDescription,
+                p.projectDescription,
+                pc.CompanyName AS servicesForCompany,
+                pe.`Name` AS billedByName
             FROM fTime t
                 JOIN fProjects p ON t.ProjectID = p.ProjectID
                 JOIN fContracts c ON p.ContractID = c.ContractID
                 JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
                 JOIN apps_tallydb.vwTally366Days v ON t.WorkDate = v.TallyDate
                 JOIN LuPeople pe on t.PersonID = pe.PersonID
-            WHERE WorkDate >= \(dateFormatter.string(from: filters.startDate))
-                AND WorkDate <= \(dateFormatter.string(from: filters.startDate))
+            WHERE WorkDate >= '\(dateFormatter.string(from: filters.startDate))'
+                AND WorkDate <= '\(dateFormatter.string(from: filters.startDate))'
         """
         if let billedById = filters.billedById {
             sql += "AND t.PersonID = \(billedById)"
@@ -118,6 +117,28 @@ class MySQLDirect {
             sql += "AND p.ProjectID = \(projectId)"
         }
         return try getResultsRows(req, query: sql, decodeUsing: ReportData.self)
+    }
+    
+    func getLookupTrinity(_ req: Request) throws -> Future<[LookupTrinity]> {
+            let sql = """
+                SELECT c.Description AS ContractDescription,
+                    p.ProjectDescription,
+                    pc.CompanyName,
+                    p.IsActive
+                    c.ContractID
+                    p.ProjectID
+                    pc.CompanyID
+                FROM fProjects p
+                    JOIN fContracts c ON p.ContractID = c.ContractID
+                    JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
+                WHERE ContractCompleted = 0
+            """
+        return try getResultsRows(req, query: sql, decodeUsing: LookupTrinity.self)
+    }
+    
+    func getLookupPerson(_ req: Request) throws -> Future<[LookupPerson]> {
+        let sql = "SELECT PersonID, `Name` FROM LuPeople WHERE BillsTime = 1"
+        return try getResultsRows(req, query: sql, decodeUsing: LookupPerson.self)
     }
 }
 

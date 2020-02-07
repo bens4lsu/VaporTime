@@ -17,11 +17,10 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     let databaseConfig = MySQLDatabaseConfig(hostname: "192.168.56.20", port: 3306, username: "devuser", password: "6ZoLeCKL8X86", database: "apps_timebill") //, transport: .unverifiedTLS)
         
     services.register(databaseConfig)
+    // this in lieu of migration, which I don't want this system
+    // doing on a legacy database
     User.defaultDatabase = .mysql
     Time.defaultDatabase = .mysql
-    //var migrationConfig = MigrationConfig()
-    //migrationConfig.add(model: User.self, database: .mysql)
-    //services.register(migrationConfig)
     
     try services.register(LeafProvider())
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)

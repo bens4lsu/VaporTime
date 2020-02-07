@@ -1,8 +1,22 @@
 
-#set("title") {Create account}
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/infodrivenlife.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+   <style>
+        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+    </style>
 
-#set("body") {
-    <h1>Create account</h1>
+</head>
+<body class="mainbox" >
+
+       <h1>Create account</h1>
 
     #if(error) {
         <p class="error">User name #(attemptedUser) is already taken.</p>
@@ -14,6 +28,6 @@
     <p>Full Name: <input type="text" name="name" /></p>
     <p><input type="submit" class="btn btn-lg btn-primary" /></p>
     </form>
-}
 
-#embed("master")
+</body>
+</html>
