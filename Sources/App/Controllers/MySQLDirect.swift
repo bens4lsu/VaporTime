@@ -11,6 +11,12 @@ import Vapor
 
 class MySQLDirect {
     
+    let dateFormatter: DateFormatter =  {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    
     private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> Future<[T]> {
         return req.withPooledConnection(to: .mysql) { conn in
             return conn.raw(query).all(decoding: T.self)
@@ -78,6 +84,40 @@ class MySQLDirect {
             """
         return try getResultRow(req, query: sql, decodeUsing: TBEditProjectLabel.self)
     }
-
+    
+    func getReportData(_ req: Request, filters: ReportFilters) throws -> Future<[ReportData]> {
+        var sql = """
+            SELECT FirstDayOfWeekMonday + INTERVAL 12 HOUR AS FirstOfMonth,
+                FirstOfMonth + INTERVAL 12 HOUR AS FirstOfMonth,
+                Duration,
+                WorkDate + INTERVAL 12 HOUR AS WorkDate,
+                c.Description AS ContractDescription,
+                p.ProjectNumber,
+                p.ProjectDescription,
+                pc.CompanyName AS ServicesForCompany,
+                pe.`Name`
+            FROM fTime t
+                JOIN fProjects p ON t.ProjectID = p.ProjectID
+                JOIN fContracts c ON p.ContractID = c.ContractID
+                JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
+                JOIN apps_tallydb.vwTally366Days v ON t.WorkDate = v.TallyDate
+                JOIN LuPeople pe on t.PersonID = pe.PersonID
+            WHERE WorkDate >= \(dateFormatter.string(from: filters.startDate))
+                AND WorkDate <= \(dateFormatter.string(from: filters.startDate))
+        """
+        if let billedById = filters.billedById {
+            sql += "AND t.PersonID = \(billedById)"
+        }
+        if let contractId = filters.contractId {
+            sql += "AND p.ContractID = \(contractId)"
+        }
+        if let servicesForCompanyId = filters.servicesForCompanyId {
+            sql += "AND p.ServicesForCompany = \(servicesForCompanyId)"
+        }
+        if let projectId = filters.projectId {
+            sql += "AND p.ProjectID = \(projectId)"
+        }
+        return try getResultsRows(req, query: sql, decodeUsing: ReportData.self)
+    }
 }
 
