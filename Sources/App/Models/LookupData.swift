@@ -19,7 +19,7 @@ struct LookupTrinity: Codable {
     private enum CodingKeys: String, CodingKey {
         case contractDescription = "ContractDescription",
         projectDescription = "ProjectDescription",
-        servicesForCompany = "ServicesForCompany",
+        servicesForCompany = "CompanyName",
         isActive = "IsActive",
         contractId = "ContractID",
         projectId = "ProjectID",
@@ -54,9 +54,23 @@ struct LookupPerson: Codable {
     }
 }
 
+struct LookupContextPair: Codable , Hashable{
+    var name: String
+    var id: Int
+    
+    static func ==(lhs: LookupContextPair, rhs: LookupContextPair) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    static func <(lhs: LookupContextPair, rhs: LookupContextPair) -> Bool {
+        lhs.id < rhs.id
+    }
+}
+
 struct LookupContext: Codable {
-    var contracts: [Int: String]
-    var companies: [Int: String]
-    var projects: [Int: String]
+    var contracts: Set<LookupContextPair>
+    var companies: Set<LookupContextPair>
+    var projects: Set<LookupContextPair>
     var timeBillers: [LookupPerson]
+    var groupBy: [LookupContextPair]
 }

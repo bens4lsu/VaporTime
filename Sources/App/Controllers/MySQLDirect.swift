@@ -124,9 +124,9 @@ class MySQLDirect {
                 SELECT c.Description AS ContractDescription,
                     p.ProjectDescription,
                     pc.CompanyName,
-                    p.IsActive
-                    c.ContractID
-                    p.ProjectID
+                    p.IsActive,
+                    c.ContractID,
+                    p.ProjectID,
                     pc.CompanyID
                 FROM fProjects p
                     JOIN fContracts c ON p.ContractID = c.ContractID

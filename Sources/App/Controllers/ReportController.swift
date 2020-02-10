@@ -34,7 +34,8 @@ class ReportController: RouteCollection {
                     let context = LookupContext(contracts: lookupTrinity.contracts,
                                                 companies: lookupTrinity.companies,
                                                 projects: lookupTrinity.projects,
-                                                timeBillers: lookupPerson)
+                                                timeBillers: lookupPerson,
+                                                groupBy: ReportGroupBy.list() )
                     return try req.view().render("report-selector", context).encode(for: req)
                 }
             }
@@ -161,26 +162,26 @@ extension Array where Element == ReportRendererGroup {
 }
 
 extension Array where Element == LookupTrinity {
-    var contracts: [Int : String] {
-        var set = [Int : String]()
+    var contracts: Set<LookupContextPair>{
+        var set = Set<LookupContextPair>()
         for elem in self {
-            set[elem.contractId] = elem.contractDescription
+            set.insert(LookupContextPair(name: elem.contractDescription, id: elem.contractId))
+        }
+    return set
+    }
+    
+    var companies: Set<LookupContextPair>{
+        var set = Set<LookupContextPair>()
+        for elem in self {
+            set.insert(LookupContextPair(name: elem.servicesForCompany, id: elem.companyId))
         }
         return set
     }
     
-    var companies: [Int : String] {
-        var set = [Int : String]()
+    var projects: Set<LookupContextPair>{
+        var set = Set<LookupContextPair>()
         for elem in self {
-            set[elem.companyId] = elem.servicesForCompany
-        }
-        return set
-    }
-    
-    var projects: [Int : String] {
-        var set = [Int : String]()
-        for elem in self {
-            set[elem.projectId] = elem.projectDescription
+            set.insert(LookupContextPair(name: elem.projectDescription, id: elem.projectId))
         }
         return set
     }

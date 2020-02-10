@@ -74,16 +74,46 @@
     
     <h4>Filter By</h4>
     <table>
-        <tr><td style="align:right;">Contract:</td><td><select id="contractId" name="contractId" class="lookupselect"></select></td></tr>
-        <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="contractId" class="lookupselect"></select></td></tr>
-        <tr><td style="align:right;">Project:</td><td><select id="projectId" name="projectId" class="lookupselect"></select></td></tr>
-        <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="contractId" class="lookupselect"></select></td></tr>
+        <tr><td style="align:right;">Contract:</td><td><select id="contractId" name="contractId" class="lookupselect">
+            <option value=""></option>
+            #for(contract in contracts) {
+                <option value="#(contract.id)">#(contract.name)</option>
+            }
+        </select></td></tr>
+        <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="contractId" class="lookupselect">
+            <option value=""></option>
+            #for(company in companies) {
+                <option value="#(company.id)">#(company.name)</option>
+            }
+            </select></td></tr>
+        <tr><td style="align:right;">Project:</td><td><select id="projectId" name="projectId" class="lookupselect">
+            <option value=""></option>
+            #for(project in projects) {
+                <option value="#(project.id)">#(project.name)</option>
+            }
+        </select></td></tr>
+        <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="contractId" class="lookupselect">
+            <option value=""></option>
+            #for(person in timeBillers) {
+                <option value="#(person.PersonID)">#(person.Name)</option>
+            }
+        </select></td></tr>
     </table>
     
     <h4>Group and Subtotal By</h4>
     <table>
-        <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="dateFrom" id="startDate"></select></td>
-        <td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="dateTo" id="endDate"></select></td></tr>
+        <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="dateFrom" id="startDate">
+            <option value=""></option>
+            #for(group in groupBy) {
+                <option value="#(group.id)">#(group.name)</option>
+            }
+        </select></td>
+        <td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="dateTo" id="endDate">
+            <option value=""></option>
+            #for(group in groupBy) {
+                <option value="#(group.id)">#(group.name)</option>
+            }
+        </select></td></tr>
     </table>
     
     <input type="submit" value="Submit" tabindex="7" >

@@ -76,6 +76,15 @@ enum ReportGroupBy: Int {
         }
         return sortValue
     }
+    
+    static func list() -> [LookupContextPair] {
+        [LookupContextPair(name: "Contract", id: Self.contract.rawValue),
+        LookupContextPair(name: "Project", id: Self.project.rawValue),
+        LookupContextPair(name: "Services For Company", id: Self.serviceFor.rawValue),
+        LookupContextPair(name: "Billed By", id: Self.person.rawValue),
+        LookupContextPair(name: "Week", id: Self.week.rawValue),
+        LookupContextPair(name: "Month", id: Self.month.rawValue)]
+    }
 }
 
 enum ReportView {
