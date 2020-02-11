@@ -65,7 +65,7 @@
     
     <h3>Time Reporting</h3>
     
-    <form>
+    <form action="Report" method="post">
     <h4>Date Range</h4>
     <table>
         <tr><td style="align:right;">From:</td><td><input type="date" class="datepicker" name="dateFrom" id="startDate"></input></td>
@@ -80,7 +80,7 @@
                 <option value="#(contract.id)">#(contract.name)</option>
             }
         </select></td></tr>
-        <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="contractId" class="lookupselect">
+        <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="companyId" class="lookupselect">
             <option value=""></option>
             #for(company in companies) {
                 <option value="#(company.id)">#(company.name)</option>
@@ -92,7 +92,7 @@
                 <option value="#(project.id)">#(project.name)</option>
             }
         </select></td></tr>
-        <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="contractId" class="lookupselect">
+        <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="billedById" class="lookupselect">
             <option value=""></option>
             #for(person in timeBillers) {
                 <option value="#(person.PersonID)">#(person.Name)</option>
@@ -102,13 +102,13 @@
     
     <h4>Group and Subtotal By</h4>
     <table>
-        <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="dateFrom" id="startDate">
+        <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="group1" id="group1">
             <option value=""></option>
             #for(group in groupBy) {
                 <option value="#(group.id)">#(group.name)</option>
             }
         </select></td>
-        <td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="dateTo" id="endDate">
+        <td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="group2" id="group2">
             <option value=""></option>
             #for(group in groupBy) {
                 <option value="#(group.id)">#(group.name)</option>

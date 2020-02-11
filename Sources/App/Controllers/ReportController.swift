@@ -42,33 +42,39 @@ class ReportController: RouteCollection {
         }
     }
         
-        
     private func renderReport(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
-            let startDateReq = try? req.query.get(Date.self, at: "startDate")
-            let endDateReq = try? req.query.get(Date.self, at: "endDate")
-            let billedById = try? req.query.get(Int.self, at: "billedById")
-            let contractId = try? req.query.get(Int.self, at: "contractId")
-            let servicesForCompanyId = try? req.query.get(Int.self, at: "servicesForCompanyId")
-            let projectId = try? req.query.get(Int.self, at: "projectId")
-            let groupBy1 = try? req.query.get(Int.self, at: "groupBy1")
-            let groupBy2 = try? req.query.get(Int.self, at: "groupBy2")
+            let df = DateFormatter()
+            df.dateFormat = "MM/dd/yy"
             
-            guard let startDate = startDateReq, let endDate = endDateReq else {
+            let startDateReqStr: String? = try? req.content.syncGet(at: "dateFrom")
+            let endDateReqStr: String? = try? req.content.syncGet(at: "dateTo")
+            let billedById: Int? = try? req.content.syncGet(at: "billedById")
+            let contractId: Int? = try? req.content.syncGet(at: "contractId")
+            let servicesForCompanyId: Int? = try? req.content.syncGet(at: "servicesForCompanyId")
+            let projectId: Int? = try? req.content.syncGet(at: "projectId")
+            let groupBy1: Int? = try? req.content.syncGet(at: "group1")
+            let groupBy2: Int? = try? req.content.syncGet(at: "group2")
+            
+            guard let startDateReq = startDateReqStr,
+                  let endDateReq = endDateReqStr,
+                  let startDate = df.date(from: startDateReq),
+                  let endDate = df.date(from: endDateReq) else
+            {
                 throw Abort(.badRequest, reason: "Start Date and End Date are required for reporting.")
             }
             
             let filters = ReportFilters(startDate: startDate, endDate: endDate, billedById: billedById, contractId: contractId, servicesForCompanyId: servicesForCompanyId, projectId: projectId)
-            
+                        
             return try db.getReportData(req, filters: filters).flatMap(to: Response.self) { reportData in
                 
+                print (reportData)
                 var records = [ReportRendererGroup]()
                 for row in reportData {
                     records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,
                                 group2: ReportGroupBy.fromRaw(groupBy2) ?? nil)
                 }
                 records.sort()
-                
                 let context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate)
                 return try req.view().render("report", context).encode(for: req)
             }
@@ -78,8 +84,11 @@ class ReportController: RouteCollection {
 
 extension Array where Element == ReportRendererGroup {
     
-    var levels: Int {
-        if self.count == 1 {
+    var levels: Int  {
+        if self.count == 0 {
+            return 0   // no data returned that met report parameters
+        }
+        else if self.count == 1 {
             return 1
         }
         else if self[0].childGroups == nil {
@@ -93,7 +102,7 @@ extension Array where Element == ReportRendererGroup {
     mutating func add(_ row: ReportData, group1: ReportGroupBy?, group2: ReportGroupBy?) {
         
         if (group1 == nil && group2 == nil && self.isEmpty) {
-            self.append(ReportRendererGroup(title: "Time Billing", sortValue: ""))
+            self.append(ReportRendererGroup(title: "Time Billing", childRecords: [row], sortValue: ""))
         }
         else if (group1 == nil && group2 == nil) {
             self[0].childRecords!.append(row)

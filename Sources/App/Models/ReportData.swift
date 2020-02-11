@@ -101,6 +101,19 @@ struct ReportData: Codable, Comparable {
     var projectDescription: String
     var servicesForCompany: String
     var billedByName: String
+    var notes: String
+    
+    private enum CodingKeys: String, CodingKey {
+        case firstDayOfWeekMonday = "FirstDayOfWeekMonday",
+        firstOfMonth = "FirstOfMonth",
+        duration = "Duration",
+        workDate = "WorkDate",
+        contractDescription = "ContractDescription",
+        projectDescription = "ProjectDescription",
+        servicesForCompany = "ServicesForCompany",
+        billedByName = "BilledByName",
+        notes = "Notes"
+    }
     
     static func < (lhs: ReportData, rhs: ReportData) -> Bool {
         lhs.workDate < rhs.workDate
