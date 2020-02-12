@@ -1,0 +1,120 @@
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/infodrivenlife.css" />
+
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.9.1.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script language="javascript" type="text/javascript" src="./js/jquery.dataTables.min.js"></script>
+       <script language="javascript" type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
+       <script language="javascript" type="text/javascript" src="./js/jquery.MultiFile.pack.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <style>
+        #frTBTable {float:left; margin-left:5px; margin-top:8px; width:78%; height:800px;}
+        #resizable {float:left; width:20%; height:800px; margin-top:8px; margin-right:5px;}
+        #frTBTree {width:100%; height:100%;}
+        .tlevbox {position:relative;}
+        #frProj, #frAdmin, #frCRM, #frReport {width:100%; height:800px;}
+    </style>
+
+</head>
+<body class="mainbox" >
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+
+            $("#tabs").tabs();
+            
+            var mTable = $("#main_table").dataTable( {
+                "iDisplayLength" : 25
+            } )
+            
+            $("#resizable").resizable({handles: 'e, w'});
+
+        });
+
+
+    </script>
+    
+    
+    <div id="tabs">
+    
+            <ul>
+                #if(timeBilling) { <li><a href="#tabs-1">Time Billing</a></li> }
+                #if(report){ <li><a href="#tabs-2">Projects</a></li> }
+                #if(crm){ <li><a href="#tabs-3">CRM</a></li> }
+                #if(doc){ <li><a href="#tabs-4">Documents</a></li> }
+                #if(report){ <li><a href="#tabs-5">Reports</a></li> }
+                #if(admin){ <li><a href="#tabs-6">Admin</a></li> }
+            </ul>
+            
+            #if(timeBilling) {
+                        
+                <div id="tabs-1" class="tlevbox">
+                    <div id="resizable"><iframe src="TBTree" id="frTBTree" name="frTBTree"></iframe></div>
+                    <iframe src="TBTable" id="frTBTable" name="frTBTable"></iframe>
+                    <div style="clear:both"></div>
+                </div>
+                
+            }
+        
+    
+        
+            #if(report) {
+                
+                <div id="tabs-2" class="tlevbox">
+                    <iframe src="frProjTable" id="frProj" name ="frProj"></iframe>
+                </div>
+                
+            }
+        
+
+        
+            #if(crm) {
+                
+                <div id="tabs-3" class="tlevbox" >
+                    <iframe src="frCRMTable" id="frCRM" name="frCRM"></iframe>
+                </div>
+                
+            }
+        
+        
+        
+            #if(doc) {
+                
+                <div id="tabs-4" class="tlevbox" >
+                    
+                </div>
+                
+            }
+        
+        
+        
+            #if(report) {
+                
+                <div id="tabs-5" class="tlevbox" >
+                    <iframe src="Report" id="frReport" name="frReport"></iframe>
+                </div>
+                
+            }
+        
+        
+        
+            #if(admin) {
+                
+                <div id="tabs-6" class="tlevbox">
+                    <iframe src="frAdminMain.php" id="frAdmin" name="frAdmin"></iframe>
+        
+                </div>
+                
+            }
+        
+    </div>
+</body>
+</html>
+
