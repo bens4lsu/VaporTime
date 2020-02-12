@@ -10,7 +10,7 @@ import MySQL
 import Vapor
 
 class MySQLDirect {
-    
+        
     let dateFormatter: DateFormatter =  {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -85,7 +85,7 @@ class MySQLDirect {
         return try getResultRow(req, query: sql, decodeUsing: TBEditProjectLabel.self)
     }
     
-    func getReportData(_ req: Request, filters: ReportFilters) throws -> Future<[ReportData]> {
+    func getReportData(_ req: Request, filters: ReportFilters, userId: Int) throws -> Future<[ReportData]> {
         var sql = """
             SELECT FirstDayOfWeekMonday + INTERVAL 12 HOUR AS FirstDayOfWeekMonday,
                 FirstOfMonth + INTERVAL 12 HOUR AS FirstOfMonth,
@@ -102,8 +102,10 @@ class MySQLDirect {
                 JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
                 JOIN apps_tallydb.vwTally366Days v ON t.WorkDate = v.TallyDate
                 JOIN LuPeople pe on t.PersonID = pe.PersonID
+                LEFT OUTER JOIN vwPersonProjectPermissions ppp ON t.PersonID = ppp.PersonID AND t.ProjectID = ppp.ProjectID
             WHERE WorkDate >= '\(dateFormatter.string(from: filters.startDate))'
                 AND WorkDate <= '\(dateFormatter.string(from: filters.endDate))'
+                AND (ppp.PersonID IS NOT NULL OR t.PersonID = \(userId))
         """
         if let billedById = filters.billedById {
             sql += " AND t.PersonID = \(billedById)"

@@ -14,6 +14,8 @@ class ReportController: RouteCollection {
 
     let userAndTokenController: UserAndTokenController
     let db = MySQLDirect()
+    
+    private var cachedLookupContext: LookupContext?
         
     // MARK: Startup
     init(_ userAndTokenController: UserAndTokenController) {
@@ -23,27 +25,36 @@ class ReportController: RouteCollection {
     func boot(router: Router) throws {
         router.get("Report", use: renderReportSelector)
         router.post("Report", use: renderReport)
+        router.post("report/refreshCache", use: refreshCachedData)
     }
     
     private func renderReportSelector(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
             
-            return try db.getLookupTrinity(req).flatMap(to: Response.self) { lookupTrinity in
-                return try self.db.getLookupPerson(req).flatMap(to: Response.self) { lookupPerson in
-                    
-                    let context = LookupContext(contracts: lookupTrinity.contracts,
-                                                companies: lookupTrinity.companies,
-                                                projects: lookupTrinity.projects,
-                                                timeBillers: lookupPerson,
-                                                groupBy: ReportGroupBy.list() )
-                    return try req.view().render("report-selector", context).encode(for: req)
-                }
+            if let context = self.cachedLookupContext {
+                return try req.view().render("report-selector", context).encode(for: req)
             }
+            else {
+            
+                return try db.getLookupTrinity(req).flatMap(to: Response.self) { lookupTrinity in
+                    return try self.db.getLookupPerson(req).flatMap(to: Response.self) { lookupPerson in
+                        
+                        let context = LookupContext(contracts: lookupTrinity.contracts,
+                                                    companies: lookupTrinity.companies,
+                                                    projects: lookupTrinity.projects,
+                                                    timeBillers: lookupPerson,
+                                                    groupBy: ReportGroupBy.list() )
+                        self.cachedLookupContext = context
+                        return try req.view().render("report-selector", context).encode(for: req)
+                    }
+                }
+            }  // end else, where we had to lookup the context from the database
+        
         }
     }
         
     private func renderReport(_ req: Request) throws -> Future<Response> {
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { user in
             let df = DateFormatter()
             df.dateFormat = "MM/dd/yy"
             
@@ -66,49 +77,56 @@ class ReportController: RouteCollection {
             
             let filters = ReportFilters(startDate: startDate, endDate: endDate, billedById: billedById, contractId: contractId, servicesForCompanyId: servicesForCompanyId, projectId: projectId)
                         
-            return try db.getReportData(req, filters: filters).flatMap(to: Response.self) { reportData in
-                
-                print (reportData)
+            return try db.getReportData(req, filters: filters, userId: user.id).flatMap(to: Response.self) { reportData in
                 var records = [ReportRendererGroup]()
                 for row in reportData {
                     records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,
                                 group2: ReportGroupBy.fromRaw(groupBy2) ?? nil)
                 }
                 records.sort()
-                let context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate)
+                var context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate)
+                context.updateTotals()
                 return try req.view().render("report", context).encode(for: req)
             }
         }
     }
+    
+    private func refreshCachedData(_ req: Request) throws -> Future<String> {
+        self.cachedLookupContext = nil
+        return req.future().map() {
+            return "ok"
+        }
+    }
 }
+
+
+
+// MARK:  Extensions to the data structures used to template the data in the reports
 
 extension Array where Element == ReportRendererGroup {
     
     var levels: Int  {
-        if self.count == 0 {
-            return 0   // no data returned that met report parameters
+        if self.count == 0 {          // no data returned that met report parameters
+            return 0
         }
-        else if self.count == 1 {
+        else if self[0].childGroups == nil {    // one group
             return 1
         }
-        else if self[0].childGroups == nil {
-            return 2
-        }
         else {
-            return 3
+            return 2
         }
     }
     
     mutating func add(_ row: ReportData, group1: ReportGroupBy?, group2: ReportGroupBy?) {
         
         if (group1 == nil && group2 == nil && self.isEmpty) {
-            self.append(ReportRendererGroup(title: "Time Billing", childRecords: [row], sortValue: ""))
+            self.append(ReportRendererGroup(title: "Time Billing", childGroups: nil, childRecords: [row], sortValue: ""))
         }
         else if (group1 == nil && group2 == nil) {
             self[0].childRecords!.append(row)
         }
         
-        if group1 != nil && group2 == nil {
+        else if group1 != nil && group2 == nil {
             let title = group1!.title(from: row)
             
             if let index = indexOfElementWith(title, in: self) {
@@ -119,7 +137,7 @@ extension Array where Element == ReportRendererGroup {
             }
         }
         
-        if group1 != nil && group2 != nil {
+        else if group1 != nil && group2 != nil {
             let title1 = group1!.title(from: row)
             let title2 = group2!.title(from: row)
             let sortValue1 = group1!.sortValue(from: row)

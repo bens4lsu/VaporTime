@@ -12,12 +12,21 @@
     <script language="javascript" src="./js/jquery.validate.pack.js"></script>
    <style>
         body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+        .grid-container {display:grid; grid-gap:8px; grid-template-columns: auto auto;}
+        .option-set {border: 2px solid #d4d4d4; padding:0px 8px; border-radius: 10px;}
     </style>
 
 </head>
 <body class="mainbox" >
 
     <script type="text/javascript">
+    
+        function formatMMddyyyy(dt) {
+            var day = ("0" + dt.getDate()).slice(("0" + dt.getDate()).length - 2)
+            var month = ("0" + (dt.getMonth() + 1)).slice(("0" + (dt.getMonth() + 1)).length - 2)
+            var year = dt.getFullYear()
+            return month + '/' + day + '/' + year
+        }
 
         $(document).ready(function() {
 
@@ -50,73 +59,114 @@
                 $(this).checkAll();
             });
 
-    
-            $(".datepicker").datepicker();
+            var date = new Date(), y = date.getFullYear(), m = date.getMonth();
+            var firstDay = new Date(y, m, 1);
+            $("#startDate").val(formatMMddyyyy(firstDay));
+            $("#endDate").val(formatMMddyyyy(new Date()));
+            $("#startDate").datepicker( {defaultDate: firstDay} );
+            $("#endDate").datepicker( {defaultDate: new Date() } );
             
-            //$("#btnCancel").attr("disabled","disabled");
-            $("#btnCancel").click(function(){
-                window.location = "TBTable";
+            $("#contractId").change(function(){
+                if ($("#group1").val() == "") {
+                    $("#group1").val("1")
+                }
             });
+            
+            $("#projectId").change(function(){
+                if ($("#group1").val() == "") {
+                    $("#group1").val("2")
+                }
+            });
+            
+            $("#servicesForCompanyId").change(function(){
+                if ($("#group1").val() == "") {
+                    $("#group1").val("3")
+                }
+            });
+            
+            $("#billedById").change(function(){
+                if ($("#group1").val() == "") {
+                    $("#group1").val("4")
+                }
+            });
+            
+            $("#btnSubmit").button();
 
         });
+        
 
 
     </script>
     
     <h3>Time Reporting</h3>
     
-    <form action="Report" method="post">
-    <h4>Date Range</h4>
-    <table>
-        <tr><td style="align:right;">From:</td><td><input type="date" class="datepicker" name="dateFrom" id="startDate"></input></td>
-        <td style="align:right;">To:</td><td><input type="date" class="datepicker" name="dateTo" id="endDate"></input></td></tr>
-    </table>
+    <form action="Report" method="post" class="grid-container">
     
-    <h4>Filter By</h4>
-    <table>
-        <tr><td style="align:right;">Contract:</td><td><select id="contractId" name="contractId" class="lookupselect">
-            <option value=""></option>
-            #for(contract in contracts) {
-                <option value="#(contract.id)">#(contract.name)</option>
-            }
-        </select></td></tr>
-        <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="companyId" class="lookupselect">
-            <option value=""></option>
-            #for(company in companies) {
-                <option value="#(company.id)">#(company.name)</option>
-            }
+    <div class="option-set" style="grid-column: 1; grid-row: 1">
+        <h4>Date Range</h4>
+        <table>
+            <tr><td style="align:right;">From:</td><td><input type="date" class="datepicker" name="dateFrom" id="startDate"></input></td>
+            <td style="align:right;">To:</td><td><input type="date" class="datepicker" name="dateTo" id="endDate"></input></td></tr>
+        </table>
+    </div>
+    
+    <div class="option-set" style="grid-column: 2; grid-row: 1">
+        <h4>Filter By</h4>
+        <table>
+            <tr><td style="align:right;">Contract:</td><td><select id="contractId" name="contractId" class="lookupselect">
+                <option value=""></option>
+                #for(contract in contracts) {
+                    <option value="#(contract.id)">#(contract.name)</option>
+                }
             </select></td></tr>
-        <tr><td style="align:right;">Project:</td><td><select id="projectId" name="projectId" class="lookupselect">
-            <option value=""></option>
-            #for(project in projects) {
-                <option value="#(project.id)">#(project.name)</option>
-            }
-        </select></td></tr>
-        <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="billedById" class="lookupselect">
-            <option value=""></option>
-            #for(person in timeBillers) {
-                <option value="#(person.PersonID)">#(person.Name)</option>
-            }
-        </select></td></tr>
-    </table>
+            <tr><td style="align:right;">Services For:</td><td><select id="servicesForCompanyId" name="companyId" class="lookupselect">
+                <option value=""></option>
+                #for(company in companies) {
+                    <option value="#(company.id)">#(company.name)</option>
+                }
+                </select></td></tr>
+            <tr><td style="align:right;">Project:</td><td><select id="projectId" name="projectId" class="lookupselect">
+                <option value=""></option>
+                #for(project in projects) {
+                    <option value="#(project.id)">#(project.name)</option>
+                }
+            </select></td></tr>
+            <tr><td style="align:right;">Time Billed By:</td><td><select id="billedById" name="billedById" class="lookupselect">
+                <option value=""></option>
+                #for(person in timeBillers) {
+                    <option value="#(person.PersonID)">#(person.Name)</option>
+                }
+            </select></td></tr>
+        </table>
+    </div>
     
-    <h4>Group and Subtotal By</h4>
-    <table>
-        <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="group1" id="group1">
-            <option value=""></option>
-            #for(group in groupBy) {
-                <option value="#(group.id)">#(group.name)</option>
-            }
-        </select></td>
-        <td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="group2" id="group2">
-            <option value=""></option>
-            #for(group in groupBy) {
-                <option value="#(group.id)">#(group.name)</option>
-            }
-        </select></td></tr>
-    </table>
+    <div class="option-set" style="grid-column: 1; grid-row: 2">
+        <h4>Group and Subtotal By</h4>
+        <table>
+            <tr><td style="align:right;">Top Level:</td><td><select type="date" class="grouping" name="group1" id="group1">
+                <option value=""></option>
+                #for(group in groupBy) {
+                    <option value="#(group.id)">#(group.name)</option>
+                }
+            </select></td></tr>
+            <tr><td style="align:right;">Secondary Level:</td><td><select type="date" class="grouping" name="group2" id="group2">
+                <option value=""></option>
+                #for(group in groupBy) {
+                    <option value="#(group.id)">#(group.name)</option>
+                }
+            </select></td></tr>
+        </table>
+    </div>
     
-    <input type="submit" value="Submit" tabindex="7" >
+    <div class="option-set" style="grid-column: 2; grid-row: 2">
+        <h4>Display</h4>
+        <table><tr><td><input type="radio" id="display-details" name="display" value="d" checked>
+        <label for="display-details">Details</label></td></tr>
+        <tr><td><input type="radio" id="display-summary" name="display" value="s">
+        <label for="display-summary">Summary</label><br></td></tr></table>
+    </div>
+    
+    <div style="grid-row: 3"><button type="submit" value="Submit" tabindex="7" id="btnSubmit" >Submit</button></div>
     </form>
                         
 

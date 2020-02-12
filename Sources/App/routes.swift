@@ -16,4 +16,19 @@ public func routes(_ router: Router) throws {
         }
     }
 
+    router.post("ajax/refreshCaches") { req -> Future<HTTPResponse> in
+        let headers: HTTPHeaders = .init()
+        let body = HTTPBody(string: "")
+        let httpReq = HTTPRequest(
+            method: .POST,
+            url: URL(string: "/post")!,
+            headers: headers,
+            body: body)
+
+        let client = HTTPClient.connect(hostname: "./report/refreshCache", on: req)
+        return client.flatMap(to: HTTPResponse.self) { client in
+            return client.send(httpReq)
+        }
+    }
+
 }

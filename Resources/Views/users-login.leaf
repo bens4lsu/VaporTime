@@ -16,6 +16,14 @@
 </head>
 <body class="mainbox" >
 
+<script>
+
+if (window.self != window.top) {
+    window.top.location.href="/"
+}
+
+</script>
+
     <h1>Log in</h1>
     <form method="post">
     <p>Email Address: <input type="text" name="email" value="ben@concordbusinessservicesllc.com"/></p>

@@ -124,22 +124,52 @@ struct ReportData: Codable, Comparable {
     }
 }
 
-struct ReportRendererGroup: Codable, Comparable {
+class ReportRendererGroup: Encodable, Comparable {
     var title: String
     var childGroups: [ReportRendererGroup]?
     var childRecords: [ReportData]?
     var sortValue: String
+    var total: Double = 0.0  // dumb workaround.  I can't get the caluclated property version of total to encode
+                            // for leaf.  The total might encode correctly, but it chokes on the [ReportData]? type.
+                            // See also mutating func at the end.
+    var count: Int = 0
     
-    var total: Double {
+    var totalCalc: (Double, Int) {
         if let groups = childGroups {
-            return groups.reduce(0, { tot, group in tot + group.total  })
+            var total = 0.0
+            var count = 0
+            for group in groups {
+                group.updateTotal()
+                total += group.total
+                count += group.count
+            }
+            return (total, count)
         }
         else if let records = childRecords {
-            return records.reduce(0, { tot, record in tot + record.duration  })
+            return (records.reduce(0, { tot, record in tot + record.duration  }), records.count)
+        }
+        else {
+            return (0.0, 0)
+        }
+    }
+    
+    var countCalc: Int {
+        if let groups = childGroups {
+            return groups.reduce(0, { tot, group in group.countCalc })
+        }
+        else if let records = childRecords {
+            return records.count
         }
         else {
             return 0
         }
+    }
+    
+    init(title: String, childGroups: [ReportRendererGroup]?, childRecords: [ReportData]?, sortValue: String) {
+        self.title = title
+        self.childGroups = childGroups
+        self.childRecords = childRecords
+        self.sortValue = sortValue
     }
     
     static func < (lhs: ReportRendererGroup, rhs: ReportRendererGroup) -> Bool {
@@ -149,13 +179,31 @@ struct ReportRendererGroup: Codable, Comparable {
     static func == (lhs: ReportRendererGroup, rhs: ReportRendererGroup) -> Bool {
         lhs.sortValue == rhs.sortValue
     }
+    
+    func updateTotal() {
+        let (total, count) = self.totalCalc
+        self.total = total
+        self.count = count
+    }
 }
 
-struct ReportContext: Codable {
+struct ReportContext: Encodable {
     var top: [ReportRendererGroup]
     var levels: Int
     var startDate: Date
     var endDate: Date
+    var grandTotal: Double = 0.0
+    var count: Int = 0
+    
+    mutating func updateTotals() {
+        grandTotal = 0.0
+        count = 0
+        for renderer in top {
+            renderer.updateTotal()
+            grandTotal += renderer.total
+            count += renderer.count
+        }
+    }
 }
 
 
