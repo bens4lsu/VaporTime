@@ -24,11 +24,11 @@ enum ReportGroupBy: Int {
     case week
     case month
     
-    static func fromRaw(_ val: Int?) -> Self? {
+    static func fromRaw(_ val: Int?) -> ReportGroupBy? {
         guard let value = val else {
             return nil
         }
-        return Self(rawValue: value)
+        return ReportGroupBy(rawValue: value)
     }
     
     func title(from row: ReportData) -> String {
@@ -76,12 +76,12 @@ enum ReportGroupBy: Int {
     }
     
     static func list() -> [LookupContextPair] {
-        [LookupContextPair(name: "Contract", id: Self.contract.rawValue),
-        LookupContextPair(name: "Project", id: Self.project.rawValue),
-        LookupContextPair(name: "Services For Company", id: Self.serviceFor.rawValue),
-        LookupContextPair(name: "Billed By", id: Self.person.rawValue),
-        LookupContextPair(name: "Week", id: Self.week.rawValue),
-        LookupContextPair(name: "Month", id: Self.month.rawValue)]
+        [LookupContextPair(name: "Contract", id: ReportGroupBy.contract.rawValue),
+        LookupContextPair(name: "Project", id: ReportGroupBy.project.rawValue),
+        LookupContextPair(name: "Services For Company", id: ReportGroupBy.serviceFor.rawValue),
+        LookupContextPair(name: "Billed By", id: ReportGroupBy.person.rawValue),
+        LookupContextPair(name: "Week", id: ReportGroupBy.week.rawValue),
+        LookupContextPair(name: "Month", id: ReportGroupBy.month.rawValue)]
     }
 }
 
@@ -201,6 +201,14 @@ struct ReportContext: Encodable {
             grandTotal += renderer.total
             count += renderer.count
         }
+    }
+    
+    // method for init on ubuntu swift 5.1.4
+    init(top: [ReportRendererGroup], levels: Int, startDate: Date, endDate: Date){
+        self.top = top
+        self.levels = levels
+        self.startDate = startDate
+        self.endDate = endDate
     }
 }
 

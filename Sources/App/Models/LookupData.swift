@@ -59,11 +59,11 @@ struct LookupContextPair: Codable , Hashable{
     var id: Int
     
     static func ==(lhs: LookupContextPair, rhs: LookupContextPair) -> Bool {
-        lhs.id == rhs.id
+        return lhs.id == rhs.id
     }
     
     static func <(lhs: LookupContextPair, rhs: LookupContextPair) -> Bool {
-        lhs.id < rhs.id
+        return lhs.id < rhs.id
     }
 }
 

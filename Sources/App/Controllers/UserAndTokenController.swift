@@ -79,8 +79,8 @@ class UserAndTokenController: RouteCollection {
             
             let userPersistInfo = user.persistInfo()!
             let ip = req.http.remotePeer.hostname
-            let token = Token(user: userPersistInfo, exp: Date().addingTimeInterval(Self.tokenExpDuration), ip: ip)
-            try Self.saveSessionInfo(req: req, info: token, sessionKey: "token")
+            let token = Token(user: userPersistInfo, exp: Date().addingTimeInterval(UserAndTokenController.tokenExpDuration), ip: ip)
+            try UserAndTokenController.saveSessionInfo(req: req, info: token, sessionKey: "token")
             return req.future().map() {
                 return req.redirect(to: "/")
             }
@@ -158,7 +158,7 @@ class UserAndTokenController: RouteCollection {
             throw Abort (.unauthorized)
         }
         
-        token.exp = (Date().addingTimeInterval(Self.tokenExpDuration))
+        token.exp = (Date().addingTimeInterval(UserAndTokenController.tokenExpDuration))
         try saveSessionInfo(req: req, info: token, sessionKey: "token")
         
         return try onSuccess(token.user)
