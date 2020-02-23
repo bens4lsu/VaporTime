@@ -10,21 +10,16 @@ import Vapor
 import FluentMySQL
 import Leaf
 
-
-// TODO:  For rendered views that show up inside a frame, if the session has become invalid, don't redirect to login,
-//        because then you have a login screen inside a frame.  Just go to a session-exipred page.
-//          Is there a way to redirect the top page of the browser?  maybe I can send a post to a javascript listener
-//          on index?
-//
-
 class TimeBillingController: RouteCollection {
     
     let userAndTokenController: UserAndTokenController
+    let projectTree: ProjectTree
     let db = MySQLDirect()
         
     // MARK: Startup
-    init(_ userAndTokenController: UserAndTokenController) {
+    init(_ userAndTokenController: UserAndTokenController, _ projectTree: ProjectTree) {
         self.userAndTokenController = userAndTokenController
+        self.projectTree = projectTree
     }
     
     func boot(router: Router) throws {
@@ -73,9 +68,7 @@ class TimeBillingController: RouteCollection {
     
     private func renderTimeTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return try db.getTBTree(req, userId: user.id).flatMap(to:Response.self) { items in
-                let treeItems = self.convertDbItemsToTreeItems(items: items)
-                let context = TBTreeContext(items: treeItems)
+            return try projectTree.getTree(req, userId: user.id).flatMap(to:Response.self) { context in
                 return try req.view().render("time-tree", context).encode(for: req)
             }
         }
@@ -176,117 +169,6 @@ class TimeBillingController: RouteCollection {
                 return try ["OK" : "OK"].encode(for: req)
             }
         }
-    }
-    
-    // MARK:  Helpers
-    
-    private func convertDbItemsToTreeItems(items: [TBTreeColumn]) -> [TBTreeItem] {
-    /*
-        Build the tree.  We want to meet these requirements...
-        
-        A) If we have one contract, one services for company, and one project, just have one line in the tree.
-        B) If we have 1 services for and many projects, put contract and sf on one line, and projects below.
-        C) If we have >1 services for and 1 project, put SF & P together under the contract level.
-        D) If we have >1 services for and >1 project, need three levels.
-
-    */
-        
-        // Build dictionaries of sets, which keep listings from being
-        // duplicated and let us pluck information that we need in the
-        // main logic below
-
-        var contractProjectDictionary = [Int: Set<Int>]()
-        var contractCompanyDictionary = [Int: Set<String>]()
-        var contracts = Set<Int>()
-        
-        for item in items {
-            let contract = item.contractId
-            contracts.insert(contract)
-            if contractProjectDictionary[contract] == nil {
-                contractProjectDictionary[contract] = Set<Int>()
-            }
-            contractProjectDictionary[contract]!.insert(item.projectId)
-            if contractCompanyDictionary[contract] == nil {
-                contractCompanyDictionary[contract] = Set<String>()
-            }
-            contractCompanyDictionary[contract]!.insert(item.servicesForCompany)
-        }
-        
-        
-        // Here's the logic -- iterate over each contract (top level)
-        var treeItems = [TBTreeItem]()
-        for contract in contracts {
-            let projCount = contractProjectDictionary[contract]!.count
-            let sfCount = contractCompanyDictionary[contract]!.count
-            
-            if projCount == 1 && sfCount == 1 {
-                // A
-                let row = items.filter { $0.projectId == contractProjectDictionary[contract]!.first }.first!
-                let level1 = "\(row.contractDescription) - \(row.projectDescription)"
-                let branch = TBTreeItemBranch(label: level1, projectId: row.projectId)
-                let item = TBTreeItem(levels: 1, level1: branch, contractId: row.contractId)
-                treeItems.append(item)
-            }
-                
-            else if projCount > 1 && sfCount == 1 {
-                // B
-                let rows = items.filter { contractProjectDictionary[contract]!.contains($0.projectId) }
-                var level1 = TBTreeItemBranch(label: "\(rows.first!.contractDescription) - \(rows.first!.servicesForCompany)")
-                var level2 = [TBTreeItemBranch]()
-                for row in rows {
-                    var label: String
-                    if let projectNumber = row.projectNumber {
-                        label = projectNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-                        label = level2.count > 0 ? "\(level2) - \(row.projectDescription)" : row.projectDescription
-                    } else {
-                        label = row.projectDescription
-                    }
-                    level2.append(TBTreeItemBranch(label: label, projectId: row.projectId))
-                }
-                level1.children = level2.sorted()
-                let item = TBTreeItem(levels: 2, level1: level1, contractId: contract)
-                treeItems.append(item)
-            }
-                
-            else if projCount == 1 && sfCount > 1 {
-                // C
-                let rows = items.filter { contractCompanyDictionary[contract]!.contains($0.servicesForCompany) }
-                var level1 = TBTreeItemBranch(label: "\(rows.first!.contractDescription)")
-                var level2 = [TBTreeItemBranch]()
-                for row in rows {
-                    level2.append(TBTreeItemBranch(label: "\(row.servicesForCompany) - \(row.projectDescription)", projectId: row.projectId))
-                }
-                level1.children = level2.sorted()
-                let item = TBTreeItem(levels: 2, level1: level1, contractId: contract)
-                treeItems.append(item)
-            }
-                
-            else {
-                // D
-                let companies = contractCompanyDictionary[contract]!
-                let contractStruct = items.filter { $0.contractId == contract }.first!
-                var level1 = TBTreeItemBranch(label: contractStruct.contractDescription, projectId: nil, children: Array())
-                for company in companies {
-                    var level2 = TBTreeItemBranch(label: company)
-                    var level3 = [TBTreeItemBranch]()
-                    let rows = items.filter { $0.servicesForCompany == company && $0.contractId == contract}
-                    for row in rows {
-                        level3.append(TBTreeItemBranch(label: row.projectDescription, projectId: row.projectId))
-                    }
-                    level2.children = level3.sorted()
-                    // if level2 only has one child, flatten it
-                    if level2.children!.count == 1 {
-                        let child = level2.children!.first!
-                        level2 = TBTreeItemBranch(label: "\(level2.label) - \(child.label)", projectId: child.projectId)
-                    }
-                    level1.children!.append(level2)
-                }
-                level1.children!.sort()
-                let item = TBTreeItem(levels: 3, level1: level1, contractId: contractStruct.contractId)
-                treeItems.append(item)
-            }
-        }
-        return treeItems.sorted { $0.level1.label < $1.level1.label }
     }
 }
 

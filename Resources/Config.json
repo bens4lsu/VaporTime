@@ -1,0 +1,13 @@
+
+{
+    "database" : {
+        "hostname"  : "192.168.56.20",
+        "port"      : 3306,
+        "username"  : "devuser",
+        "password"  : "6ZoLeCKL8X86",
+        "database"  : "apps_timebill"
+    },
+    
+    "tokenExpDuration" : 3600
+    
+}

@@ -62,7 +62,7 @@ class ReportController: RouteCollection {
             let endDateReqStr: String? = try? req.content.syncGet(at: "dateTo")
             let billedById: Int? = try? req.content.syncGet(at: "billedById")
             let contractId: Int? = try? req.content.syncGet(at: "contractId")
-            let servicesForCompanyId: Int? = try? req.content.syncGet(at: "servicesForCompanyId")
+            let servicesForCompanyId: Int? = try? req.content.syncGet(at: "companyId")
             let projectId: Int? = try? req.content.syncGet(at: "projectId")
             let groupBy1: Int? = try? req.content.syncGet(at: "group1")
             let groupBy2: Int? = try? req.content.syncGet(at: "group2")

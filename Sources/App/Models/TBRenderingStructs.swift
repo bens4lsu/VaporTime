@@ -113,6 +113,8 @@ struct TBTreeItemBranch: Codable, Comparable {
 
 struct TBTreeContext: Codable {
     var items: [TBTreeItem]
+    var editPage = "TBAddEdit"
+    var heading = "Add New Time Entry"
 }
 
 struct TBTreeColumn: Codable {

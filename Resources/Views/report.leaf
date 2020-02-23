@@ -12,6 +12,13 @@
     <script language="javascript" src="./js/jquery.validate.pack.js"></script>
    <style>
         body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+        .group-heading-2, .group-footer-2 { background-color: #d3d3d3; font-weight:bold;  }
+        .group-footer-2 {border-top: 1px solid black; margin-bottom: 9px; }
+        .group-heading-2 {border-bottom: 1px solid black; }
+        .group-heading-1, .group-footer-1 {background-color: #5c9ccc; color:white; font-weight: bold}
+        .table-footer {background-color: black; color:white; font-weight: bold}
+        table {min-width:500px; margin:50px 10px; border: 1px solid #5c9ccc; width:100%;}
+        tr.group-heading-1 td {min-width:95px;}
     </style>
 
 </head>
@@ -24,35 +31,42 @@
  
  #if(levels == 1) {
     #for(group1 in top) {
-        <h2>#(group1.title)</h2>
         <table>
+        <tr class="group-heading-1"><td colspan="4">#(group1.title)</tr>
         #for(record in group1.childRecords) {
-            <tr class="row-#zebra(index)"><td>#(record.BilledByName)</td><td>#date(record.WorkDate, "MM/dd/yyyy")</td><td>#(record.Duration)</td><td>#(record.Notes)</tr>
+            <tr class="row-#zebra(index)"><td width="18%">#(record.BilledByName)</td><td width="18%">#date(record.WorkDate, "MM/dd/yyyy")</td><td width="8%">#(record.Duration)</td><td>#(record.Notes)</tr>
         }
+        <tr class="group-footer-1"><td>Count: #(group1.count)</td><td>&nbsp;</td><td>#(group1.total)</td><td>&nbsp;</td></tr>
         </table>
         
-        #(group1.total)  #(group1.count)
     }
-    #(grandTotal)  #(count)
- }
+    <table>
+        <tr class="table-footer"><td width="18%">Count: #(count)</td><td width="18%">&nbsp;</td><td width="9%">#(grandTotal)  </td><td>&nbsp;</td></tr>
+    </table>
+}
  
  #if(levels == 2) {
     #for(group1 in top) {
-        <h2>#(group1.title)</h2>
+        
+        <table>
+        <tr class="group-heading-1"><td colspan="4">#(group1.title)</tr>
         #for(group2 in group1.childGroups) {
-            <h3>#(group2.title)</h3>
-            <table>
+            <tr class="group-heading-2"><td colspan="4">#(group2.title)</td></tr>
+            <tbody>
             #for(record in group2.childRecords) {
-                <tr class="row-#zebra(index)"><td>#(record.BilledByName)</td><td>#date(record.WorkDate, "MM/dd/yyyy")</td><td>#(record.Duration)</td><td>#(record.Notes)</tr>
+                <tr class="row-#zebra(index)"><td width="18%">#(record.BilledByName)</td><td width="18%">#date(record.WorkDate, "MM/dd/yyyy")</td><td width="9%">#(record.Duration)</td><td>#(record.Notes)</tr>
             }
-            </table>
-            
-            #(group2.total)  #(group2.count)
+            <tr class="group-footer-2"><td>Count: #(group2.count)</td><td>&nbsp;</td><td>#(group2.total)</td><td>&nbsp;</td></tr>
         }
         
-        #(group1.total)  #(group1.count)
+        <tr class="group-footer-1"><td>Count: #(group1.count)</td><td>&nbsp;</td><td>#(group1.total)</td><td>&nbsp;</td></tr>
+
     }
-    #(grandTotal)  #(count)
+    </table>
+    <table>
+        <tr class="table-footer"><td width="18%">Count: #(count)</td><td width="18%">&nbsp;</td><td width="9%">#(grandTotal)  </td><td>&nbsp;</td></tr>
+    </table>
+    
  }
                         
 

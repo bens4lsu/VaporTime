@@ -33,11 +33,7 @@ enum ReportGroupBy: Int {
     
     func title(from row: ReportData) -> String {
         
-        let dateFormatterMMyy: DateFormatter = {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MM/yy"
-            return formatter
-        }()
+        let formatter = DateFormatter()
         
         var title = ""
         switch self {
@@ -50,9 +46,11 @@ enum ReportGroupBy: Int {
         case .person:
             title = "Billed by: \(row.billedByName)"
         case .week:
-            title = "Week starting: \(row.firstDayOfWeekMonday)"
+            formatter.dateFormat = "MM/dd/yyyy"
+            title = "Week starting: \(formatter.string(from: row.firstDayOfWeekMonday))"
         case .month:
-            title = "Month of: \(dateFormatterMMyy.string(from: row.firstOfMonth))"
+            formatter.dateFormat = "MM/yyyy"
+            title = "Month of: \(formatter.string(from: row.firstOfMonth))"
         }
         return title
     }

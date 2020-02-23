@@ -12,9 +12,12 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     try routes(router)
     services.register(router, as: Router.self)
 
+    // Load values from Resources/Config.json
+    let dbKeys = ConfigKeys().database
+    
     // Register database
     try services.register(FluentMySQLProvider())
-    let databaseConfig = MySQLDatabaseConfig(hostname: "192.168.56.20", port: 3306, username: "devuser", password: "6ZoLeCKL8X86", database: "apps_timebill") //, transport: .unverifiedTLS)
+    let databaseConfig = MySQLDatabaseConfig(hostname: dbKeys.hostname, port: dbKeys.port, username: dbKeys.username, password: dbKeys.password, database: dbKeys.database) //, transport: .unverifiedTLS)
         
     services.register(databaseConfig)
     // this in lieu of migration, which I don't want this system

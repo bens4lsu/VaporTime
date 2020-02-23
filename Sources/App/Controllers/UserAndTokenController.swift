@@ -21,8 +21,8 @@ enum UserAccessLevel: String, Codable {
 
 class UserAndTokenController: RouteCollection {
     
-    static let tokenExpDuration: Double = 3600         // seconds
-    
+    static let tokenExpDuration = ConfigKeys().tokenExpDuration
+        
     func boot(router: Router) throws {
         router.group("security") { group in
             group.get("login", use: renderLogin)

@@ -1,0 +1,12 @@
+
+ <ul>
+    <li class="faq-q">I'm not seeing time that I know is billed to a project.  What's happening?"</li>
+
+    <li class="faq-a">You will see time entries that meet <em>any one or more</em> of the following conditions:  <ol>
+        <li>The time entry is your own time billed to a project.</li>
+        <li>You (the user looking for the time entry) is a member of the "Services For Company" on the project AND the "Hide Time Reporting" box for that project is not checked.</li>
+        <li>You are a member of the "Bill To Company".</li>
+        <li>You are a member of the company with CompanyID = 0 (the company that owns this system).</li>
+        </ol>
+    </li>
+</ul>

@@ -9,7 +9,7 @@ import Foundation
 import FluentMySQL
 import Vapor
 
-struct Time: Content, MySQLModel, Migration, Codable {
+struct Time: Content, MySQLModel, Codable {
     
     var id: Int?
     var personId: Int

@@ -7,8 +7,11 @@ public func routes(_ router: Router) throws {
         
     let userAndTokenController = UserAndTokenController()
     try router.register(collection: userAndTokenController)
-    try router.register(collection: TimeBillingController(userAndTokenController))
+    
+    let projectTree = ProjectTree()
+    try router.register(collection: TimeBillingController(userAndTokenController, projectTree))
     try router.register(collection: ReportController(userAndTokenController))
+    try router.register(collection: ProjectController(userAndTokenController, projectTree))
     
     router.get { req-> Future<Response> in
         return try UserAndTokenController.verifyAccess(req, accessLevel: .activeOnly) { user in
@@ -29,6 +32,8 @@ public func routes(_ router: Router) throws {
         return client.flatMap(to: HTTPResponse.self) { client in
             return client.send(httpReq)
         }
+        
+        // TODO: refresh projectTree.savedTrees
     }
 
 }
