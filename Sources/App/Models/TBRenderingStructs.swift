@@ -107,7 +107,7 @@ struct TBTreeItemBranch: Codable, Comparable {
     var children: [TBTreeItemBranch]?
     
     static func < (lhs: TBTreeItemBranch, rhs: TBTreeItemBranch) -> Bool {
-        lhs.label < rhs.label
+        return lhs.label < rhs.label
     }
     
     //  need these initializors to build on swift 5.14 on ubuntu
@@ -131,6 +131,16 @@ struct TBTreeContext: Codable {
     var items: [TBTreeItem]
     var editPage = "TBAddEdit"
     var heading = "Add New Time Entry"
+    
+    init(items: [TBTreeItem]) {
+        self.items = items
+    }
+    
+    init(items: [TBTreeItem], editPage: String, heading: String) {
+        self.items = items
+        self.editPage = editPage
+        self.heading = heading
+    }
 }
 
 struct TBTreeColumn: Codable {
@@ -174,4 +184,8 @@ struct TBEditProjectLabel: Codable {
 struct TBAddEditContext: Codable {
     var project: TBEditProjectLabel
     var time: Time?
+    
+    init(project: TBEditProjectLabel) {
+        self.project = project
+    }
 }

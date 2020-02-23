@@ -69,7 +69,7 @@ class TimeBillingController: RouteCollection {
     private func renderTimeTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             return try projectTree.getTree(req, userId: user.id).flatMap(to:Response.self) { context in
-                return try req.view().render("time-tree", context).encode(for: req)
+                return (try req.view().render("time-tree", context).encode(for: req))
             }
         }
     }

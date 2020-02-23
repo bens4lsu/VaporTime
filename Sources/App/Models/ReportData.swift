@@ -76,12 +76,12 @@ enum ReportGroupBy: Int {
     }
     
     static func list() -> [LookupContextPair] {
-        [LookupContextPair(name: "Contract", id: ReportGroupBy.contract.rawValue),
-        LookupContextPair(name: "Project", id: ReportGroupBy.project.rawValue),
-        LookupContextPair(name: "Services For Company", id: ReportGroupBy.serviceFor.rawValue),
-        LookupContextPair(name: "Billed By", id: ReportGroupBy.person.rawValue),
-        LookupContextPair(name: "Week", id: ReportGroupBy.week.rawValue),
-        LookupContextPair(name: "Month", id: ReportGroupBy.month.rawValue)]
+        return [LookupContextPair(name: "Contract", id: ReportGroupBy.contract.rawValue),
+            LookupContextPair(name: "Project", id: ReportGroupBy.project.rawValue),
+            LookupContextPair(name: "Services For Company", id: ReportGroupBy.serviceFor.rawValue),
+            LookupContextPair(name: "Billed By", id: ReportGroupBy.person.rawValue),
+            LookupContextPair(name: "Week", id: ReportGroupBy.week.rawValue),
+            LookupContextPair(name: "Month", id: ReportGroupBy.month.rawValue)]
     }
 }
 
@@ -114,11 +114,11 @@ struct ReportData: Codable, Comparable {
     }
     
     static func < (lhs: ReportData, rhs: ReportData) -> Bool {
-        lhs.workDate < rhs.workDate
+        return lhs.workDate < rhs.workDate
     }
     
     static func == (lhs: ReportData, rhs: ReportData) -> Bool {
-        lhs.workDate == rhs.workDate
+        return lhs.workDate == rhs.workDate
     }
 }
 
@@ -171,11 +171,11 @@ class ReportRendererGroup: Encodable, Comparable {
     }
     
     static func < (lhs: ReportRendererGroup, rhs: ReportRendererGroup) -> Bool {
-        lhs.sortValue < rhs.sortValue
+        return lhs.sortValue < rhs.sortValue
     }
     
     static func == (lhs: ReportRendererGroup, rhs: ReportRendererGroup) -> Bool {
-        lhs.sortValue == rhs.sortValue
+        return lhs.sortValue == rhs.sortValue
     }
     
     func updateTotal() {

@@ -40,10 +40,10 @@ class ProjectController: RouteCollection {
     }
     
     private func renderProjectAddEdit(_ req: Request)throws -> Future<Response> {
-        try req.future("ok").encode(for: req)
+        return try req.future("ok").encode(for: req)
     }
     
     private func addEditProject(_ req: Request) throws -> Future<Response> {
-        try req.future("ok").encode(for: req)
+        return try req.future("ok").encode(for: req)
     }
 }
