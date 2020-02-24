@@ -11,9 +11,10 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "3.0.0"),
         .package(url: "https://github.com/vapor/fluent-mysql.git", .upToNextMinor(from: "3.0.0")),
         .package(url: "https://github.com/vapor/leaf.git", .upToNextMinor(from: "3.0.0")),
+        .package(url: "https://github.com/vapor-community/sendgrid-provider.git", from: "3.0.0"),
     ],
     targets: [
-        .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL"]),
+        .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL", "SendGrid"]),
         .target(name: "Run", dependencies: ["App"]),
         .testTarget(name: "AppTests", dependencies: ["App"])
     ]

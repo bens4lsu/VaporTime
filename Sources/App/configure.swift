@@ -24,6 +24,8 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // doing on a legacy database
     User.defaultDatabase = .mysql
     Time.defaultDatabase = .mysql
+    Project.defaultDatabase = .mysql
+    ProjectEvent.defaultDatabase = .mysql
     
     try services.register(LeafProvider())
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)
@@ -37,5 +39,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     middlewareConfig.use(FileMiddleware.self)
     services.register(middlewareConfig)
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
+     
     
 }
