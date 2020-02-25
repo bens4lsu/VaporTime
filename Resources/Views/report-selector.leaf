@@ -105,8 +105,8 @@
     <div class="option-set" style="grid-column: 1; grid-row: 1">
         <h4>Date Range</h4>
         <table>
-            <tr><td style="align:right;">From:</td><td><input type="date" class="datepicker" name="dateFrom" id="startDate"></input></td>
-            <td style="align:right;">To:</td><td><input type="date" class="datepicker" name="dateTo" id="endDate"></input></td></tr>
+            <tr><td style="align:right;">From:</td><td><input class="datepicker" name="dateFrom" id="startDate"></input></td>
+            <td style="align:right;">To:</td><td><input class="datepicker" name="dateTo" id="endDate"></input></td></tr>
         </table>
     </div>
     
