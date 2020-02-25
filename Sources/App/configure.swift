@@ -17,7 +17,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     
     // Register database
     try services.register(FluentMySQLProvider())
-    let databaseConfig = MySQLDatabaseConfig(hostname: dbKeys.hostname, port: dbKeys.port, username: dbKeys.username, password: dbKeys.password, database: dbKeys.database) //, transport: .unverifiedTLS)
+    let databaseConfig = MySQLDatabaseConfig(hostname: dbKeys.hostname, port: dbKeys.port, username: dbKeys.username, password: dbKeys.password, database: dbKeys.database, transport: .unverifiedTLS)
         
     services.register(databaseConfig)
     // this in lieu of migration, which I don't want this system

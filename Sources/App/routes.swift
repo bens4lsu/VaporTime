@@ -35,5 +35,18 @@ public func routes(_ router: Router) throws {
         
         // TODO: refresh projectTree.savedTrees
     }
+    
+    struct MySQLVersion: Codable {
+        let version: String
+    }
+
+    router.get("sql") { req in
+        return req.withPooledConnection(to: .mysql) { conn in
+            return conn.raw("SELECT @@version as version")
+                .all(decoding: MySQLVersion.self)
+        }.map { rows in
+            return rows[0].version
+        }
+    }
 
 }
