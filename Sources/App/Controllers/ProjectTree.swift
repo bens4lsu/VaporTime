@@ -11,7 +11,11 @@ import Vapor
 class ProjectTree {
     
     let db = MySQLDirect()
-    var savedTrees: [Int : TBTreeContext] = [:]
+    var savedTrees: [Int : TBTreeContext]
+    
+    init(cache: DataCache) {
+        self.savedTrees = cache.savedTrees
+    }
     
     func getTree(_ req: Request, userId: Int) throws -> Future<TBTreeContext> {
         if let tree = savedTrees[userId] {
@@ -137,5 +141,4 @@ class ProjectTree {
         }
         return treeItems.sorted { $0.level1.label < $1.level1.label }
     }
-    
 }

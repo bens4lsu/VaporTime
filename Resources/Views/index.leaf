@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
     <link rel="stylesheet" href="./css/jquery.dataTables.css" />
-    <link rel="stylesheet" href="./css/infodrivenlife.css" />
+    <link rel="stylesheet" href="./css/concordtb.css" />
 
     <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.9.1.js"></script>
     <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
@@ -19,6 +19,7 @@
         #frTBTree, #frPrTree {width:100%; height:100%;}
         .tlevbox {position:relative;}
         #frProj, #frAdmin, #frCRM, #frReport {width:100%; height:800px;}
+
     </style>
 
 </head>

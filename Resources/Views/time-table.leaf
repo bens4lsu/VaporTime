@@ -1,14 +1,13 @@
-
 <html>
 <head>
     <title>Concord Business Services Time Billing System</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
-    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
-    <link rel="stylesheet" href="./css/infodrivenlife.css" />
-    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
-    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
-    <script language="javascript" type="text/javascript" src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" _href="./css/jquery.dataTables.css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="./css/concordtb.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-3.4.1.min.js" _src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" _src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" _src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
        <script language="javascript" type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <style>
@@ -75,7 +74,7 @@
         }
             
         $(document).ready(function() {
-            var mTable = $("#main_table").dataTable( {
+            $("#main_table").dataTable( {
                 "iDisplayLength" : 50,
                 "order" : [[#(filter.sortColumn), "#(filter.sortDirection)"]],
                 "aaSorting" : [[#(filter.sortColumn), "#(filter.sortDirection)"]],
@@ -115,6 +114,15 @@
                     $(theRow).animate({backgroundColor: origColor}, 3000);
                 }, 500);
             });
+            
+            $('#cellDateFilter input:eq(0)').val('#(filter.dateFrom)');
+            $('#cellDateFilter input:eq(1)').val('#(filter.dateTo)');
+            $('#cellDurFilter input:eq(0)').val(#(filter.durationFrom));
+            $('#cellDurFilter input:eq(1)').val(#(filter.durationTo));
+            $('#cellNoteFilter input').val('#(filter.noteFilter)');
+            $('#cellNoteFilter').append(' (Regex)');
+            
+            
             
             $('#dlgConfirmDelete').dialog({
                 autoOpen: false,

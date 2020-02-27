@@ -8,9 +8,11 @@ public func routes(_ router: Router) throws {
     let userAndTokenController = UserAndTokenController()
     try router.register(collection: userAndTokenController)
     
-    let projectTree = ProjectTree()
+    let cache = DataCache()
+    let projectTree = ProjectTree(cache: cache)
+    
     try router.register(collection: TimeBillingController(userAndTokenController, projectTree))
-    try router.register(collection: ReportController(userAndTokenController))
+    try router.register(collection: ReportController(userAndTokenController, cache: cache))
     try router.register(collection: ProjectController(userAndTokenController, projectTree))
     
     router.get { req-> Future<Response> in
@@ -18,28 +20,13 @@ public func routes(_ router: Router) throws {
             return try req.view().render("index", user.accessDictionary()).encode(for: req)
         }
     }
-
-    router.post("ajax/refreshCaches") { req -> Future<HTTPResponse> in
-        let headers: HTTPHeaders = .init()
-        let body = HTTPBody(string: "")
-        let httpReq = HTTPRequest(
-            method: .POST,
-            url: URL(string: "/post")!,
-            headers: headers,
-            body: body)
-
-        let client = HTTPClient.connect(hostname: "./report/refreshCache", on: req)
-        return client.flatMap(to: HTTPResponse.self) { client in
-            return client.send(httpReq)
-        }
-        
-        // TODO: refresh projectTree.savedTrees
-    }
     
+
+    // test sql connectivity
     struct MySQLVersion: Codable {
         let version: String
     }
-
+    
     router.get("sql") { req in
         return req.withPooledConnection(to: .mysql) { conn in
             return conn.raw("SELECT @@version as version")

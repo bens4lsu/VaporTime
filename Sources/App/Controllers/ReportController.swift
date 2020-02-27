@@ -18,14 +18,14 @@ class ReportController: RouteCollection {
     private var cachedLookupContext: LookupContext?
         
     // MARK: Startup
-    init(_ userAndTokenController: UserAndTokenController) {
+    init(_ userAndTokenController: UserAndTokenController, cache: DataCache) {
         self.userAndTokenController = userAndTokenController
+        self.cachedLookupContext = cache.cachedLookupContext
     }
 
     func boot(router: Router) throws {
         router.get("Report", use: renderReportSelector)
         router.post("Report", use: renderReport)
-        router.post("report/refreshCache", use: refreshCachedData)
     }
     
     private func renderReportSelector(_ req: Request) throws -> Future<Response> {
@@ -88,13 +88,6 @@ class ReportController: RouteCollection {
                 context.updateTotals()
                 return try req.view().render("report", context).encode(for: req)
             }
-        }
-    }
-    
-    private func refreshCachedData(_ req: Request) throws -> Future<String> {
-        self.cachedLookupContext = nil
-        return req.future().map() {
-            return "ok"
         }
     }
 }

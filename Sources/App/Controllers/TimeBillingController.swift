@@ -33,7 +33,8 @@ class TimeBillingController: RouteCollection {
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
         guard let temp: TimeBillingSessionFilter? = try? UserAndTokenController.getSessionInfo(req: req, sessionKey: "filter"),
-              let data = temp else {                // have to double-unwrap this thing
+            let data = temp
+        else {
             return TimeBillingSessionFilter()
         }
         return data
@@ -58,6 +59,7 @@ class TimeBillingController: RouteCollection {
                                                      highlightRow: highlightRow,
                                                      cOpts: cOpts.toJSON(),
                                                      pOpts: pOpts.toJSON())
+                        print(self.sessionSortOptions(req))
                         return try req.view().render("time-table", context).encode(for: req)
                     }
                 }
@@ -111,7 +113,7 @@ class TimeBillingController: RouteCollection {
             
             let sesProject = try? req.content.syncGet(String.self, at: "sesProject").trimmingCharacters(in: .whitespaces)
             
-            let sesDateTo = try? req.content.syncGet(String.self, at: "sesDateFrom").trimmingCharacters(in: .whitespaces)
+            let sesDateTo = try? req.content.syncGet(String.self, at: "sesDateTo").trimmingCharacters(in: .whitespaces)
             
             let sesDateFrom = try? req.content.syncGet(String.self, at: "sesDateFrom").trimmingCharacters(in: .whitespaces)
             
