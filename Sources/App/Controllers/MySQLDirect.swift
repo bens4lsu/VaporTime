@@ -90,7 +90,7 @@ class MySQLDirect {
             SELECT FirstDayOfWeekMonday + INTERVAL 12 HOUR AS FirstDayOfWeekMonday,
                 FirstOfMonth + INTERVAL 12 HOUR AS FirstOfMonth,
                 Duration,
-                WorkDate + INTERVAL 12 HOUR AS WorkDate,
+                WorkDate,
                 c.Description AS ContractDescription,
                 p.ProjectDescription,
                 pc.CompanyName AS ServicesForCompany,
@@ -142,6 +142,16 @@ class MySQLDirect {
     func getLookupPerson(_ req: Request) throws -> Future<[LookupPerson]> {
         let sql = "SELECT PersonID, `Name` FROM LuPeople WHERE BillsTime = 1"
         return try getResultsRows(req, query: sql, decodeUsing: LookupPerson.self)
+    }
+    
+    func getTimeForProject(_ req: Request, projectId: Int) throws -> Future<Double> {
+        let sql = "SELECT SUM(Duration) AS TotalTime FROM fTime WHERE ProjectID = \(projectId)"
+        return try getResultRow(req, query: sql, decodeUsing: TotalTime.self).flatMap(to:Double.self) { tt in
+            let totalTime = tt?.TotalTime ?? 0.0
+            return req.future().map() {
+                totalTime
+            }
+        }
     }
 }
 

@@ -26,6 +26,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     Time.defaultDatabase = .mysql
     Project.defaultDatabase = .mysql
     ProjectEvent.defaultDatabase = .mysql
+    RefProjectStatuses.defaultDatabase = .mysql
     
     try services.register(LeafProvider())
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)

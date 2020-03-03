@@ -34,5 +34,9 @@ public func routes(_ router: Router) throws {
             return rows[0].version
         }
     }
+    
+    router.get("blankpage") { req in
+        return try req.future("").encode(for: req)
+    }
 
 }

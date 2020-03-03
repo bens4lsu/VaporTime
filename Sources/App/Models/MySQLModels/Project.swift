@@ -14,7 +14,7 @@ struct Project: Content, MySQLModel, Codable {
     var contractId: Int
     var companyId: Int
     var description: String
-    var statusId: Int
+    var statusId: Int?
     var projectNumber: String?
     var statusNotes: String?
     var mantisProjectId: Int?
@@ -23,6 +23,7 @@ struct Project: Content, MySQLModel, Codable {
     var projectedDateComplete: Date?
     var pmProjectId: Int?
     var hideTimeReporting: Bool?
+    var startDate: Date?
 
 
     typealias Database = MySQLDatabase
@@ -41,8 +42,9 @@ struct Project: Content, MySQLModel, Codable {
         mantisProjectId = "MantisProjectID",
         isActive = "IsActive",
         projectedTime = "ProjectedTime",
-        projectedDateComplete = "ProjectedCompletionDate",
+        projectedDateComplete = "ProjectedDateComplete",
         pmProjectId = "PMProjectID",
-        hideTimeReporting = "HideTimeReporting"
+        hideTimeReporting = "HideTimeReporting",
+        startDate = "StartDate"
     }
 }

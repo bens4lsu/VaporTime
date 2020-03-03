@@ -59,7 +59,6 @@ class TimeBillingController: RouteCollection {
                                                      highlightRow: highlightRow,
                                                      cOpts: cOpts.toJSON(),
                                                      pOpts: pOpts.toJSON())
-                        print(self.sessionSortOptions(req))
                         return try req.view().render("time-table", context).encode(for: req)
                     }
                 }

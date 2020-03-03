@@ -37,29 +37,44 @@
 </head>
 <body>
     <div class="wrapper">
-        <div class="grid-1-1"><label>Contract:</label><select></select></div>
-        <div class="grid-1-2"><label>Services For:</label><select></select></div>
-        <div class="grid-2-1"><label>Description:</label><input /></div>
-        <div class="grid-2-2"><label>#:</label><input /></div>
-        <div class="grid-3-1"><label>Status:</label><select></select></div>
-        <div class="grid-3-2"><label>Status Notes:</label><textarea></textarea></div>
-        <div class="grid-4-1"><label>Mantis ID:</label><input /></div>
+        <div class="grid-1-1"><label>Contract:</label>
+            <select>
+                #for(contract in lookup.contracts) {
+                    <option value="#(contract.id)"  #if(contract.id == project.ContractID) { selected }>#(contract.name)</option>
+                }
+            </select></div>
+        <div class="grid-1-2"><label>Services For:</label>
+            <select>
+                #for(company in lookup.companies) {
+                    <option value="#(company.id)" #if(company.id == project.ServicesForCompany) { selected }>#(company.name)</option>
+                }
+            </select></div>
+        <div class="grid-2-1"><label>Description:</label><input value="#(project.ProjectDescription)" /></div>
+        <div class="grid-2-2"><label>#:</label><input value="#(project.ProjectNumber)" /></div>
+        <div class="grid-3-1"><label>Status:</label>
+            <select>
+                #for(status in lookup.projectStatuses) {
+                    <option value="#(status.StatusID)" #if(status.StatusID == project.StatusID) { selected }>#(status.StatusDescription)</option>
+                }
+            </select></div>
+        <div class="grid-3-2"><label>Status Notes:</label><textarea>#(project.StatusNotes)</textarea></div>
+        <div class="grid-4-1"><label>Mantis ID:</label><input value="#(project.MantisProjectID)"/></div>
         <div class="grid-4-2"><a href="#">link</a></div>
-        <div class="grid-4-3"><label>Active:</label><input type="checkbox"></input><br><label>Hide Time Reporting:</label><input type="checkbox"></input></div>
+        <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox"></input></div>
                 
         <div class="underline-1">&nbsp;</div>
 
-        <div class="grid-5-1"><label>Projected Time:</label><input></div>
-        <div class="grid-5-2"><label>Actual Time:</label>888</div>
+        <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)"></div>
+        <div class="grid-5-2"><label>Actual Time:</label>#(totalTime)</div>
         <div class="grid-5-3">&nbsp;</div>
         
-        <div class="grid-6-1"><label>Start Date:</label><input></div>
-        <div class="grid-6-2"><label>Projected End Date:</label><input></div>
+        <div class="grid-6-1"><label>Start Date:</label><input value="#date(project.StartDate, "MM/dd/yyyy")"></div>
+        <div class="grid-6-2"><label>Projected End Date:</label><input value="#date(project.ProjectedDateComplete, "MM/dd/yyyy")"></div>
         <div class="grid-6-3">&nbsp;</div>
         <div class="underline-2">&nbsp;</div>
         
-        <div class="grid-7-1">List of events</div>
-        <div class="grid-7-2">People/rates</div>
+        <div class="grid-7-1">Journal</div>
+        <div class="grid-7-2">Rates</div>
         
     </div>
 

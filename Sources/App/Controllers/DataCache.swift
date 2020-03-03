@@ -10,7 +10,7 @@ import Vapor
 
 class DataCache {
     
-    var cachedLookupContext: LookupContext?
+    private var cachedLookupContext: LookupContext?
     private var savedTrees: [Int : TBTreeContext] = [:]
     private let db = MySQLDirect()
 
@@ -21,16 +21,22 @@ class DataCache {
     }
     
     public func getLookupContext(_ req: Request) throws -> Future<LookupContext> {
+        if let context = cachedLookupContext {
+            return req.future(context)
+        }
         return try db.getLookupTrinity(req).flatMap(to: LookupContext.self) { lookupTrinity in
             return try self.db.getLookupPerson(req).flatMap(to: LookupContext.self) { lookupPerson in
-    
-                let context = LookupContext(contracts: lookupTrinity.contracts,
-                                            companies: lookupTrinity.companies,
-                                            projects: lookupTrinity.projects,
-                                            timeBillers: lookupPerson,
-                                            groupBy: ReportGroupBy.list() )
-                self.cachedLookupContext = context
-                return req.future(context)
+                return RefProjectStatuses.query(on: req).all().flatMap(to: LookupContext.self) { projectStatuses in
+                    let statuses = projectStatuses.sorted()
+                    let context = LookupContext(contracts: lookupTrinity.contracts,
+                                                companies: lookupTrinity.companies,
+                                                projects: lookupTrinity.projects,
+                                                timeBillers: lookupPerson,
+                                                groupBy: ReportGroupBy.list(),
+                                                projectStatuses: statuses)
+                    self.cachedLookupContext = context
+                    return req.future(context)
+                }
             }
         }
     }
@@ -38,9 +44,7 @@ class DataCache {
     
     public func getProjectTree(_ req: Request, userId: Int) throws -> Future<TBTreeContext> {
         if let tree = self.savedTrees[userId] {
-            return req.future().map() {
-                tree
-            }
+            return req.future(tree)
         }
         return try db.getTBTree(req, userId: userId).flatMap(to:TBTreeContext.self) { items in
             let treeItems = self.convertDbItemsToTreeItems(items: items)

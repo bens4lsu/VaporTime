@@ -40,9 +40,19 @@ class ProjectController: RouteCollection {
     }
     
     private func renderProjectAddEdit(_ req: Request)throws -> Future<Response> {
+        let projectId = 222
         return try UserAndTokenController.verifyAccess(req, accessLevel: UserAccessLevel.timeBilling) { user in
-            let context = [String:String]()
-            return try req.view().render("project", context).encode(for: req)
+            return try cache.getLookupContext(req).flatMap(to:Response.self) { lookup in
+                return Project.find(projectId, on: req).flatMap(to: Response.self) { project in
+                    guard let project = project else {
+                        throw Abort(.badRequest, reason: "no project returned based on request with project id \(projectId)")
+                    }
+                    return try self.db.getTimeForProject(req, projectId: projectId).flatMap(to: Response.self) { totalTime in
+                        let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime)
+                        return try req.view().render("project", context).encode(for: req)
+                    }
+                }
+            }
         }
     }
     
