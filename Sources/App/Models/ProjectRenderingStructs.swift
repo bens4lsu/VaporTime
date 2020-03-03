@@ -16,4 +16,5 @@ struct ProjectAddEdit: Codable {
     var lookup: LookupContext
     var project: Project
     var totalTime: Double
+    var buglink: String
 }

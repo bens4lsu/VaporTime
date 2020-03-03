@@ -41,7 +41,9 @@ class ProjectController: RouteCollection {
     }
     
     private func renderProjectAddEdit(_ req: Request)throws -> Future<Response> {
-        let projectId = 222
+        guard let projectId = try? req.query.get(Int.self, at: "projectId") else {
+            throw Abort(.badRequest, reason: "Time edit requested with no projectId.")
+        }
         return try UserAndTokenController.verifyAccess(req, accessLevel: UserAccessLevel.timeBilling) { user in
             return try cache.getLookupContext(req).flatMap(to:Response.self) { lookup in
                 return Project.find(projectId, on: req).flatMap(to: Response.self) { project in
@@ -49,7 +51,12 @@ class ProjectController: RouteCollection {
                         throw Abort(.badRequest, reason: "no project returned based on request with project id \(projectId)")
                     }
                     return try self.db.getTimeForProject(req, projectId: projectId).flatMap(to: Response.self) { totalTime in
-                        let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime)
+                        var strBugID = ""
+                        if let bugId = project.mantisProjectId {
+                            strBugID = "\(bugId)"
+                        }
+                        let bugLink = self.cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
+                        let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink)
                         return try req.view().render("project", context).encode(for: req)
                     }
                 }
@@ -58,6 +65,33 @@ class ProjectController: RouteCollection {
     }
     
     private func addEditProject(_ req: Request) throws -> Future<Response> {
-        return try req.future("ok").encode(for: req)
+        let projectId = try? req.content.syncGet(Int.self, at: "projectId")
+        let inp_contractId = try? req.content.syncGet(Int.self, at: "contractId")
+        let inp_servicesForCompanyId = try? req.content.syncGet(Int.self, at: "companyId")
+        let inp_description = (try? req.content.syncGet(String.self, at: "description"))
+        let projectNumber = (try? req.content.syncGet(String.self, at: "projectNumber")) ?? ""
+        let statusId = try? req.content.syncGet(Int.self, at: "statusId")
+        let notes = (try? req.content.syncGet(String.self, at: "notes")) ?? ""
+        let mantisId = try? req.content.syncGet(Int.self, at: "mantisId")
+        let hideTimeReporting = (try? req.content.syncGet(at: "hideTimeReporting")).toBool()
+        let projectedTime = try? req.content.syncGet(Double.self, at: "projectedTime")
+        let startDate = (try? req.content.syncGet(at: "startDate")).toDate()
+        let endDate = (try? req.content.syncGet(at: "endDate")).toDate()
+        
+        guard let contractId = inp_contractId, let servicesForCompanyId = inp_servicesForCompanyId, let description = inp_description else {
+            throw Abort(.badRequest, reason: "Project add or update entry submitted without at least one required value (contract, services for, description).")
+        }
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+            let project = Project(id: projectId, contractId: contractId, companyId: servicesForCompanyId, description: description, statusId: statusId, projectNumber: projectNumber, statusNotes: notes, mantisProjectId: mantisId, isActive: true, projectedTime: projectedTime, projectedDateComplete: endDate, pmProjectId: nil, hideTimeReporting: hideTimeReporting, startDate: startDate)
+            return project.save(on: req).map(to: Response.self) { projectRow in
+                if let newProjectId = projectRow.id {
+                    self.cache.clear()b
+                    return req.redirect(to: "ProjectAddEdit?projectId=\(newProjectId)")
+                }
+                else {
+                    throw Abort(.internalServerError, reason: "The update to the project table may have failed.  Check system logs.")
+                }
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ class ConfigKeys: Codable {
     
     var database: ConfigKeys.Database
     var tokenExpDuration: Double
+    var bugUrl: String
     
     init() {
     
@@ -30,12 +31,14 @@ class ConfigKeys: Codable {
             let decoder = try JSONDecoder().decode(ConfigKeys.self, from: data)
             self.database = decoder.database
             self.tokenExpDuration = decoder.tokenExpDuration
+            self.bugUrl = decoder.bugUrl
         }
         catch {
             print ("Could not initialize app from Config.json.  Initilizing with hard-coded default values. \n \(error)")
             self.database = ConfigKeys.Database(hostname: "127.0.0.1", port: 3306, username: "devuser", password: "devpassword", database: "apps_timebill")
                 //, useCachingSha2Pw: false)
             self.tokenExpDuration = 3306
+            self.bugUrl = "#"
         }
     }
 }

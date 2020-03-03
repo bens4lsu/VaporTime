@@ -13,6 +13,8 @@ class DataCache {
     private var cachedLookupContext: LookupContext?
     private var savedTrees: [Int : TBTreeContext] = [:]
     private let db = MySQLDirect()
+    
+    public var configKeys = ConfigKeys()
 
     
     public func clear() {
