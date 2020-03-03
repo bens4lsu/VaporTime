@@ -9,11 +9,10 @@ public func routes(_ router: Router) throws {
     try router.register(collection: userAndTokenController)
     
     let cache = DataCache()
-    let projectTree = ProjectTree(cache: cache)
     
-    try router.register(collection: TimeBillingController(userAndTokenController, projectTree))
+    try router.register(collection: TimeBillingController(userAndTokenController, cache))
     try router.register(collection: ReportController(userAndTokenController, cache: cache))
-    try router.register(collection: ProjectController(userAndTokenController, projectTree))
+    try router.register(collection: ProjectController(userAndTokenController, cache))
     
     router.get { req-> Future<Response> in
         return try UserAndTokenController.verifyAccess(req, accessLevel: .activeOnly) { user in

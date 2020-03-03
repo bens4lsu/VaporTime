@@ -12,13 +12,13 @@ import Leaf
 
 class ProjectController: RouteCollection {
     let userAndTokenController: UserAndTokenController
-    let projectTree: ProjectTree
+    let cache: DataCache
     let db = MySQLDirect()
         
     // MARK: Startup
-    init(_ userAndTokenController: UserAndTokenController, _ projectTree: ProjectTree) {
+    init(_ userAndTokenController: UserAndTokenController, _ cache: DataCache) {
         self.userAndTokenController = userAndTokenController
-        self.projectTree = projectTree
+        self.cache = cache
     }
 
     func boot(router: Router) throws {
@@ -30,7 +30,7 @@ class ProjectController: RouteCollection {
     
     private func renderProjectTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return try projectTree.getTree(req, userId: user.id).flatMap(to:Response.self) { context in
+            return try cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
                 var updatePage = context
                 updatePage.editPage = "ProjectAddEdit"
                 updatePage.heading = "Edit Project"
@@ -40,7 +40,10 @@ class ProjectController: RouteCollection {
     }
     
     private func renderProjectAddEdit(_ req: Request)throws -> Future<Response> {
-        return try req.future("ok").encode(for: req)
+        return try UserAndTokenController.verifyAccess(req, accessLevel: UserAccessLevel.timeBilling) { user in
+            let context = [String:String]()
+            return try req.view().render("project", context).encode(for: req)
+        }
     }
     
     private func addEditProject(_ req: Request) throws -> Future<Response> {

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/concordtb.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+    
+    <style>
+        .wrapper {display: grid; grid-template-columns: repeat(12, [col-start] 1fr); grid-gap: 20px; }
+        .grid-1-1 {grid-column: col-start 1 / span 6; }
+        .grid-1-2 {grid-column: col-start 7 / span 6; grid-row: 1}
+        .grid-2-1 {grid-column: col-start 1 / span 6; grid-row: 2}
+        .grid-2-2 {grid-column: col-start 7 / span 6; grid-row: 2}
+        .grid-3-1 {grid-column: col-start 1 / span 6; grid-row: 3}
+        .grid-3-2 {grid-column: col-start 7 / span 6; grid-row: 3}
+        .grid-4-1 {grid-column: col-start 1 / span 4; grid-row: 4}
+        .grid-4-2 {grid-column: col-start 5 / span 2; grid-row: 4}
+        .grid-4-3 {grid-column: col-start 7 / span 3; grid-row: 4}
+        .grid-4-4 {grid-column: col-start 9 / span 3: grid-row: 4}
+        .grid-5-1 {grid-column: col-start 1 / span 4; grid-row: 6}
+        .grid-5-2 {grid-column: col-start 5 / span 4; grid-row: 6}
+        .grid-5-3 {grid-column: col-start 9 / span 3; grid-row: 6}
+        .grid-6-1 {grid-column: col-start 1 / span 4; grid-row: 7}
+        .grid-6-2 {grid-column: col-start 5 / span 4; grid-row: 7}
+        .grid-6-3 {grid-column: col-start 9 / span 3; grid-row: 7}
+        .grid-7-1 {grid-column: col-start 1 / span 6; grid-row: 9}
+        .grid-7-2 {grid-column: col-start 7 / span 6; grid-row: 9}
+        .underline-1 {grid-column: col-start 1 / span 12; grid-row: 5; border-bottom: 2px solid #ccc; }
+        .underline-2 {grid-column: col-start 1 / span 12; grid-row: 8; border-bottom: 2px solid #ccc; }
+        label {float: left; width: 10em; margin-right: 1em; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="grid-1-1"><label>Contract:</label><select></select></div>
+        <div class="grid-1-2"><label>Services For:</label><select></select></div>
+        <div class="grid-2-1"><label>Description:</label><input /></div>
+        <div class="grid-2-2"><label>#:</label><input /></div>
+        <div class="grid-3-1"><label>Status:</label><select></select></div>
+        <div class="grid-3-2"><label>Status Notes:</label><textarea></textarea></div>
+        <div class="grid-4-1"><label>Mantis ID:</label><input /></div>
+        <div class="grid-4-2"><a href="#">link</a></div>
+        <div class="grid-4-3"><label>Active:</label><input type="checkbox"></input><br><label>Hide Time Reporting:</label><input type="checkbox"></input></div>
+                
+        <div class="underline-1">&nbsp;</div>
+
+        <div class="grid-5-1"><label>Projected Time:</label><input></div>
+        <div class="grid-5-2"><label>Actual Time:</label>888</div>
+        <div class="grid-5-3">&nbsp;</div>
+        
+        <div class="grid-6-1"><label>Start Date:</label><input></div>
+        <div class="grid-6-2"><label>Projected End Date:</label><input></div>
+        <div class="grid-6-3">&nbsp;</div>
+        <div class="underline-2">&nbsp;</div>
+        
+        <div class="grid-7-1">List of events</div>
+        <div class="grid-7-2">People/rates</div>
+        
+    </div>
+
+</body>
+</html>

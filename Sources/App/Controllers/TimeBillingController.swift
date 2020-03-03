@@ -13,13 +13,13 @@ import Leaf
 class TimeBillingController: RouteCollection {
     
     let userAndTokenController: UserAndTokenController
-    let projectTree: ProjectTree
+    let cache: DataCache
     let db = MySQLDirect()
         
     // MARK: Startup
-    init(_ userAndTokenController: UserAndTokenController, _ projectTree: ProjectTree) {
+    init(_ userAndTokenController: UserAndTokenController, _ cache: DataCache) {
         self.userAndTokenController = userAndTokenController
-        self.projectTree = projectTree
+        self.cache = cache
     }
     
     func boot(router: Router) throws {
@@ -70,7 +70,7 @@ class TimeBillingController: RouteCollection {
     
     private func renderTimeTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return try projectTree.getTree(req, userId: user.id).flatMap(to:Response.self) { context in
+            return try cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
                 return (try req.view().render("time-tree", context).encode(for: req))
             }
         }

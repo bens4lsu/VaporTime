@@ -12,15 +12,16 @@ import Leaf
 
 class ReportController: RouteCollection {
 
-    let userAndTokenController: UserAndTokenController
-    let db = MySQLDirect()
+    private let userAndTokenController: UserAndTokenController
+    private let db = MySQLDirect()
+    private let cache: DataCache
     
     private var cachedLookupContext: LookupContext?
         
     // MARK: Startup
     init(_ userAndTokenController: UserAndTokenController, cache: DataCache) {
         self.userAndTokenController = userAndTokenController
-        self.cachedLookupContext = cache.cachedLookupContext
+        self.cache = cache
     }
 
     func boot(router: Router) throws {
@@ -30,28 +31,12 @@ class ReportController: RouteCollection {
     
     private func renderReportSelector(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
-            
-            if let context = self.cachedLookupContext {
+            return try cache.getLookupContext(req).flatMap(to: Response.self) { context in
                 return try req.view().render("report-selector", context).encode(for: req)
             }
-            else {
-            
-                return try db.getLookupTrinity(req).flatMap(to: Response.self) { lookupTrinity in
-                    return try self.db.getLookupPerson(req).flatMap(to: Response.self) { lookupPerson in
-                        
-                        let context = LookupContext(contracts: lookupTrinity.contracts,
-                                                    companies: lookupTrinity.companies,
-                                                    projects: lookupTrinity.projects,
-                                                    timeBillers: lookupPerson,
-                                                    groupBy: ReportGroupBy.list() )
-                        self.cachedLookupContext = context
-                        return try req.view().render("report-selector", context).encode(for: req)
-                    }
-                }
-            }  // end else, where we had to lookup the context from the database
-        
         }
     }
+        
         
     private func renderReport(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { user in
