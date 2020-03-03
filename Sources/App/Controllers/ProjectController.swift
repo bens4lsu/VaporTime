@@ -34,6 +34,7 @@ class ProjectController: RouteCollection {
                 var updatePage = context
                 updatePage.editPage = "ProjectAddEdit"
                 updatePage.heading = "Edit Project"
+                updatePage.parentWindow = "frPrDetails"
                 return try req.view().render("time-tree", updatePage).encode(for: req)
             }
         }

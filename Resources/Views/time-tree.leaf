@@ -38,7 +38,7 @@
      
          #if(item.levels == 1) {
          
-             <li class="node_addTime"><a href="#" title="#(item.level1.label)" onclick="parent.window.frames['frTBTable'].location='#(editPage)?projectId=#(item.level1.projectId)'">#(item.level1.label)</a></li>
+             <li class="node_addTime"><a href="#" title="#(item.level1.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(item.level1.projectId)'">#(item.level1.label)</a></li>
         }
 
         #if(item.levels == 2) {
@@ -47,7 +47,7 @@
             
             #for(itemlev2 in item.level1.children) {
             
-                <li class="node_addTime"><a href="#" title="#(itemlev2.label)" onclick="parent.window.frames['frTBTable'].location='#(editPage)?projectId=#(itemlev2.projectId)'">#(itemlev2.label)</a></li>
+                <li class="node_addTime"><a href="#" title="#(itemlev2.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlev2.projectId)'">#(itemlev2.label)</a></li>
                 
             }
             </ul>
@@ -62,12 +62,12 @@
                 #if(itemlevel2.children) {
                     <li><a href="#">#(itemlevel2.label)</a><ul>
                 } else {
-                    <li class="node_addTime"><a href="#" title="#(itemlevel2.label)" onclick="parent.window.frames['frTBTable'].location='#(editPage)?projectId=#(itemlevel2.projectId)'">#(itemlevel2.label)</a></li>
+                    <li class="node_addTime"><a href="#" title="#(itemlevel2.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlevel2.projectId)'">#(itemlevel2.label)</a></li>
                 }
                 
                 #for(itemlev3 in itemlevel2.children) {
                 
-                    <li class="node_addTime"><a href="#" title="#(itemlev3.label)" onclick="parent.window.frames['frTBTable'].location='#(editPage)?projectId=#(itemlev3.projectId)'">#(itemlev3.label)</a></li>
+                    <li class="node_addTime"><a href="#" title="#(itemlev3.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlev3.projectId)'">#(itemlev3.label)</a></li>
                 }
             
                 #if(itemlevel2.children) {

@@ -131,15 +131,17 @@ struct TBTreeContext: Codable {
     var items: [TBTreeItem]
     var editPage = "TBAddEdit"
     var heading = "Add New Time Entry"
+    var parentWindow = "frTBTable"
     
     init(items: [TBTreeItem]) {
         self.items = items
     }
     
-    init(items: [TBTreeItem], editPage: String, heading: String) {
+    init(items: [TBTreeItem], editPage: String, heading: String, parentWindow: String) {
         self.items = items
         self.editPage = editPage
         self.heading = heading
+        self.parentWindow = parentWindow
     }
 }
 
