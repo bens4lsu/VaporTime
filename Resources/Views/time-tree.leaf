@@ -26,7 +26,10 @@
 
             $("#tree").jstree();
             
-            $("#btnAddNewProject").button();
+            $("#btnAddNewProject").button().click(function() {
+                parent.window.frames['#(parentWindow)'].location='#(editPage)';
+            });
+            
         });
     </script>
 

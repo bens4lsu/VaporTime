@@ -153,5 +153,18 @@ class MySQLDirect {
             }
         }
     }
+    
+    func getJournalForProject(_ req: Request, projectId: Int) throws -> Future<[Journal]> {
+        let sql = """
+            SELECT ev.ReportDate, ev.Notes, r.EventDescription,
+                r.EventWhoGenerates, p.Name
+            FROM fProjectEvents ev
+                LEFT OUTER JOIN LuPeople p ON ev.PersonID = p.PersonID
+                LEFT OUTER JOIN RefProjectEventsReportable r ON ev.EventID = r.EventID
+            WHERE ev.ProjectID = \(projectId)
+            ORDER BY ev.ReportDate DESC
+        """
+        return try getResultsRows(req, query: sql, decodeUsing: Journal.self)
+    }
 }
 

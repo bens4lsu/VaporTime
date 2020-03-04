@@ -45,51 +45,78 @@
 </head>
 <body>
     
-    <form method="post"> <div class="wrapper">
-        <div class="grid-1-1"><label>Contract:</label>
-            <select name="contractId">
-                #for(contract in lookup.contracts) {
-                    <option value="#(contract.id)"  #if(contract.id == project.ContractID) { selected }>#(contract.name)</option>
-                }
-            </select></div>
-        <div class="grid-1-2"><label>Services For:</label>
-            <select name="companyId">
-                #for(company in lookup.companies) {
-                    <option value="#(company.id)" #if(company.id == project.ServicesForCompany) { selected }>#(company.name)</option>
-                }
-            </select></div>
-        <div class="grid-2-1"><label>Description:</label><input value="#(project.ProjectDescription)" name="description" /></div>
-        <div class="grid-2-2"><label>#:</label><input value="#(project.ProjectNumber)" name="projectNumber" /></div>
-        <div class="grid-3-1"><label>Status:</label>
-            <select name="statusId">
-                #for(status in lookup.projectStatuses) {
-                    <option value="#(status.StatusID)" #if(status.StatusID == project.StatusID) { selected }>#(status.StatusDescription)</option>
-                }
-            </select></div>
-        <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.StatusNotes)</textarea></div>
-        <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.MantisProjectID)" type="number" name="mantisId"></div>
-        <div class="grid-4-2"><a href="#(buglink)" target="_blank">link</a></div>
-        <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox" #if(project.HideTimeReporting) { checked } name="hideTimeReporting"></input></div>
+    <h2>
+        #if(project){ 
+            #(project.ProjectDescription)
+        } else { 
+            Add New Project 
+        }
+    </h2>
+    
+    <form method="post">    
+        <div class="wrapper">
+            <div class="grid-1-1"><label>Contract:</label>
+                <select name="contractId">
+                    #for(contract in lookup.contracts) {
+                        <option value="#(contract.id)"  #if(contract.id == project.ContractID) { selected }>#(contract.name)</option>
+                    }
+                </select></div>
+            <div class="grid-1-2"><label>Services For:</label>
+                <select name="companyId">
+                    #for(company in lookup.companies) {
+                        <option value="#(company.id)" #if(company.id == project.ServicesForCompany) { selected }>#(company.name)</option>
+                    }
+                </select></div>
+            <div class="grid-2-1"><label>Description:</label><input value="#(project.ProjectDescription)" name="description" /></div>
+            <div class="grid-2-2"><label>#:</label><input value="#(project.ProjectNumber)" name="projectNumber" /></div>
+            <div class="grid-3-1"><label>Status:</label>
+                <select name="statusId">
+                    #for(status in lookup.projectStatuses) {
+                        <option value="#(status.StatusID)" #if(status.StatusID == project.StatusID) { selected }>#(status.StatusDescription)</option>
+                    }
+                </select></div>
+            <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.StatusNotes)</textarea></div>
+            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.MantisProjectID)" type="number" name="mantisId"></div>
+            <div class="grid-4-2"><a href="#(buglink)" target="_blank">link</a></div>
+            <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox" #if(project.HideTimeReporting) { checked } name="hideTimeReporting"></input></div>
                 
-        <div class="underline-1">&nbsp;</div>
+            <div class="underline-1">&nbsp;</div>
 
-        <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)" name="projectedTime"></div>
-        <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime)</span></div>
-        <div class="grid-5-3">&nbsp;</div>
+            <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)" name="projectedTime"></div>
+            <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime)</span></div>
+            <div class="grid-5-3">&nbsp;</div>
         
-        <div class="grid-6-1"><label>Start Date:</label><input value="#date(project.StartDate, "MM/dd/yyyy")" name="startDate" class="datepicker"></div>
-        <div class="grid-6-2"><label>Projected End Date:</label><input value="#date(project.ProjectedDateComplete, "MM/dd/yyyy")" name="endDate" class="datepicker""></div>
-        <div class="grid-6-3">&nbsp;</div>
-        <div class="underline-2">&nbsp;</div>
-        
-        <button type="submit" id="btnSave">Save</button>
-        
-        <div class="grid-7-1">Journal</div>
-        <div class="grid-7-2">Rates</div>
+            <div class="grid-6-1"><label>Start Date:</label><input value="#date(project.StartDate, "MM/dd/yyyy")" name="startDate" class="datepicker"></div>
+            <div class="grid-6-2"><label>Projected End Date:</label><input value="#date(project.ProjectedDateComplete, "MM/dd/yyyy")" name="endDate" class="datepicker""></div>
+            <div class="grid-6-3">&nbsp;</div>
+            <div class="underline-2">&nbsp;</div>
+        </div>
         
         <input style="display:none" value="#(project.ProjectID)" name="projectId">
+        <button type="submit" id="btnSave">Save</button>
+    </form>
+
+    <div class="journal-section">
+        <h3>Journal</h3>
+    
+        #for(journal in journals) {
         
-    </form></div>
+            <div class="journal-entry">
+                <div class="journal-head">
+                    <span class="date">#date(journal.ReportDate)</span> by 
+                    <span class="person">#(journal.GeneratedBy)</span>
+                </div>
+                #if(journal.EventDescription) { <div class="eventDescription"> #(journal.EventDescription) </div> }
+                #if(journal.Notes) { <div class="notes"> #(journal.Notes) </div> }
+            </div>
+        }
+            
+    
+    </div>
+        
+        <div>Rates</div>
+        
+        
 
 </body>
 </html>

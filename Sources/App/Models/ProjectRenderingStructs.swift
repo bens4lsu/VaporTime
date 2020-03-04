@@ -17,4 +17,13 @@ struct ProjectAddEdit: Codable {
     var project: Project
     var totalTime: Double
     var buglink: String
+    var journals: [Journal]?
+}
+
+struct Journal: Codable {
+    var ReportDate: Date
+    var Notes: String?
+    var EventDescription: String?
+    var EventWhoGenerates: String?
+    var Name: String?
 }
