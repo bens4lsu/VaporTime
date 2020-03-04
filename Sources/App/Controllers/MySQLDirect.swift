@@ -166,5 +166,18 @@ class MySQLDirect {
         """
         return try getResultsRows(req, query: sql, decodeUsing: Journal.self)
     }
+    
+    func getRatesForProject(_ req: Request, projectId: Int) throws -> Future<[RateList]> {
+        let sql = """
+            SELECT pe.Name, rs.RateDescription, r.StartDate, r.EndDate
+            FROM fProjects p
+                JOIN fProjectRates r ON p.ContractID = r.ContractID AND p.ProjectID = r.ProjectID
+                JOIN LuRateSchedules rs On r.RateScheduleID = rs.RateScheduleID
+                JOIN LuPeople pe ON r.PersonID = pe.PersonID
+            WHERE p.ProjectID = \(projectId)
+            ORDER BY pe.Name, r.StartDate
+        """
+        return try getResultsRows(req, query: sql, decodeUsing: RateList.self)
+    }
 }
 

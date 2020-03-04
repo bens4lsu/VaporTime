@@ -9,7 +9,15 @@
     <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
     <script language="javascript" src="./js/jquery.validate.pack.js"></script>
-    
+    <style>
+        .journal-head {font-weight: bold; margin-top: 1.25em;}
+        .system .journal-head {color: blue}
+        .user .journal-head {color: red}
+        .journal-entry .notes {margin-top:0.8em; margin-left: 0.8em;}
+        .journal-entry {margin-bottom: 1em; border-bottom: 1px solid #ccc; padding-bottom:0.8em;}
+        .journal-section {width: 66%; display:inline-block;}
+        .rates-section {width: 30%; display:inline-block; margin-left:10px;}
+    </style>
     <script>
         $(document).ready(function() {
             $('.datepicker').datepicker();
@@ -101,20 +109,27 @@
     
         #for(journal in journals) {
         
-            <div class="journal-entry">
+            <div class="journal-entry 
+                #if(journal.EventWhoGenerates){
+                    #lowercase(journal.EventWhoGenerates) 
+                }else{
+                    user
+                }
+            ">
                 <div class="journal-head">
-                    <span class="date">#date(journal.ReportDate)</span> by 
-                    <span class="person">#(journal.GeneratedBy)</span>
+                    <span class="date">#date(journal.ReportDate, "M/d/yyyy")</span> by 
+                    <span class="person">#(journal.Name)</span>
                 </div>
                 #if(journal.EventDescription) { <div class="eventDescription"> #(journal.EventDescription) </div> }
                 #if(journal.Notes) { <div class="notes"> #(journal.Notes) </div> }
             </div>
         }
-            
-    
     </div>
         
-        <div>Rates</div>
+    <div class="rates-section"><h2>Rates</h2>
+    
+    
+    </div>
         
         
 

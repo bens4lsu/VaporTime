@@ -40,6 +40,7 @@ struct ProjectEvent: Content, MySQLModel, Codable {
         self.notes = notes
         self.personId = personId
         self.recordedDateTime = recordedDateTime
+        self.eventId = eventId
     }
     
     init (projectId: Int, eventId: Int, personId: Int) {
