@@ -71,7 +71,7 @@ class ProjectController: RouteCollection {
                                     strBugID = "\(bugId)"
                                 }
                                 let bugLink = self.cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
-                                let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink, journals: journals)
+                                let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink, journals: journals, rateLists: rateLists)
                                 return try req.view().render("project", context).encode(for: req)
                             }
                         }
