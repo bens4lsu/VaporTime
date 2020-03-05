@@ -8,16 +8,17 @@
 import Foundation
 
 struct TotalTime: Codable {
-    var TotalTime: Double
+    var TotalTime: Double?
 }
 
 
 struct ProjectAddEdit: Codable {
     var lookup: LookupContext
     var project: Project
-    var totalTime: Double
-    var buglink: String
+    var totalTime: Double?
+    var buglink: String?
     var journals: [Journal]?
+    var rateLists: [RateList]?
 }
 
 struct Journal: Codable {
@@ -26,4 +27,11 @@ struct Journal: Codable {
     var EventDescription: String?
     var EventWhoGenerates: String?
     var Name: String?
+}
+
+struct RateList: Codable {
+    var Name: String
+    var RateDescription: String
+    var StartDate: Date?
+    var EndDate: Date?
 }

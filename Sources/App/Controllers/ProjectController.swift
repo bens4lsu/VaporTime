@@ -25,8 +25,12 @@ class ProjectController: RouteCollection {
         router.get("ProjectTree", use: renderProjectTree)
         router.get("ProjectAddEdit", use: renderProjectAddEdit)
         router.post("ProjectAddEdit", use: addEditProject)
+        router.post("ProjectClose", use: closeProject)
         
     }
+    
+    
+    // MARK:  Rendering Routes
     
     private func renderProjectTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
@@ -58,15 +62,18 @@ class ProjectController: RouteCollection {
                     }
                     return try self.db.getTimeForProject(req, projectId: projectId).flatMap(to: Response.self) { totalTime in
                         
-                        return try self.db.getJournalForProject(req, projectId: projectId).flatMap(to: Response.self) { journals in
+                        return try self.db.getRatesForProject(req, projectId: projectId).flatMap(to: Response.self) { rateLists in
                             
-                            var strBugID = ""
-                            if let bugId = project.mantisProjectId {
-                                strBugID = "\(bugId)"
+                            return try self.db.getJournalForProject(req, projectId: projectId).flatMap(to: Response.self) { journals in
+                            
+                                var strBugID = ""
+                                if let bugId = project.mantisProjectId {
+                                    strBugID = "\(bugId)"
+                                }
+                                let bugLink = self.cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
+                                let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink, journals: journals)
+                                return try req.view().render("project", context).encode(for: req)
                             }
-                            let bugLink = self.cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
-                            let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink, journals: journals)
-                            return try req.view().render("project", context).encode(for: req)
                         }
                     }
                 }
@@ -74,6 +81,8 @@ class ProjectController: RouteCollection {
         }
     }
     
+    
+    // MARK: Updating routes
     
     private func addEditProject(_ req: Request) throws -> Future<Response> {
         
@@ -127,6 +136,34 @@ class ProjectController: RouteCollection {
             }
         }
     }
+    
+    
+    private func closeProject(_ req: Request) throws -> Future<Response> {
+        let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
+        
+        guard let projectId = ajaxProjectId else {
+            throw Abort (.badRequest, reason: "Request to close a project without a projectID")
+        }
+        
+        return Project.find(projectId, on: req).flatMap(to: Response.self) { optionalProject in
+            guard var project = optionalProject else {
+                return try ("Error:  no project found with id number \(projectId).").encode(for: req)
+            }
+            
+            project.isActive = false
+            return project.save(on: req).flatMap(to: Response.self) { _ in
+                self.cache.clear()
+                
+                // now we have to clear associated time billing items
+                return try self.db.markTimeBillingItemsAsSatisfiedForProject(req, projectId: projectId).flatMap(to: Response.self) {
+                    return try ("ok").encode(for: req)
+                }
+            }
+        }
+    }
+    
+    
+    // MARK:  Helper functions
     
     private func getPreUpdatedProject(_ id: Int?, on req: Request) -> Future<Project?> {
         

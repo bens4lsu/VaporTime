@@ -29,6 +29,14 @@ class MySQLDirect {
         }
     }
     
+    private func issueQuery (_ req: Request, query: String) throws -> Future<Void> {
+        return req.withPooledConnection(to: .mysql) { conn in
+            return conn.raw(query).all().map() { _ in
+                return
+            }
+        }
+    }
+    
     
     func getTBTable(_ req: Request, userId: Int) throws -> Future<[TBTableColumns]> {
         let sql = """
@@ -178,6 +186,15 @@ class MySQLDirect {
             ORDER BY pe.Name, r.StartDate
         """
         return try getResultsRows(req, query: sql, decodeUsing: RateList.self)
+    }
+    
+    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) throws -> Future<Void> {
+        let sql = """
+            update apps_timebill.fTime
+            set ExportStatus = 1
+            where ProjectID = \(projectId)
+        """
+        return try issueQuery(req, query: sql)
     }
 }
 

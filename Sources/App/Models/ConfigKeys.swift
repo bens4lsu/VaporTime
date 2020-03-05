@@ -18,9 +18,17 @@ class ConfigKeys: Codable {
         var database: String
     }
     
+    struct MyCompany: Codable {
+        var name: String
+        var homePage: String
+        var logoFileName: String
+        var faviconFileName: String
+    }
+    
     var database: ConfigKeys.Database
     var tokenExpDuration: Double
     var bugUrl: String
+    var myCompany: MyCompany
     
     init() {
     
@@ -32,6 +40,7 @@ class ConfigKeys: Codable {
             self.database = decoder.database
             self.tokenExpDuration = decoder.tokenExpDuration
             self.bugUrl = decoder.bugUrl
+            self.myCompany = decoder.myCompany
         }
         catch {
             print ("Could not initialize app from Config.json.  Initilizing with hard-coded default values. \n \(error)")
@@ -39,6 +48,7 @@ class ConfigKeys: Codable {
                 //, useCachingSha2Pw: false)
             self.tokenExpDuration = 3306
             self.bugUrl = "#"
+            self.myCompany = ConfigKeys.MyCompany(name: "Concord Business Services", homePage: "https://concordbusinessservicesllc.com", logoFileName: "logo.png", faviconFileName: "favicon.png")
         }
     }
 }

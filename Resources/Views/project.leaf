@@ -16,13 +16,59 @@
         .journal-entry .notes {margin-top:0.8em; margin-left: 0.8em;}
         .journal-entry {margin-bottom: 1em; border-bottom: 1px solid #ccc; padding-bottom:0.8em;}
         .journal-section {width: 66%; display:inline-block;}
-        .rates-section {width: 30%; display:inline-block; margin-left:10px;}
+        .rates-section {width: 30%; display:inline-block; margin-left:10px; vertical-align:top;}
+        #btnCloseProject, #btnConfirmCloseProject {float:right;}
     </style>
     <script>
         $(document).ready(function() {
             $('.datepicker').datepicker();
             
-            $('#btnSave').button();
+            $('#btnSave').button().click(function() {
+                $('#frmMain').submit();
+            });
+            
+            $('#btnCloseProject').button().click(function() {
+                $('#dlgConfirmCloseProject').dialog('open');
+            });
+            
+            $('#dlgConfirmCloseProject').dialog({
+                autoOpen: false,
+                title: 'Confirmation',
+                width: 515,
+                modal : true
+            });
+            
+            
+            $('#btnConfirmCloseProject').button().click(function() {
+                $.ajax({
+                    url: 'ProjectClose',
+                    type: 'post',
+                    data: {
+                        projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 }
+                    },
+                    success: function(data, status) {
+                        if(data == "ok") {
+                            window.top.location.href="/";
+                        }
+                        else {
+                            console.log("Error response received:");
+                            console.log(data);
+                            alert("Error updating session.  Your change was not saved.");
+                        }
+                    },
+                    error: function(xhr, desc, err) {
+                        console.log(xhr);
+                        console.log("Details: " + desc + "\nError:" + err);
+                        alert("Error updating session.  Your change was not saved.");
+                    }
+                });  // end ajax call
+            });
+            
+                        
+            $('#btnCancelCloseProject').button().click(function() {
+                $('#dlgConfirmCloseProject').dialog('close');
+            });
+            
         });
     </script>
     
@@ -55,13 +101,13 @@
     
     <h2>
         #if(project){ 
-            #(project.ProjectDescription)
+            Project:  #(project.ProjectDescription)
         } else { 
             Add New Project 
         }
     </h2>
     
-    <form method="post">    
+    <form method="post" id="frmMain">    
         <div class="wrapper">
             <div class="grid-1-1"><label>Contract:</label>
                 <select name="contractId">
@@ -101,8 +147,11 @@
         </div>
         
         <input style="display:none" value="#(project.ProjectID)" name="projectId">
-        <button type="submit" id="btnSave">Save</button>
     </form>
+    <div>
+        <button id="btnSave">Save</button>
+        #if(project.ProjectID) {<button id="btnCloseProject">Close Project</button>}
+    </div>
 
     <div class="journal-section">
         <h3>Journal</h3>
@@ -127,8 +176,23 @@
     </div>
         
     <div class="rates-section"><h2>Rates</h2>
+        <table>
+        <thead><tr><th>Person</th><th>Rate Schedule</th><th>Start</th><th>End</th></thead>
+        #for(rateList in rateLists) {
+            <tr><td>#(rateList.Name)</td>
+                <td>#(rateList.RateDescription)</td>
+                <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
+                <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
+            </tr>
+        }
+        </table>
+    </div>
     
     
+    <div id="dlgConfirmCloseProject">
+        <p>Are you sure you want to close the project `#(project.ProjectDescription)` ?  This will also mark all time billing items for the project as billed and paid.</p>
+        <button id="btnConfirmCloseProject">Yes<br>Close the project.</button>
+        <button id="btnCancelCloseProject">No<br>Cancel this request.</button>
     </div>
         
         
