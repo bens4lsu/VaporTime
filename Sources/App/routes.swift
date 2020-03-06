@@ -14,9 +14,22 @@ public func routes(_ router: Router) throws {
     try router.register(collection: ReportController(userAndTokenController, cache: cache))
     try router.register(collection: ProjectController(userAndTokenController, cache))
     
+    
+    // MARK:  Miscellaneous Routes
+    
     router.get { req-> Future<Response> in
         return try UserAndTokenController.verifyAccess(req, accessLevel: .activeOnly) { user in
-            return try req.view().render("index", user.accessDictionary()).encode(for: req)
+            
+            struct IndexContext: Codable {
+                var version: String
+                var accessDictionary: [String: Bool]
+            }
+            
+            let version = Version().version
+            let accessDictionary = user.accessDictionary()
+            let context = IndexContext(version: version, accessDictionary: accessDictionary)
+            
+            return try req.view().render("index", context).encode(for: req)
         }
     }
     
@@ -35,8 +48,16 @@ public func routes(_ router: Router) throws {
         }
     }
     
+    
     router.get("blankpage") { req in
         return try req.future("").encode(for: req)
+    }
+    
+    
+    router.get("clearcache") {req in
+        return req.future(cache.clear()).map() {
+            return try req.future("Caches Cleard.").encode(for: req)
+        }
     }
 
 }

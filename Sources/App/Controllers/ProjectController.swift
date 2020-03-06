@@ -26,6 +26,7 @@ class ProjectController: RouteCollection {
         router.get("ProjectAddEdit", use: renderProjectAddEdit)
         router.post("ProjectAddEdit", use: addEditProject)
         router.post("ProjectClose", use: closeProject)
+        router.post("ProjectAddJournal", use: addJournal)
         
     }
     
@@ -145,19 +146,48 @@ class ProjectController: RouteCollection {
             throw Abort (.badRequest, reason: "Request to close a project without a projectID")
         }
         
-        return Project.find(projectId, on: req).flatMap(to: Response.self) { optionalProject in
-            guard var project = optionalProject else {
-                return try ("Error:  no project found with id number \(projectId).").encode(for: req)
-            }
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             
-            project.isActive = false
-            return project.save(on: req).flatMap(to: Response.self) { _ in
-                self.cache.clear()
+            return Project.find(projectId, on: req).flatMap(to: Response.self) { optionalProject in
                 
-                // now we have to clear associated time billing items
-                return try self.db.markTimeBillingItemsAsSatisfiedForProject(req, projectId: projectId).flatMap(to: Response.self) {
-                    return try ("ok").encode(for: req)
+                guard var project = optionalProject else {
+                    return try ("Error:  no project found with id number \(projectId).").encode(for: req)
                 }
+            
+                project.isActive = false
+                return project.save(on: req).flatMap(to: Response.self) { _ in
+                    self.cache.clear()
+                    
+                    // now we have to clear associated time billing items
+                    return try self.db.markTimeBillingItemsAsSatisfiedForProject(req, projectId: projectId).flatMap(to: Response.self) {
+                        return try ("ok").encode(for: req)
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    private func addJournal(_ req: Request)throws -> Future<Response> {
+        let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
+        let eventId = try? req.content.syncGet(Int.self, at: "eventId")
+        let ajaxEventDate = (try? req.content.syncGet(at: "eventDate")).toDate()
+        let notes = (try? req.content.syncGet(String.self, at: "notes")) ?? ""
+
+        guard let projectId = ajaxProjectId else {
+            throw Abort (.badRequest, reason: "Request to close a project without a projectID")
+        }
+        
+        guard let eventDate = ajaxEventDate else {
+            throw Abort (.badRequest, reason: "Journal entries require an event date.")
+        }
+    
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+            
+            let entry = ProjectEvent(projectId: projectId, eventId: eventId, eventDate: eventDate, personId: user.id, notes: notes)
+         
+            return entry.save(on: req).flatMap(to: Response.self) { _ in
+                return try req.future("ok").encode(for: req)
             }
         }
     }
@@ -233,6 +263,7 @@ class ProjectController: RouteCollection {
             let _ = ProjectEvent(projectId: id, eventId: 25, personId: person, notes: message).save(on: req)
         }
     }
+    
         
     private func futureRedirectResponse(path: String, req: Request) -> Future<Response> {
         return req.future().map(to: Response.self) {

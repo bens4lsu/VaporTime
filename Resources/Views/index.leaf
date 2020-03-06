@@ -54,80 +54,82 @@
     
     
     <div id="tabs">
-    
-            <ul>
-                #if(timeBilling) { <li><a href="#tabs-1">Time Billing</a></li> }
-                #if(report){ <li><a href="#tabs-2">Projects</a></li> }
-                #if(crm){ <li><a href="#tabs-3">CRM</a></li> }
-                #if(doc){ <li><a href="#tabs-4">Documents</a></li> }
-                #if(report){ <li><a href="#tabs-5">Reports</a></li> }
-                #if(admin){ <li><a href="#tabs-6">Admin</a></li> }
-            </ul>
-            
-            #if(timeBilling) {
-                        
-                <div id="tabs-1" class="tlevbox">
-                    <div id="resizable"><iframe src="TBTree" id="frTBTree" name="frTBTree"></iframe></div>
-                    <iframe src="TBTable" id="frTBTable" name="frTBTable"></iframe>
-                    <div style="clear:both"></div>
-                </div>
-                
-            }
         
-    
+        <ul>
+            #if(accessDictionary.timeBilling) { <li><a href="#tabs-1">Time Billing</a></li> }
+            #if(accessDictionary.report){ <li><a href="#tabs-2">Projects</a></li> }
+            #if(accessDictionary.crm){ <li><a href="#tabs-3">CRM</a></li> }
+            #if(accessDictionary.doc){ <li><a href="#tabs-4">Documents</a></li> }
+            #if(accessDictionary.report){ <li><a href="#tabs-5">Reports</a></li> }
+            #if(accessDictionary.admin){ <li><a href="#tabs-6">Admin</a></li> }
+        </ul>
         
-            #if(report) {
-                
-                <div id="tabs-2" class="tlevbox">
-                    <div id="resizable"><iframe src="/blankpage" id="frPrTree" name="frPrTree"></iframe></div>
-                    <iframe src="/blankpage" id="frPrDetails" name="frPrDetails"></iframe>
-                    <div style="clear:both"></div>
-                </div>
-                
-            }
-        
-
-        
-            #if(crm) {
-                
-                <div id="tabs-3" class="tlevbox" >
-                    <iframe src="frCRMTable" id="frCRM" name="frCRM"></iframe>
-                </div>
-                
-            }
-        
-        
-        
-            #if(doc) {
-                
-                <div id="tabs-4" class="tlevbox" >
+        #if(accessDictionary.timeBilling) {
                     
-                </div>
+            <div id="tabs-1" class="tlevbox">
+                <div id="resizable"><iframe src="TBTree" id="frTBTree" name="frTBTree"></iframe></div>
+                <iframe src="TBTable" id="frTBTable" name="frTBTable"></iframe>
+                <div style="clear:both"></div>
+            </div>
+            
+        }
+    
+
+    
+        #if(accessDictionary.report) {
+            
+            <div id="tabs-2" class="tlevbox">
+                <div id="resizable"><iframe src="/blankpage" id="frPrTree" name="frPrTree"></iframe></div>
+                <iframe src="/blankpage" id="frPrDetails" name="frPrDetails"></iframe>
+                <div style="clear:both"></div>
+            </div>
+            
+        }
+    
+
+    
+        #if(accessDictionary.crm) {
+            
+            <div id="tabs-3" class="tlevbox" >
+                <iframe src="frCRMTable" id="frCRM" name="frCRM"></iframe>
+            </div>
+            
+        }
+    
+    
+    
+        #if(accessDictionary.doc) {
+            
+            <div id="tabs-4" class="tlevbox" >
                 
-            }
-        
-        
-        
-            #if(report) {
-                
-                <div id="tabs-5" class="tlevbox" >
-                    <iframe src="/blankpage" id="frReport" name="frReport"></iframe>
-                </div>
-                
-            }
-        
-        
-        
-            #if(admin) {
-                
-                <div id="tabs-6" class="tlevbox">
-                    <iframe src="frAdminMain.php" id="frAdmin" name="frAdmin"></iframe>
-        
-                </div>
-                
-            }
+            </div>
+            
+        }
+    
+    
+    
+        #if(accessDictionary.report) {
+            
+            <div id="tabs-5" class="tlevbox" >
+                <iframe src="/blankpage" id="frReport" name="frReport"></iframe>
+            </div>
+            
+        }
+    
+    
+    
+        #if(accessDictionary.admin) {
+            
+            <div id="tabs-6" class="tlevbox">
+                <iframe src="frAdminMain.php" id="frAdmin" name="frAdmin"></iframe>
+    
+            </div>
+            
+        }
         
     </div>
+    <div style="float: right;">#(version)</div>
+
 </body>
 </html>
 

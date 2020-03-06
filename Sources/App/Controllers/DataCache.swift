@@ -15,7 +15,6 @@ class DataCache {
     private let db = MySQLDirect()
     
     public var configKeys = ConfigKeys()
-
     
     public func clear() {
         cachedLookupContext = nil
@@ -29,15 +28,19 @@ class DataCache {
         return try db.getLookupTrinity(req).flatMap(to: LookupContext.self) { lookupTrinity in
             return try self.db.getLookupPerson(req).flatMap(to: LookupContext.self) { lookupPerson in
                 return RefProjectStatuses.query(on: req).all().flatMap(to: LookupContext.self) { projectStatuses in
-                    let statuses = projectStatuses.sorted()
-                    let context = LookupContext(contracts: lookupTrinity.contracts,
-                                                companies: lookupTrinity.companies,
-                                                projects: lookupTrinity.projects,
-                                                timeBillers: lookupPerson,
-                                                groupBy: ReportGroupBy.list(),
-                                                projectStatuses: statuses)
-                    self.cachedLookupContext = context
-                    return req.future(context)
+                    return try self.db.getEventTypes(req).flatMap(to: LookupContext.self) { eventTypes in
+                        let statuses = projectStatuses.sorted()
+                        let context = LookupContext(contracts: lookupTrinity.contracts,
+                                                    companies: lookupTrinity.companies,
+                                                    projects: lookupTrinity.projects,
+                                                    timeBillers: lookupPerson,
+                                                    groupBy: ReportGroupBy.list(),
+                                                    projectStatuses: statuses,
+                                                    eventTypes: eventTypes)
+                        print(context)
+                        self.cachedLookupContext = context
+                        return req.future(context)
+                    }
                 }
             }
         }

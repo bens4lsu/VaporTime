@@ -137,6 +137,9 @@ class UserAndTokenController: RouteCollection {
     static func redirectToLogin(_ req: Request) -> Future<Response> {
         return req.future().map() {
             // TODO:  Fix this.  Just putting /security/login -> 404
+            let session = try req.session()
+            session["token"] = nil
+            session["filter"] = nil
             return req.redirect(to: "./security/login")
         }
     }

@@ -9,6 +9,9 @@
     <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
     <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+    <script src="./highcharts/code/highcharts.js"></script>
+    <script src="./highcharts/code/highcharts-more.js"></script>
+    <script src="./highcharts/code/modules/solid-gauge.js"></script>
     <style>
         .journal-head {font-weight: bold; margin-top: 1.25em;}
         .system .journal-head {color: blue}
@@ -18,6 +21,7 @@
         .journal-section {width: 66%; display:inline-block;}
         .rates-section {width: 30%; display:inline-block; margin-left:10px; vertical-align:top;}
         #btnCloseProject, #btnConfirmCloseProject {float:right;}
+        #chartProgress{height: 170px;}
     </style>
     <script>
         $(document).ready(function() {
@@ -69,29 +73,72 @@
                 $('#dlgConfirmCloseProject').dialog('close');
             });
             
+            $('#dlgAddJournal').dialog({
+                autoOpen: false,
+                title: 'Add Journal Entry',
+                width: 515,
+                modal : true
+            });
+            
+            $('#lnkAddJournal').click(function (){
+                $('#dlgAddJournal').dialog('open');
+            });
+            
+            $('#inpJournalDate').datepicker();
+            
+            $('#btnJournalSave').button().click(function() {
+               $.ajax({
+                    url: 'ProjectAddJournal',
+                    type: 'post',
+                    data: {
+                        projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 },
+                        eventDate: $('#inpJournalDate').val(),
+                        eventId: $('#selJournalType').val(),
+                        notes: $('#taJournalNotes').val()
+                    },
+                    success: function(data, status) {
+                        if(data == "ok") {
+                            window.location.href="/ProjectAddEdit?projectId=#(project.ProjectID)";
+                        }
+                        else {
+                            console.log("Error response received:");
+                            console.log(data);
+                            alert("Error updating session.  Your change was not saved.");
+                        }
+                    },
+                    error: function(xhr, desc, err) {
+                        console.log(xhr);
+                        console.log("Details: " + desc + "\nError:" + err);
+                        alert("Error updating session.  Your change was not saved.");
+                    }
+                });  // end ajax call 
+            });
+            
+            $('#btnJournalCancel').button().click(function() {
+                $('#dlgAddJournal').dialog('close');
+            });            
         });
     </script>
     
     <style>
         .wrapper {display: grid; grid-template-columns: repeat(12, [col-start] 1fr); grid-gap: 20px; }
         .grid-1-1 {grid-column: col-start 1 / span 6; }
-        .grid-1-2 {grid-column: col-start 7 / span 6; grid-row: 1}
-        .grid-2-1 {grid-column: col-start 1 / span 6; grid-row: 2}
-        .grid-2-2 {grid-column: col-start 7 / span 6; grid-row: 2}
-        .grid-3-1 {grid-column: col-start 1 / span 6; grid-row: 3}
-        .grid-3-2 {grid-column: col-start 7 / span 6; grid-row: 3}
-        .grid-4-1 {grid-column: col-start 1 / span 4; grid-row: 4}
-        .grid-4-2 {grid-column: col-start 5 / span 2; grid-row: 4}
-        .grid-4-3 {grid-column: col-start 7 / span 3; grid-row: 4}
-        .grid-4-4 {grid-column: col-start 9 / span 3: grid-row: 4}
-        .grid-5-1 {grid-column: col-start 1 / span 4; grid-row: 6}
-        .grid-5-2 {grid-column: col-start 5 / span 4; grid-row: 6}
-        .grid-5-3 {grid-column: col-start 9 / span 3; grid-row: 6}
-        .grid-6-1 {grid-column: col-start 1 / span 4; grid-row: 7}
-        .grid-6-2 {grid-column: col-start 5 / span 4; grid-row: 7}
-        .grid-6-3 {grid-column: col-start 9 / span 3; grid-row: 7}
-        .grid-7-1 {grid-column: col-start 1 / span 6; grid-row: 9}
-        .grid-7-2 {grid-column: col-start 7 / span 6; grid-row: 9}
+        .grid-1-2 {grid-column: col-start 7 / span 6; grid-row: 1;}
+        .grid-2-1 {grid-column: col-start 1 / span 6; grid-row: 2;}
+        .grid-2-2 {grid-column: col-start 7 / span 6; grid-row: 2;}
+        .grid-3-1 {grid-column: col-start 1 / span 6; grid-row: 3;}
+        .grid-3-2 {grid-column: col-start 7 / span 6; grid-row: 3;}
+        .grid-4-1 {grid-column: col-start 1 / span 4; grid-row: 4;}
+        .grid-4-2 {grid-column: col-start 5 / span 2; grid-row: 4;}
+        .grid-4-3 {grid-column: col-start 7 / span 3; grid-row: 4;}
+        .grid-4-4 {grid-column: col-start 9 / span 3: grid-row: 4;}
+        .grid-5-1 {grid-column: col-start 1 / span 4; grid-row: 6;}
+        .grid-5-2 {grid-column: col-start 5 / span 4; grid-row: 6;}
+        .grid-5-3 {grid-column: col-start 9 / span 3; grid-row: 6 / span 2;}
+        .grid-6-1 {grid-column: col-start 1 / span 4; grid-row: 7;}
+        .grid-6-2 {grid-column: col-start 5 / span 4; grid-row: 7;}
+        .grid-7-1 {grid-column: col-start 1 / span 6; grid-row: 9;}
+        .grid-7-2 {grid-column: col-start 7 / span 6; grid-row: 9;}
         .underline-1 {grid-column: col-start 1 / span 12; grid-row: 5; border-bottom: 2px solid #ccc; }
         .underline-2 {grid-column: col-start 1 / span 12; grid-row: 8; border-bottom: 2px solid #ccc; }
         label {float: left; width: 10em; margin-right: 1em; text-align: right; }
@@ -137,12 +184,11 @@
             <div class="underline-1">&nbsp;</div>
 
             <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)" name="projectedTime"></div>
-            <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime)</span></div>
-            <div class="grid-5-3">&nbsp;</div>
+            <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime.TotalTime)</span></div>
+            <div class="grid-5-3"><div id="chartProgress"></div></div>
         
             <div class="grid-6-1"><label>Start Date:</label><input value="#date(project.StartDate, "MM/dd/yyyy")" name="startDate" class="datepicker"></div>
             <div class="grid-6-2"><label>Projected End Date:</label><input value="#date(project.ProjectedDateComplete, "MM/dd/yyyy")" name="endDate" class="datepicker""></div>
-            <div class="grid-6-3">&nbsp;</div>
             <div class="underline-2">&nbsp;</div>
         </div>
         
@@ -155,6 +201,7 @@
 
     <div class="journal-section">
         <h3>Journal</h3>
+        <p><a id="lnkAddJournal">+</a></p>
     
         #for(journal in journals) {
         
@@ -194,8 +241,116 @@
         <button id="btnConfirmCloseProject">Yes<br>Close the project.</button>
         <button id="btnCancelCloseProject">No<br>Cancel this request.</button>
     </div>
+    
+    <div id="dlgAddJournal">
+        <div>
+            <div><label>Date:</label><input id="inpJournalDate"></div>
+            <div><label>Type (optional):</label><select id="selJournalType">
+                <option value=""></option>
+                #for(eventType in lookup.eventTypes) {
+                    <option value="#(eventType.id)">#(eventType.name)</option>
+                }</div>
+            <select>
+        </div>
+        <div><label>Notes:</label><textarea id="taJournalNotes"></textarea></div>
+        <div>
+            <button id="btnJournalSave">Save</button>
+            <button id="btnJournalCancel">Cancel</button>
+        </div>
+    </div>
         
         
+
+
+
+    <script>
+        Highcharts.chart('chartProgress', {
+
+            chart: {
+                type: 'solidgauge',
+                backgroundColor: "#f5f8f9",
+            },
+
+            title: {
+                text: 'Completion   ',
+                style: {
+                    fontSize: '10pt'
+                }
+            },
+
+            tooltip: {
+                enabled: false  
+            },
+
+            pane: {
+                startAngle: 0,
+                endAngle: 360,
+                background: [{ // Track for Move
+                    outerRadius: '112%',
+                    innerRadius: '88%',
+                    
+                    borderWidth: 0
+                }, { // Track for Exercise
+                    outerRadius: '87%',
+                    innerRadius: '63%',
+                    backgroundColor: Highcharts.Color(Highcharts.getOptions().colors[1])
+                        .setOpacity(0.3)
+                        .get(),
+                    borderWidth: 0
+                }]
+            },
+
+            yAxis: {
+                min: 0,
+                max: 100,
+                lineWidth: 0,
+                tickPositions: []
+            },
+
+            plotOptions: {
+                solidgauge: {
+                    dataLabels: {
+                        enabled: false
+                    },
+                    linecap: 'round',
+                    stickyTracking: false,
+                    rounded: true
+                }
+            },
+
+            series: [{
+                name: 'Outer: By Date',
+                data: [{
+                    color: "orange",
+                    radius: '112%',
+                    innerRadius: '88%',
+                    y: #(totalTime.CompletionByDate)
+                }],
+                showInLegend: true
+            }, {
+                name: 'Inner: By Time',
+                data: [{
+                    color: "purple",
+                    radius: '87%',
+                    innerRadius: '63%',
+                    y: #(totalTime.CompletionByTime)
+                }],
+                showInLegend: true
+            }],
+            
+            legend: { 
+                enabled: true,
+                layout: "vertical",
+                align: 'right',
+                verticalAlign: 'middle',
+                itemStyle: {"color": "#333333", "cursor": "pointer", "fontSize": "10pt", "fontWeight": "normal", "textOverflow": "ellipsis"},
+                itemDistance: 20,
+            },
+   
+            credits: { enabled: false }
+        });
+    </script>
+
 
 </body>
 </html>

@@ -152,10 +152,21 @@ class MySQLDirect {
         return try getResultsRows(req, query: sql, decodeUsing: LookupPerson.self)
     }
     
-    func getTimeForProject(_ req: Request, projectId: Int) throws -> Future<Double> {
-        let sql = "SELECT SUM(Duration) AS TotalTime FROM fTime WHERE ProjectID = \(projectId)"
-        return try getResultRow(req, query: sql, decodeUsing: TotalTime.self).flatMap(to:Double.self) { tt in
-            let totalTime = tt?.TotalTime ?? 0.0
+    func getTimeForProject(_ req: Request, projectId: Int) throws -> Future<TotalTime> {
+        let sql = """
+            SELECT SUM(t.Duration) AS TotalTime,
+                SUM(t.Duration) / MAX(ProjectedTime) * 100 AS CompletionByTime,
+                DATEDIFF(NOW(), MAX(StartDate)) / DATEDIFF(MAX(ProjectedDateComplete), MAX(StartDate)) * 100 AS CompletionByDate
+            FROM fTime t
+                JOIN fProjects p on t.ProjectID = p.ProjectID
+            WHERE t.ProjectID = \(projectId)
+            GROUP BY t.ProjectID
+        """
+        return try getResultRow(req, query: sql, decodeUsing: TotalTime.self).flatMap(to:TotalTime.self) { tt in
+            let totalTime = TotalTime (
+                TotalTime: tt?.TotalTime ?? 0.0,
+                CompletionByTime: tt?.CompletionByTime ?? 0.1,
+                CompletionByDate: tt?.CompletionByDate ?? 0.1)
             return req.future().map() {
                 totalTime
             }
@@ -195,6 +206,16 @@ class MySQLDirect {
             where ProjectID = \(projectId)
         """
         return try issueQuery(req, query: sql)
+    }
+    
+    func getEventTypes(_ req: Request) throws -> Future<[LookupContextPair]> {
+        let sql = """
+            SELECT EventID AS id, EventDescription AS name
+            FROM RefProjectEventsReportable
+            WHERE EventWhoGenerates = 'USER'
+            ORDER BY SortOrder
+        """
+        return try getResultsRows(req, query: sql, decodeUsing: LookupContextPair.self)
     }
 }
 

@@ -9,13 +9,15 @@ import Foundation
 
 struct TotalTime: Codable {
     var TotalTime: Double?
+    var CompletionByTime: Double?
+    var CompletionByDate: Double?
 }
 
 
 struct ProjectAddEdit: Codable {
     var lookup: LookupContext
     var project: Project
-    var totalTime: Double?
+    var totalTime: TotalTime
     var buglink: String?
     var journals: [Journal]?
     var rateLists: [RateList]?

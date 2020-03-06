@@ -85,7 +85,7 @@
                 "aoColumns" : [null,
                                null,
                                null,
-                               null,
+                               {type: "date"},
                                null,
                                null,
                                {'bSortable' : false},

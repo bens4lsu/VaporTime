@@ -74,4 +74,5 @@ struct LookupContext: Codable {
     var timeBillers: [LookupPerson]
     var groupBy: [LookupContextPair]
     var projectStatuses: [RefProjectStatuses]
+    var eventTypes: [LookupContextPair]
 }
