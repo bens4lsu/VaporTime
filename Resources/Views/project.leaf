@@ -142,6 +142,9 @@
         .underline-1 {grid-column: col-start 1 / span 12; grid-row: 5; border-bottom: 2px solid #ccc; }
         .underline-2 {grid-column: col-start 1 / span 12; grid-row: 8; border-bottom: 2px solid #ccc; }
         label {float: left; width: 10em; margin-right: 1em; text-align: right; }
+        .grid-1-1 select, .grid-1-2 select, .grid-3-1 select {width: 26em;}
+        .grid-2-1 input, .grid-2-2 input, .grid-3-2 textarea {width:25.5em; }
+        .grid-4-1 input {width: 5em; }
     </style>
 </head>
 <body>
@@ -177,8 +180,7 @@
                     }
                 </select></div>
             <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.StatusNotes)</textarea></div>
-            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.MantisProjectID)" type="number" name="mantisId"></div>
-            <div class="grid-4-2"><a href="#(buglink)" target="_blank">link</a></div>
+            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.MantisProjectID)" type="number" name="mantisId">  <a href="#(buglink)" target="_blank">link</a></div>
             <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox" #if(project.HideTimeReporting) { checked } name="hideTimeReporting"></input></div>
                 
             <div class="underline-1">&nbsp;</div>
@@ -274,7 +276,8 @@
             title: {
                 text: 'Completion   ',
                 style: {
-                    fontSize: '10pt'
+                    fontSize: '10pt',
+                    fontWeight: 'bold'
                 }
             },
 

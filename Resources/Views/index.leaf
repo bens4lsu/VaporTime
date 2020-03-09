@@ -91,7 +91,7 @@
         #if(accessDictionary.crm) {
             
             <div id="tabs-3" class="tlevbox" >
-                <iframe src="frCRMTable" id="frCRM" name="frCRM"></iframe>
+                <iframe src="/blankpage" id="frCRM" name="frCRM"></iframe>
             </div>
             
         }
@@ -121,7 +121,7 @@
         #if(accessDictionary.admin) {
             
             <div id="tabs-6" class="tlevbox">
-                <iframe src="frAdminMain.php" id="frAdmin" name="frAdmin"></iframe>
+                <iframe src="/blankpage" id="frAdmin" name="frAdmin"></iframe>
     
             </div>
             

@@ -47,20 +47,15 @@ class TimeBillingController: RouteCollection {
         let highlightRow = try? req.query.get(Int.self, at: "highlightRow")
         
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            
-            return try db.getTBTableCOpts(req).flatMap(to: Response.self) { cOpts in
+            return try self.db.getTBTable(req, userId: user.id).flatMap(to: Response.self) { entries in
                 
-                return try self.db.getTBTablePOpts(req).flatMap(to: Response.self) {pOpts in
+                return try self.cache.getLookupContext(req).flatMap(to: Response.self) { lookup in
+                    let context = TBTableContext(entries: entries,
+                                                 filter: self.sessionSortOptions(req),
+                                                 highlightRow: highlightRow,
+                                                 lookup: lookup)
+                    return try req.view().render("time-table", context).encode(for: req)
                     
-                    return try self.db.getTBTable(req, userId: user.id).flatMap(to: Response.self) { entries in
-                        
-                        let context = TBTableContext(entries: entries,
-                                                     filter: self.sessionSortOptions(req),
-                                                     highlightRow: highlightRow,
-                                                     cOpts: cOpts.toJSON(),
-                                                     pOpts: pOpts.toJSON())
-                        return try req.view().render("time-table", context).encode(for: req)
-                    }
                 }
             }
         }

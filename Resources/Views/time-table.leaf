@@ -3,18 +3,16 @@
     <title>Concord Business Services Time Billing System</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
-    <link rel="stylesheet" _href="./css/jquery.dataTables.css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="./css/concordtb.css" />
-    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-3.4.1.min.js" _src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
-    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" _src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
-    <script language="javascript" type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" _src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
-       <script language="javascript" type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <style>
         #main_table{width:95%;}
         #timeTotal{font-weight:bold !important; padding-right:1em; !important}
         .dur, #timeTotal {text-align:right;}
-        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
         .spanDeleteConfirmLabel {font-weight: bold; width: 8em;}
 
     </style>
@@ -44,8 +42,8 @@
                     url: 'ajax/savesession',
                     type: 'post',
                     data: {
-                        sesContract : $('#cellContractFilter select option:selected').text(),
-                        sesProject : $('#cellProjectFilter select option:selected').text(),
+                        sesContract : $('#cellContractFilter select option:selected').val(),
+                        sesProject : $('#cellProjectFilter select option:selected').val(),
                         sesDateTo : $('#cellDateFilter input:eq(1)').val(),
                         sesDateFrom : $('#cellDateFilter input:eq(0)').val(),
                         sesDurTo : $('#cellDurFilter input:eq(1)').val(),
@@ -72,9 +70,32 @@
                 });  // end ajax call
             }
         }
+        
+        myVars.parseDate = function(strDt) {
+            // incoming : MM/dd/yyyy
+            var splits = strDt.split("/");
             
+        }
+        
+        
+        $.fn.dataTable.ext.search.push(
+            function( settings, data, dataIndex ) {
+                var regexPattern = ($('#inpRegex').val().trim() != "" && $('#inpRegex').val() != null) ? new RegExp($('#inpRegex').val()) : /[\s\S]*./;
+
+                return ($('#selContract').val() == "" || $('#selContract').val() == null || $('#selContract option:selected').text() == data[1])            &&
+                       ($('#selProject').val() == "" || $('#selProject').val() == null || $('#selProject option:selected').text() == data[2])               &&
+                       ($('#inpDateFrom').val().trim() == "" || $('#inpDateFrom').val() == null || new Date($('#inpDateFrom').val()) <= new Date(data[3]))  &&
+                       ($('#inpDateTo').val().trim() == "" || $('#inpDateTo').val() == null || new Date($('#inpDateTo').val()) >= new Date(data[3]))        &&
+                       ($('#inpDurFrom').val().trim() == "" || $('#inpDurFrom').val() == null || parseFloat($('#inpDurFrom').val()) <= data[4])             &&
+                       ($('#inpDurTo').val().trim() == "" || $('#inpDurTo').val() == null || parseFloat($('#inpDurTo').val()) >= data[4])                   &&
+                       data[5].match(regexPattern) != null
+        });
+             
+            
+    
         $(document).ready(function() {
-            $("#main_table").dataTable( {
+            
+            var main_table = $("#main_table").DataTable( {
                 "iDisplayLength" : 50,
                 "order" : [[#(filter.sortColumn), "#(filter.sortDirection)"]],
                 "aaSorting" : [[#(filter.sortColumn), "#(filter.sortDirection)"]],
@@ -90,21 +111,11 @@
                                null,
                                {'bSortable' : false},
                                {'bSortable' : false}],
-                "filter" : function (value, index){
-                    
-                    
-                }
-            })
-                .columnFilter({
-                    "aoColumns" : [ null,
-                                   {type: "select", values: #raw(cOpts), selected : '#(filter.contract)' },
-                                   {type: "select", values: #raw(pOpts), selected : '#(filter.project)' },
-                                   {type: "date-range", min: '#(filter.dateFrom)', max : '#(filter.dateTo)' },
-                                   {type: "number-range", min: '#(filter.durationFrom)', max : '#(filter.durationTo)'},
-                                   {type: "text", bRegex: true, val : '#(filter.noteFilter)'},
-                                   null,
-                                   null]
-                });
+            });
+            
+            $('.redrawOnChange').bind('keyup change', function() {
+                main_table.draw();
+            });
 
             $('#row#(highlightRow)').ready(function() {
                 var theRow = $('#row#(highlightRow) td');
@@ -115,15 +126,26 @@
                 }, 500);
             });
             
-            $('#cellDateFilter input:eq(0)').val('#(filter.dateFrom)');
-            $('#cellDateFilter input:eq(1)').val('#(filter.dateTo)');
-            $('#cellDurFilter input:eq(0)').val(#(filter.durationFrom));
-            $('#cellDurFilter input:eq(1)').val(#(filter.durationTo));
-            $('#cellNoteFilter input').val('#(filter.noteFilter)');
-            $('#cellNoteFilter').append(' (Regex)');
             
+            $('#inpDateFrom').datepicker();
+            $('#inpDateTo').datepicker();
             
+            $('#selContract').val('#(filter.contract)');
+            $('#selProject').val('#(filter.project)');
+            $('#inpDateFrom').val('#(filter.dateFrom)');
+            $('#inpDateTo').val('#(filter.dateTo)');
+            $('#inpDurFrom').val(#(filter.durationFrom));
+            $('#inpDurTo').val(#(filter.durationTo));
+            $('#inpRegex').val('#(filter.noteFilter)');
             
+            main_table.draw();
+            
+
+
+
+            //  DELETE DIALOG
+
+
             $('#dlgConfirmDelete').dialog({
                 autoOpen: false,
                // position: {my: "left-400", at: "right", of: '#group-3'},
@@ -150,6 +172,7 @@
                 }
             });
             
+                      
             $("#btnConfirmDelete").button().click(function(){
                 $.ajax({
                     url: "ajax/deleteTimeRecord",
@@ -175,10 +198,6 @@
         });
         
             
-        
-        
-        
-
 
     </script>
     
@@ -207,13 +226,32 @@
     
     </tbody>
     <tfoot><tr>
-       <th>Filter Results:</th>
-       <th id="cellContractFilter">&nbsp;</th>
-       <th id="cellProjectFilter">&nbsp;</th>
-       <th id="cellDateFilter">&nbsp;</th>
-       <th id="cellDurFilter">&nbsp;</th>
-       <th id="cellNoteFilter"></th>
-       <th>&nbsp;</th><th>&nbsp;</th>
+        <th>Filter Results:</th>
+        <th id="cellContractFilter">
+            <select id="selContract" class="redrawOnChange">
+                <option value=""></option>
+                #for(contract in lookup.contracts){
+                    <option value="#(contract.id)">#(contract.name)</option>
+                }
+            </select>
+        </th>
+        <th id="cellProjectFilter">
+            <select id="selProject" class="redrawOnChange">
+                <option value=""></option>
+                #for(project in lookup.projects){
+                    <option value="#(project.id)">#(project.name)</option>
+                }
+            </select>
+        </th>
+        <th id="cellDateFilter">
+            From: <input id="inpDateFrom" class="redrawOnChange"><br>
+            To: <input id="inpDateTo" class="redrawOnChange">
+        </th>
+        <th id="cellDurFilter">
+            From: <input id="inpDurFrom" class="redrawOnChange"><br>
+            To: <input id="inpDurTo" class="redrawOnChange"></th>
+        <th id="cellNoteFilter">Regex Search: <input id="inpRegex" class="redrawOnChange"></th>
+        <th>&nbsp;</th><th>&nbsp;</th>
     </tr><tr>
     <th>Total:</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th id="timeTotal">&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th></tr>
     </tfoot></table>'

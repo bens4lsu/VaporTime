@@ -60,8 +60,7 @@ struct TBTableContext: Encodable {
     var entries: [TBTableColumns]
     var filter: TimeBillingSessionFilter
     var highlightRow: Int?
-    var cOpts: String?
-    var pOpts: String?
+    var lookup: LookupContext
 }
 
 struct TimeBillingSessionFilter: Codable {

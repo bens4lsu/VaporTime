@@ -9,18 +9,12 @@
     <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
     <script language="javascript" src="./js/jquery.validate.pack.js"></script>
-   <style>
-        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
-    </style>
 
 </head>
 <body class="mainbox" >
 
     <script type="text/javascript">
-
-
-            
-            
+    
         $(document).ready(function() {
 
             jQuery.fn.checkAll = function() {
