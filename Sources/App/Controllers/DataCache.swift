@@ -29,17 +29,20 @@ class DataCache {
             return try self.db.getLookupPerson(req).flatMap(to: LookupContext.self) { lookupPerson in
                 return RefProjectStatuses.query(on: req).all().flatMap(to: LookupContext.self) { projectStatuses in
                     return try self.db.getEventTypes(req).flatMap(to: LookupContext.self) { eventTypes in
-                        let statuses = projectStatuses.sorted()
-                        let context = LookupContext(contracts: lookupTrinity.contracts,
-                                                    companies: lookupTrinity.companies,
-                                                    projects: lookupTrinity.projects,
-                                                    timeBillers: lookupPerson,
-                                                    groupBy: ReportGroupBy.list(),
-                                                    projectStatuses: statuses,
-                                                    eventTypes: eventTypes)
-                        print(context)
-                        self.cachedLookupContext = context
-                        return req.future(context)
+                        return LuRateSchedules.query(on: req).all().flatMap(to: LookupContext.self) { rateSchedules in
+                            let statuses = projectStatuses.sorted()
+                            let context = LookupContext(contracts: lookupTrinity.contracts,
+                                                        companies: lookupTrinity.companies,
+                                                        projects: lookupTrinity.projects,
+                                                        timeBillers: lookupPerson,
+                                                        groupBy: ReportGroupBy.list(),
+                                                        projectStatuses: statuses,
+                                                        eventTypes: eventTypes,
+                                                        rateSchedules: rateSchedules)
+                            print(context)
+                            self.cachedLookupContext = context
+                            return req.future(context)
+                        }
                     }
                 }
             }

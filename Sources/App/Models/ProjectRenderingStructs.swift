@@ -29,6 +29,7 @@ struct Journal: Codable {
     var EventDescription: String?
     var EventWhoGenerates: String?
     var Name: String?
+    var id: Int
 }
 
 struct RateList: Codable {

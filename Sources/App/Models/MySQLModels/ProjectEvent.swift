@@ -42,7 +42,7 @@ struct ProjectEvent: Content, MySQLModel, Codable {
         self.recordedDateTime = recordedDateTime
         self.eventId = eventId
     }
-    
+        
     init (projectId: Int, eventId: Int, personId: Int) {
         self.init(projectId: projectId, id: nil, eventId: eventId, reportDate: Date(), notes: nil, personId: personId, recordedDateTime: Date())
     }
@@ -54,6 +54,11 @@ struct ProjectEvent: Content, MySQLModel, Codable {
     
     init (projectId: Int, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
         self.init(projectId: projectId, id: nil, eventId: eventId, reportDate: eventDate, notes: notes, personId: personId, recordedDateTime: Date())
+
+    }
+    
+    init (projectId: Int, id: Int?, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
+        self.init(projectId: projectId, id: id, eventId: eventId, reportDate: eventDate, notes: notes, personId: personId, recordedDateTime: Date())
 
     }
 }

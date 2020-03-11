@@ -17,6 +17,13 @@ class MySQLDirect {
         return formatter
     }()
     
+    private func quotedDateOrNull(_ dt: Date?) -> String {
+        guard let unwrapped = dt else {
+            return "NULL"
+        }
+        return "'\(dateFormatter.string(from: unwrapped))'"
+    }
+    
     private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> Future<[T]> {
         return req.withPooledConnection(to: .mysql) { conn in
             return conn.raw(query).all(decoding: T.self)
@@ -166,7 +173,8 @@ class MySQLDirect {
     func getJournalForProject(_ req: Request, projectId: Int) throws -> Future<[Journal]> {
         let sql = """
             SELECT ev.ReportDate, ev.Notes, r.EventDescription,
-                r.EventWhoGenerates, p.Name
+                r.EventWhoGenerates, p.Name,
+                ev.ProjectEventID AS id
             FROM fProjectEvents ev
                 LEFT OUTER JOIN LuPeople p ON ev.PersonID = p.PersonID
                 LEFT OUTER JOIN RefProjectEventsReportable r ON ev.EventID = r.EventID
@@ -189,14 +197,7 @@ class MySQLDirect {
         return try getResultsRows(req, query: sql, decodeUsing: RateList.self)
     }
     
-    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) throws -> Future<Void> {
-        let sql = """
-            update apps_timebill.fTime
-            set ExportStatus = 1
-            where ProjectID = \(projectId)
-        """
-        return try issueQuery(req, query: sql)
-    }
+
     
     func getEventTypes(_ req: Request) throws -> Future<[LookupContextPair]> {
         let sql = """
@@ -206,6 +207,30 @@ class MySQLDirect {
             ORDER BY SortOrder
         """
         return try getResultsRows(req, query: sql, decodeUsing: LookupContextPair.self)
+    }
+    
+    
+    // MARK: Methods that modify data
+    
+    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) throws -> Future<Void> {
+        let sql = """
+            UPDATE fTime
+            SET ExportStatus = 1
+            WHERE ProjectID = \(projectId)
+        """
+        return try issueQuery(req, query: sql)
+    }
+    
+    func addProjectRateSchedule(_ req: Request, projectId: Int, personId: Int, rateScheduleId: Int, startDate: Date?, endDate: Date?) throws -> Future<Void> {
+        let startDateString = quotedDateOrNull(startDate)
+        let endDateString = quotedDateOrNull(endDate)
+        let sql = """
+            INSERT fProjectRates (ContractID, ProjectID, PersonID, RateScheduleID, StartDate, EndDate)
+            SELECT ContractID, ProjectID, \(personId), \(rateScheduleId), \(startDateString), \(endDateString)
+            FROM fProjects
+            WHERE ProjectID = \(projectId)
+        """
+        return try issueQuery(req, query: sql)
     }
 }
 

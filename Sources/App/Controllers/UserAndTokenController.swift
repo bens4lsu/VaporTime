@@ -77,12 +77,22 @@ class UserAndTokenController: RouteCollection {
                 throw Abort(.unauthorized, reason: "User's system access has been revoked.")
             }
             
-            let userPersistInfo = user.persistInfo()!
-            let ip = req.http.remotePeer.hostname
-            let token = Token(user: userPersistInfo, exp: Date().addingTimeInterval(UserAndTokenController.tokenExpDuration), ip: ip)
-            try UserAndTokenController.saveSessionInfo(req: req, info: token, sessionKey: "token")
-            return req.future().map() {
-                return req.redirect(to: "/")
+            // create access log entry
+            let accessLog = AccessLog(personId: user.id!)
+            return accessLog.save(on: req).flatMap(to: Response.self) { access in
+                let userPersistInfo = user.persistInfo()!
+                let ip = req.http.remotePeer.hostname
+                if let accessId = access.id {
+                    let token = Token(user: userPersistInfo,
+                                      exp: Date().addingTimeInterval(UserAndTokenController.tokenExpDuration),
+                                      ip: ip,
+                                      accessLogId: accessId,
+                                      loginTime: access.accessTime)
+                    try UserAndTokenController.saveSessionInfo(req: req, info: token, sessionKey: "token")
+                }
+                return req.future().map() {
+                    return req.redirect(to: "/")
+                }
             }
         }
     }
@@ -145,7 +155,7 @@ class UserAndTokenController: RouteCollection {
     }
 
     
-    static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel, onSuccess: (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
+    static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel, onSuccess: @escaping (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
         guard let temp: Token? =  try? getSessionInfo(req: req, sessionKey: "token"),
             var token = temp else {
             return UserAndTokenController.redirectToLogin(req)
@@ -164,7 +174,10 @@ class UserAndTokenController: RouteCollection {
         token.exp = (Date().addingTimeInterval(UserAndTokenController.tokenExpDuration))
         try saveSessionInfo(req: req, info: token, sessionKey: "token")
         
-        return try onSuccess(token.user)
+        let accessLog = AccessLog(personId: token.user.id, id: token.accessLogId, loginTime: token.loginTime)
+        return accessLog.save(on: req).flatMap(to:Response.self) { _ in
+            return try onSuccess(token.user)
+        }
     }
     
     

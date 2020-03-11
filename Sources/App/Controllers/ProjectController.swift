@@ -27,6 +27,7 @@ class ProjectController: RouteCollection {
         router.post("ProjectAddEdit", use: addEditProject)
         router.post("ProjectClose", use: closeProject)
         router.post("ProjectAddJournal", use: addJournal)
+        router.post("ProjectAddRate", use: addRateSchedule)
         
     }
     
@@ -35,7 +36,7 @@ class ProjectController: RouteCollection {
     
     private func renderProjectTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return try cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
+            return try self.cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
                 var updatePage = context
                 updatePage.editPage = "ProjectAddEdit"
                 updatePage.heading = "Edit Project"
@@ -50,7 +51,7 @@ class ProjectController: RouteCollection {
         
         return try UserAndTokenController.verifyAccess(req, accessLevel: UserAccessLevel.timeBilling) { user in
             
-            return try cache.getLookupContext(req).flatMap(to:Response.self) { lookup in
+            return try self.cache.getLookupContext(req).flatMap(to:Response.self) { lookup in
                 
                 guard let projectId = optProjectId else {
                     return try req.view().render("project", ["lookup" : lookup]).encode(for: req)
@@ -107,7 +108,7 @@ class ProjectController: RouteCollection {
         }
         
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return getPreUpdatedProject(projectId, on: req).flatMap(to: Response.self) { oldProject in
+            return self.getPreUpdatedProject(projectId, on: req).flatMap(to: Response.self) { oldProject in
             
                 let project = Project(id: projectId, contractId: contractId, companyId: servicesForCompanyId, description: description, statusId: statusId, projectNumber: projectNumber, statusNotes: notes, mantisProjectId: mantisId, isActive: true, projectedTime: projectedTime, projectedDateComplete: endDate, pmProjectId: nil, hideTimeReporting: hideTimeReporting, startDate: startDate)
                 
@@ -170,6 +171,7 @@ class ProjectController: RouteCollection {
     
     private func addJournal(_ req: Request)throws -> Future<Response> {
         let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
+        let journalId = try? req.content.syncGet(Int.self, at: "journalId")
         let eventId = try? req.content.syncGet(Int.self, at: "eventId")
         let ajaxEventDate = (try? req.content.syncGet(at: "eventDate")).toDate()
         let notes = (try? req.content.syncGet(String.self, at: "notes")) ?? ""
@@ -184,9 +186,30 @@ class ProjectController: RouteCollection {
     
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             
-            let entry = ProjectEvent(projectId: projectId, eventId: eventId, eventDate: eventDate, personId: user.id, notes: notes)
+            let entry = ProjectEvent(projectId: projectId, id: journalId, eventId: eventId, eventDate: eventDate, personId: user.id, notes: notes)
          
             return entry.save(on: req).flatMap(to: Response.self) { _ in
+                return try req.future("ok").encode(for: req)
+            }
+        }
+    }
+    
+    
+    private func addRateSchedule(_ req: Request)throws -> Future<Response> {
+        let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
+        let ajaxPersonId = try? req.content.syncGet(Int.self, at: "personId")
+        let ajaxRateScheduleId = try? req.content.syncGet(Int.self, at: "rateScheduleId")
+        let rateStartDate = (try? req.content.syncGet(at: "rateStartDate")).toDate()
+        let rateEndDate = (try? req.content.syncGet(at: "rateEndDate")).toDate()
+        
+        guard let projectId = ajaxProjectId, let personId = ajaxPersonId, let rateScheduleId = ajaxRateScheduleId else {
+            throw Abort(.badRequest, reason: "Add Rate Schedule requested with at least one required field missing (project ID, person ID, rate schedule ID.")
+        }
+    
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
+            
+            return try self.db.addProjectRateSchedule(req, projectId: projectId, personId: personId, rateScheduleId: rateScheduleId, startDate: rateStartDate, endDate: rateEndDate).flatMap(to:Response.self) { _ in
+                
                 return try req.future("ok").encode(for: req)
             }
         }

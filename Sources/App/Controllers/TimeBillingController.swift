@@ -64,7 +64,7 @@ class TimeBillingController: RouteCollection {
     
     private func renderTimeTree(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return try cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
+            return try self.cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
                 return (try req.view().render("time-tree", context).encode(for: req))
             }
         }
@@ -76,7 +76,7 @@ class TimeBillingController: RouteCollection {
         }
         let timeId = try? req.query.get(Int.self, at: "timeId")
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { _ in
-            return try db.getTBAdd(req, projectId: projectId).flatMap(to: Response.self) { project in
+            return try self.db.getTBAdd(req, projectId: projectId).flatMap(to: Response.self) { project in
                 guard let project = project else {
                     throw Abort(.badRequest, reason: "Database lookup for project returned no records.")
                 }

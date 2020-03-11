@@ -31,7 +31,7 @@ class ReportController: RouteCollection {
     
     private func renderReportSelector(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
-            return try cache.getLookupContext(req).flatMap(to: Response.self) { context in
+            return try self.cache.getLookupContext(req).flatMap(to: Response.self) { context in
                 return try req.view().render("report-selector", context).encode(for: req)
             }
         }
@@ -62,7 +62,7 @@ class ReportController: RouteCollection {
             
             let filters = ReportFilters(startDate: startDate, endDate: endDate, billedById: billedById, contractId: contractId, servicesForCompanyId: servicesForCompanyId, projectId: projectId)
                         
-            return try db.getReportData(req, filters: filters, userId: user.id).flatMap(to: Response.self) { reportData in
+            return try self.db.getReportData(req, filters: filters, userId: user.id).flatMap(to: Response.self) { reportData in
                 var records = [ReportRendererGroup]()
                 for row in reportData {
                     records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,

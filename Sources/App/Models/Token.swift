@@ -13,6 +13,8 @@ struct Token: Codable {
     var user: UserPersistInfo
     var exp: Date
     var ip: String?
+    var accessLogId: Int
+    var loginTime: Date
     
     func encode() throws -> String {
         let jsonData = try JSONEncoder().encode(self)

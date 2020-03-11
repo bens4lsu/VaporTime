@@ -13,6 +13,30 @@
     <script src="./highcharts/code/highcharts-more.js"></script>
     <script src="./highcharts/code/modules/solid-gauge.js"></script>
     <style>
+        .wrapper {display: grid; grid-template-columns: repeat(12, [col-start] 1fr); grid-gap: 20px; }
+        .grid-1-1 {grid-column: col-start 1 / span 6; }
+        .grid-1-2 {grid-column: col-start 7 / span 6; grid-row: 1;}
+        .grid-2-1 {grid-column: col-start 1 / span 6; grid-row: 2;}
+        .grid-2-2 {grid-column: col-start 7 / span 6; grid-row: 2;}
+        .grid-3-1 {grid-column: col-start 1 / span 6; grid-row: 3;}
+        .grid-3-2 {grid-column: col-start 7 / span 6; grid-row: 3;}
+        .grid-4-1 {grid-column: col-start 1 / span 4; grid-row: 4;}
+        .grid-4-2 {grid-column: col-start 5 / span 2; grid-row: 4;}
+        .grid-4-3 {grid-column: col-start 7 / span 3; grid-row: 4;}
+        .grid-4-4 {grid-column: col-start 9 / span 3: grid-row: 4;}
+        .grid-5-1 {grid-column: col-start 1 / span 4; grid-row: 6;}
+        .grid-5-2 {grid-column: col-start 5 / span 4; grid-row: 6;}
+        .grid-5-3 {grid-column: col-start 9 / span 3; grid-row: 6 / span 2;}
+        .grid-6-1 {grid-column: col-start 1 / span 4; grid-row: 7;}
+        .grid-6-2 {grid-column: col-start 5 / span 4; grid-row: 7;}
+        .grid-7-1 {grid-column: col-start 1 / span 6; grid-row: 9;}
+        .grid-7-2 {grid-column: col-start 7 / span 6; grid-row: 9;}
+        .underline-1 {grid-column: col-start 1 / span 12; grid-row: 5; border-bottom: 2px solid #ccc; }
+        .underline-2 {grid-column: col-start 1 / span 12; grid-row: 8; border-bottom: 2px solid #ccc; }
+        label {float: left; width: 10em; margin-right: 1em; text-align: right; }
+        .grid-1-1 select, .grid-1-2 select, .grid-3-1 select {width: 26em;}
+        .grid-2-1 input, .grid-2-2 input, .grid-3-2 textarea {width:25.5em; }
+        .grid-4-1 input {width: 5em; }
         .journal-head {font-weight: bold; margin-top: 1.25em;}
         .system .journal-head {color: blue}
         .user .journal-head {color: red}
@@ -22,6 +46,9 @@
         .rates-section {width: 30%; display:inline-block; margin-left:10px; vertical-align:top;}
         #btnCloseProject, #btnConfirmCloseProject {float:right;}
         #chartProgress{height: 170px;}
+        .btnLittleHeader{display: inline; margin-left: 1em; max-height: 17px; padding: 2px;}
+        .btnLittleHeader img {object-fit: scale-down;}
+        
     </style>
     <script>
         $(document).ready(function() {
@@ -75,17 +102,35 @@
             
             $('#dlgAddJournal').dialog({
                 autoOpen: false,
-                title: 'Add Journal Entry',
+                title: 'Add/Edit Journal Entry',
                 width: 515,
-                modal : true
+                modal : true,
+                close: function() {
+                    $('#inpJournalId').val("");
+                    $('#inpJournalDate').val("");
+                    $('#selJournalType').val("");
+                    $('#taJournalNotes').val("");
+                }
             });
             
-            $('#lnkAddJournal').click(function (){
+            $('#btnAddJournal').click(function (){
                 $('#dlgAddJournal').dialog('open');
             });
             
-            $('#inpJournalDate').datepicker();
-            
+            $('.btnEditJournal').click(function (){
+                entryId = this.id.split("-")[1];
+                $('#inpJournalId').val(entryId);
+                $('#inpJournalDate').val($('#journal-entry-' + entryId + ' .date').text());
+                var optionText = $('#journal-entry-' + entryId + ' .eventDescription').text();
+                $("#selJournalType option").each(function() {
+                    if ($(this).text().trim() == optionText.trim()) {
+                        $(this).attr('selected', 'selected');
+                    }
+                });
+                $('#taJournalNotes').text($('#journal-entry-' + entryId + ' .notes').text());
+                $('#dlgAddJournal').dialog('open');
+            });
+                        
             $('#btnJournalSave').button().click(function() {
                $.ajax({
                     url: 'ProjectAddJournal',
@@ -94,7 +139,8 @@
                         projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 },
                         eventDate: $('#inpJournalDate').val(),
                         eventId: $('#selJournalType').val(),
-                        notes: $('#taJournalNotes').val()
+                        notes: $('#taJournalNotes').val(),
+                        journalId : $('#inpJournalId').val()
                     },
                     success: function(data, status) {
                         if(data == "ok") {
@@ -116,36 +162,64 @@
             
             $('#btnJournalCancel').button().click(function() {
                 $('#dlgAddJournal').dialog('close');
-            });            
+            });  
+            
+            
+            $('#dlgAddRates').dialog({
+                autoOpen: false,
+                title: 'Add Rate Schedule',
+                width: 515,
+                modal : true,
+                close: function() {
+                    $('#selRatePerson').val("");
+                    $('#selRateSchedule').val("");
+                }
+            });
+            
+            $('#btnAddRates').click(function(){
+                $('#dlgAddRates').dialog('open');
+            });
+            
+            $('#btnRateCancel').button().click(function() {
+                $('#dlgAddRates').dialog('close');
+            });
+            
+            $('#btnRateSave').button().click(function() {
+                $.ajax({
+                    url: 'ProjectAddRate',
+                    type: 'post',
+                    data: {
+                        projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 },
+                        personId: $('#selRatePerson').val(),
+                        rateScheduleId: $('#selRateSchedule').val(),
+                        rateStartDate: $('#rateStartDate').val(),
+                        rateEndDate: $('#rateEndDate').val()
+                    },
+                    success: function(data, status) {
+                        if(data == "ok") {
+                            window.location.href="/ProjectAddEdit?projectId=#(project.ProjectID)";
+                        }
+                        else {
+                            console.log("Error response received:");
+                            console.log(data);
+                            alert("Error updating session.  Your change was not saved.");
+                        }
+                    },
+                    error: function(xhr, desc, err) {
+                        console.log(xhr);
+                        console.log("Details: " + desc + "\nError:" + err);
+                        alert("Error updating session.  Your change was not saved.");
+                    }
+                });  // end ajax call 
+                
+                $('#dlgAddRates').dialog('close');
+            });
+            
+            
+                      
         });
     </script>
-    
-    <style>
-        .wrapper {display: grid; grid-template-columns: repeat(12, [col-start] 1fr); grid-gap: 20px; }
-        .grid-1-1 {grid-column: col-start 1 / span 6; }
-        .grid-1-2 {grid-column: col-start 7 / span 6; grid-row: 1;}
-        .grid-2-1 {grid-column: col-start 1 / span 6; grid-row: 2;}
-        .grid-2-2 {grid-column: col-start 7 / span 6; grid-row: 2;}
-        .grid-3-1 {grid-column: col-start 1 / span 6; grid-row: 3;}
-        .grid-3-2 {grid-column: col-start 7 / span 6; grid-row: 3;}
-        .grid-4-1 {grid-column: col-start 1 / span 4; grid-row: 4;}
-        .grid-4-2 {grid-column: col-start 5 / span 2; grid-row: 4;}
-        .grid-4-3 {grid-column: col-start 7 / span 3; grid-row: 4;}
-        .grid-4-4 {grid-column: col-start 9 / span 3: grid-row: 4;}
-        .grid-5-1 {grid-column: col-start 1 / span 4; grid-row: 6;}
-        .grid-5-2 {grid-column: col-start 5 / span 4; grid-row: 6;}
-        .grid-5-3 {grid-column: col-start 9 / span 3; grid-row: 6 / span 2;}
-        .grid-6-1 {grid-column: col-start 1 / span 4; grid-row: 7;}
-        .grid-6-2 {grid-column: col-start 5 / span 4; grid-row: 7;}
-        .grid-7-1 {grid-column: col-start 1 / span 6; grid-row: 9;}
-        .grid-7-2 {grid-column: col-start 7 / span 6; grid-row: 9;}
-        .underline-1 {grid-column: col-start 1 / span 12; grid-row: 5; border-bottom: 2px solid #ccc; }
-        .underline-2 {grid-column: col-start 1 / span 12; grid-row: 8; border-bottom: 2px solid #ccc; }
-        label {float: left; width: 10em; margin-right: 1em; text-align: right; }
-        .grid-1-1 select, .grid-1-2 select, .grid-3-1 select {width: 26em;}
-        .grid-2-1 input, .grid-2-2 input, .grid-3-2 textarea {width:25.5em; }
-        .grid-4-1 input {width: 5em; }
-    </style>
+ 
 </head>
 <body>
     
@@ -201,66 +275,96 @@
         #if(project.ProjectID) {<button id="btnCloseProject">Close Project</button>}
     </div>
 
-    <div class="journal-section">
-        <h3>Journal</h3>
-        <p><a id="lnkAddJournal">+</a></p>
-    
-        #for(journal in journals) {
         
-            <div class="journal-entry 
-                #if(journal.EventWhoGenerates){
-                    #lowercase(journal.EventWhoGenerates) 
-                }else{
-                    user
-                }
-            ">
-                <div class="journal-head">
-                    <span class="date">#date(journal.ReportDate, "M/d/yyyy")</span> by 
-                    <span class="person">#(journal.Name)</span>
+    #if(project){ 
+                
+        <div class="journal-section">
+            <h3>Journal <button id="btnAddJournal" class="btnLittleHeader">+</button></h3>
+    
+            #for(journal in journals) {
+        
+                <div class="journal-entry 
+                    #if(journal.EventWhoGenerates){
+                        #lowercase(journal.EventWhoGenerates) 
+                    }else{
+                        user
+                    }
+                " id="journal-entry-#(journal.id)">
+                    <div class="journal-head">
+                        <span class="date">#date(journal.ReportDate, "M/d/yyyy")</span> by 
+                        <span class="person">#(journal.Name)</span>
+                        #if(journal.EventWhoGenerates != "SYSTEM"){
+                            <button class="btnLittleHeader btnEditJournal" id="btnEditJournal-#(journal.id)"><img src="/images/edit-ben.png" alt="e"></button>
+                        }
+                    </div>
+                    #if(journal.EventDescription) { <div class="eventDescription"> #(journal.EventDescription) </div> }
+                    #if(journal.Notes) { <div class="notes"> #(journal.Notes) </div> }
                 </div>
-                #if(journal.EventDescription) { <div class="eventDescription"> #(journal.EventDescription) </div> }
-                #if(journal.Notes) { <div class="notes"> #(journal.Notes) </div> }
+            }
+        </div>
+        
+        <div class="rates-section"><h3>Rates <button id="btnAddRates" class="btnLittleHeader">+</button></h3>
+            <table>
+            <thead><tr><th>Person</th><th>Rate Schedule</th><th>Start</th><th>End</th></thead>
+            #for(rateList in rateLists) {
+                <tr><td>#(rateList.Name)</td>
+                    <td>#(rateList.RateDescription)</td>
+                    <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
+                    <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
+                </tr>
+            }
+            </table>
+        </div>
+    
+            
+        <div id="dlgConfirmCloseProject">
+            <p>Are you sure you want to close the project `#(project.ProjectDescription)` ?  This will also mark all time billing items for the project as billed and paid.</p>
+            <button id="btnConfirmCloseProject">Yes<br>Close the project.</button>
+            <button id="btnCancelCloseProject">No<br>Cancel this request.</button>
+        </div>
+    
+        <div id="dlgAddJournal">
+            <div>
+                <div><label>Date:</label><input id="inpJournalDate" class="datepicker"></div>
+                <div><label>Type (optional):</label><select id="selJournalType">
+                    <option value=""></option>
+                    #for(eventType in lookup.eventTypes) {
+                        <option value="#(eventType.id)">#(eventType.name)</option>
+                    }</div>
+                <select>
             </div>
-        }
-    </div>
-        
-    <div class="rates-section"><h2>Rates</h2>
-        <table>
-        <thead><tr><th>Person</th><th>Rate Schedule</th><th>Start</th><th>End</th></thead>
-        #for(rateList in rateLists) {
-            <tr><td>#(rateList.Name)</td>
-                <td>#(rateList.RateDescription)</td>
-                <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
-                <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
-            </tr>
-        }
-        </table>
-    </div>
-    
-    
-    <div id="dlgConfirmCloseProject">
-        <p>Are you sure you want to close the project `#(project.ProjectDescription)` ?  This will also mark all time billing items for the project as billed and paid.</p>
-        <button id="btnConfirmCloseProject">Yes<br>Close the project.</button>
-        <button id="btnCancelCloseProject">No<br>Cancel this request.</button>
-    </div>
-    
-    <div id="dlgAddJournal">
-        <div>
-            <div><label>Date:</label><input id="inpJournalDate"></div>
-            <div><label>Type (optional):</label><select id="selJournalType">
-                <option value=""></option>
-                #for(eventType in lookup.eventTypes) {
-                    <option value="#(eventType.id)">#(eventType.name)</option>
-                }</div>
-            <select>
+            <div><label>Notes:</label><textarea id="taJournalNotes"></textarea></div>
+            <div style="display:none"><input name="inpJournalIventId" id="inpJournalId" value="#(project.id)"></div>
+            <div>
+                <button id="btnJournalSave">Save</button>
+                <button id="btnJournalCancel">Cancel</button>
+            </div>
         </div>
-        <div><label>Notes:</label><textarea id="taJournalNotes"></textarea></div>
-        <div>
-            <button id="btnJournalSave">Save</button>
-            <button id="btnJournalCancel">Cancel</button>
-        </div>
-    </div>
         
+        <div id="dlgAddRates">
+            <div><label>Person:</label>
+                <select id="selRatePerson">
+                    #for(person in lookup.timeBillers){
+                        <option value="#(person.PersonID)">#(person.Name)</option>
+                    }
+                </select>
+            </div>
+            <div><label>Rate Schedule:</label>
+                <select id="selRateSchedule">
+                    #for(rateSchedule in lookup.rateSchedules){
+                        <option value="#(rateSchedule.RateScheduleID)">#(rateSchedule.RateDescription)</option>
+                    }
+                </select>
+            </div>
+            <div><label>Start Date (optional):</label><input id="rateStartDate" class="datepicker"></div>
+            <div><label>End Date (optional):</label><input id="rateEndDate" class="datepicker"></div>
+             <div>
+                <button id="btnRateSave">Save</button>
+                <button id="btnRateCancel">Cancel</button>
+            </div>
+        </div>
+        
+    }        
         
 
 

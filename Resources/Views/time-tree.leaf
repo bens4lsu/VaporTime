@@ -13,7 +13,6 @@
         #tree .jstree-open > a > i { background-image:url("./images/folder.png");  background-position:left center;}
         #tree .jstree-leaf > a > i { background-image:url("./images/blueplus.png"); background-position:left center;  }
         h2 {font-size:90%; width:100%; background-color: #C4C4C4; padding:4px 1.8em; font-family:Verdana, Arial, Sans-Serif; }
-        #tree {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
         #btnAddNewProject {margin-top:22px;}
     
     </style>
