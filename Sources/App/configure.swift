@@ -29,6 +29,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     RefProjectStatuses.defaultDatabase = .mysql
     LuRateSchedules.defaultDatabase = .mysql
     AccessLog.defaultDatabase = .mysql
+    PasswordResetRequest.defaultDatabase = .mysql
     
     
     try services.register(LeafProvider())

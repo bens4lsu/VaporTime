@@ -29,6 +29,7 @@ class ConfigKeys: Codable {
     var tokenExpDuration: Double
     var bugUrl: String
     var myCompany: MyCompany
+    var resetKeyExpDuration: Double
     
     init() {
     
@@ -41,6 +42,7 @@ class ConfigKeys: Codable {
             self.tokenExpDuration = decoder.tokenExpDuration
             self.bugUrl = decoder.bugUrl
             self.myCompany = decoder.myCompany
+            self.resetKeyExpDuration = decoder.resetKeyExpDuration
         }
         catch {
             print ("Could not initialize app from Config.json.  Initilizing with hard-coded default values. \n \(error)")
@@ -49,6 +51,7 @@ class ConfigKeys: Codable {
             self.tokenExpDuration = 3306
             self.bugUrl = "#"
             self.myCompany = ConfigKeys.MyCompany(name: "Concord Business Services", homePage: "https://concordbusinessservicesllc.com", logoFileName: "logo.png", faviconFileName: "favicon.png")
+            self.resetKeyExpDuration = 3600
         }
     }
 }

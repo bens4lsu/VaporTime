@@ -5,14 +5,17 @@ import Crypto
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
         
+    // establish data cache and read info from config.json
+    let cache = DataCache()
+    UserAndTokenController.tokenExpDuration = cache.configKeys.tokenExpDuration
+    UserAndTokenController.resetKeyExpDuration = cache.configKeys.resetKeyExpDuration
+    
+    // route collections
     let userAndTokenController = UserAndTokenController()
     try router.register(collection: userAndTokenController)
-    
-    let cache = DataCache()
-    
-    try router.register(collection: TimeBillingController(userAndTokenController, cache))
-    try router.register(collection: ReportController(userAndTokenController, cache: cache))
-    try router.register(collection: ProjectController(userAndTokenController, cache))
+    try router.register(collection: TimeBillingController(cache))
+    try router.register(collection: ReportController(cache))
+    try router.register(collection: ProjectController(cache))
     
     
     // MARK:  Miscellaneous Routes

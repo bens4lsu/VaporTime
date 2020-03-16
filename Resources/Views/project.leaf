@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="./css/concordtb.css" />
     <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
-    <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+    <!--script language="javascript" src="./js/jquery.validate.pack.js"></script-->
     <script src="./highcharts/code/highcharts.js"></script>
     <script src="./highcharts/code/highcharts-more.js"></script>
     <script src="./highcharts/code/modules/solid-gauge.js"></script>
@@ -51,6 +51,21 @@
         
     </style>
     <script>
+    
+        function enableDisable(obj, basedOnInput) {
+            if (basedOnInput.val().trim() == "") {
+                obj.prop('disabled', true);
+                obj.addClass('disabled');
+                basedOnInput.prev($('label')).addClass('requiredButMissing');
+            }
+            else {
+                obj.prop('disabled', false);
+                obj.removeClass('disabled');
+                basedOnInput.prev($('label')).removeClass('requiredButMissing');
+            }
+        }
+
+                
         $(document).ready(function() {
             $('.datepicker').datepicker();
             
@@ -68,6 +83,11 @@
                 width: 515,
                 modal : true
             });
+            
+            $('#description').bind('keyup change', function() {
+                enableDisable($('#btnSave'), $('#description'));
+            });
+            enableDisable($('#btnSave'), $('#description'));
             
             
             $('#btnConfirmCloseProject').button().click(function() {
@@ -162,7 +182,12 @@
             
             $('#btnJournalCancel').button().click(function() {
                 $('#dlgAddJournal').dialog('close');
-            });  
+            }); 
+            
+            $('#inpJournalDate').bind('keyup change', function() {
+                enableDisable($('#btnJournalSave'), $('#inpJournalDate'));
+            });
+            enableDisable($('#btnJournalSave'), $('#inpJournalDate')); 
             
             
             $('#dlgAddRates').dialog({
@@ -216,6 +241,8 @@
             });
             
             
+            
+            
                       
         });
     </script>
@@ -245,7 +272,7 @@
                         <option value="#(company.id)" #if(company.id == project.ServicesForCompany) { selected }>#(company.name)</option>
                     }
                 </select></div>
-            <div class="grid-2-1"><label>Description:</label><input value="#(project.ProjectDescription)" name="description" /></div>
+            <div class="grid-2-1"><label for="description">Description:</label><input value="#(project.ProjectDescription)" name="description" id="description" /></div>
             <div class="grid-2-2"><label>#:</label><input value="#(project.ProjectNumber)" name="projectNumber" /></div>
             <div class="grid-3-1"><label>Status:</label>
                 <select name="statusId">

@@ -73,3 +73,13 @@ th {
 #tabs li:not(.ui-tabs-active) { background-color: #edf4fa; }
 #tabs li {font-size:90%; font-weight: normal;}
 
+button.disabled {
+    background-color:#ccc !important;
+}
+
+.requiredButMissing {
+    color: #cb5b5d;
+    font-weight:bold;
+}
+
+label {float: left; width: 10em; margin-right: 1em; text-align: right; }

@@ -39,7 +39,7 @@ class DataCache {
                                                         projectStatuses: statuses,
                                                         eventTypes: eventTypes,
                                                         rateSchedules: rateSchedules)
-                            print(context)
+                            print("Data cache has been refreshed.")
                             self.cachedLookupContext = context
                             return req.future(context)
                         }

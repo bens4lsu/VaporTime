@@ -80,15 +80,16 @@
         
         $.fn.dataTable.ext.search.push(
             function( settings, data, dataIndex ) {
-                var regexPattern = ($('#inpRegex').val().trim() != "" && $('#inpRegex').val() != null) ? new RegExp($('#inpRegex').val()) : /[\s\S]*./;
-
+                var hasRegexPattern = $('#inpRegex').val().trim() != "" && $('#inpRegex').val() != null
+                var regexPattern = hasRegexPattern ? new RegExp($('#inpRegex').val()) : /[\s\S]*./;
+                
                 return ($('#selContract').val() == "" || $('#selContract').val() == null || $('#selContract option:selected').text() == data[1])            &&
                        ($('#selProject').val() == "" || $('#selProject').val() == null || $('#selProject option:selected').text() == data[2])               &&
                        ($('#inpDateFrom').val().trim() == "" || $('#inpDateFrom').val() == null || new Date($('#inpDateFrom').val()) <= new Date(data[3]))  &&
                        ($('#inpDateTo').val().trim() == "" || $('#inpDateTo').val() == null || new Date($('#inpDateTo').val()) >= new Date(data[3]))        &&
                        ($('#inpDurFrom').val().trim() == "" || $('#inpDurFrom').val() == null || parseFloat($('#inpDurFrom').val()) <= data[4])             &&
                        ($('#inpDurTo').val().trim() == "" || $('#inpDurTo').val() == null || parseFloat($('#inpDurTo').val()) >= data[4])                   &&
-                       data[5].match(regexPattern) != null
+                       ((data[5].trim() == "" && ! hasRegexPattern) || data[5].match(regexPattern) != null);
         });
              
             
