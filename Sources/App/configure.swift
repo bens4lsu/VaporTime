@@ -13,7 +13,9 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     services.register(router, as: Router.self)
 
     // Load values from Resources/Config.json
-    let dbKeys = ConfigKeys().database
+    let keys = ConfigKeys()
+    let dbKeys = keys.database
+    let smtpKeys = keys.smtp
     
     // Register database
     try services.register(FluentMySQLProvider())
@@ -44,6 +46,9 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     middlewareConfig.use(FileMiddleware.self)
     services.register(middlewareConfig)
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
-     
+    
+    
+    // smtp
+    
     
 }

@@ -151,8 +151,9 @@ class UserAndTokenController: RouteCollection {
     }
     
     
+    // MARK:  Password reset methods
     private func sendPWResetEmail(_ req: Request) throws -> Future<Response> {
-        let email: String = try req.content.syncGet(at: "emailAddress")
+        let email: String = try req.query.get(at: "emailAddress")
         
         guard email.count > 0 else {
             throw Abort(.badRequest)
@@ -170,12 +171,14 @@ class UserAndTokenController: RouteCollection {
             let userId = userMatches[0].id!
             
             let resetRequest = PasswordResetRequest(id: nil, exp: Date().addingTimeInterval(UserAndTokenController.resetKeyExpDuration), person: userId)
-            
-            // TODO:  This method isn't finished!
-            
-            return try req.future("ok").encode(for: req)
+            return resetRequest.save(on: req).map(to: Response.self) { reset in
+                return req.response("Email has been sent")
+                        
+                // TODO:  This method isn't finished!
+                
+
+            }
         }
-            
     }
     
         
