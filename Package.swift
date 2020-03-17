@@ -14,7 +14,7 @@ let package = Package(
         .package(url: "https://github.com/LiveUI/MailCore.git", .branch("master"))
     ],
     targets: [
-        .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL", "Smtp", "MailCore"]),
+        .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL", "MailCore"]),
         .target(name: "Run", dependencies: ["App"]),
         .testTarget(name: "AppTests", dependencies: ["App"])
     ]

@@ -9,6 +9,7 @@ import Foundation
 import Vapor
 import FluentMySQL
 import Crypto
+import MailCore
 
 enum UserAccessLevel: String, Codable {
     case timeBilling = "T"
@@ -22,8 +23,13 @@ enum UserAccessLevel: String, Codable {
 class UserAndTokenController: RouteCollection {
     
     static var tokenExpDuration: Double = 3600
-    static var resetKeyExpDuration: Double = 3600
+    
+    var cache: DataCache
 
+    init(_ cache: DataCache) {
+        self.cache = cache
+        UserAndTokenController.tokenExpDuration = self.cache.configKeys.tokenExpDuration
+    }
     
     func boot(router: Router) throws {
         router.group("security") { group in
@@ -92,7 +98,7 @@ class UserAndTokenController: RouteCollection {
                 let ip = req.http.remotePeer.hostname
                 if let accessId = access.id {
                     let token = Token(user: userPersistInfo,
-                                      exp: Date().addingTimeInterval(UserAndTokenController.tokenExpDuration),
+                                      exp: Date().addingTimeInterval(self.cache.configKeys.tokenExpDuration),
                                       ip: ip,
                                       accessLogId: accessId,
                                       loginTime: access.accessTime)
@@ -170,13 +176,23 @@ class UserAndTokenController: RouteCollection {
             
             let userId = userMatches[0].id!
             
-            let resetRequest = PasswordResetRequest(id: nil, exp: Date().addingTimeInterval(UserAndTokenController.resetKeyExpDuration), person: userId)
-            return resetRequest.save(on: req).map(to: Response.self) { reset in
-                return req.response("Email has been sent")
-                        
-                // TODO:  This method isn't finished!
+            let resetRequest = PasswordResetRequest(id: nil, exp: Date().addingTimeInterval(self.cache.configKeys.resetKeyExpDuration), person: userId)
+            return resetRequest.save(on: req).flatMap(to: Response.self) { reset in
                 
-
+                let mailSender = self.cache.configKeys.smtp.username
+                let mail = Mailer.Message(from: mailSender, to: "bens4lsu@gmail.com", subject: "Oil spill", text: "Oooops I did it again", html: "<p>Oooops I did it again</p>")
+                return try req.mail.send(mail).flatMap(to: Response.self) { mailResult in
+                    
+                    
+                    switch mailResult {
+                    case .serviceNotConfigured:
+                        throw Abort(.internalServerError, reason: "SMTP services not configured.")
+                    case .success:
+                        return try ("Mail sent succesfully").encode(for: req)
+                    case .failure(let error):
+                        return try ("Mail error:  \(error)").encode(for: req)
+                    }
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 import FluentMySQL
 import Vapor
 import Leaf
+import MailCore
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
@@ -49,6 +50,18 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     
     
     // smtp
-    
+    let smtp = SMTP(hostname: smtpKeys.hostname,
+                       email: smtpKeys.username,
+                    password: smtpKeys.password,
+                        port: smtpKeys.port,
+                     tlsMode: .normal,
+            tlsConfiguration: nil,
+                 authMethods: [.login],
+                 //accessToken: nil,
+                  domainName: "localhost",
+                     timeout: smtpKeys.timeout)
+                     
+    let config = Mailer.Config.smtp(smtp)
+    try Mailer(config: config, registerOn: &services)
     
 }

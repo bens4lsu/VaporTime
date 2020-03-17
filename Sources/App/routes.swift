@@ -7,11 +7,9 @@ public func routes(_ router: Router) throws {
         
     // establish data cache and read info from config.json
     let cache = DataCache()
-    UserAndTokenController.tokenExpDuration = cache.configKeys.tokenExpDuration
-    UserAndTokenController.resetKeyExpDuration = cache.configKeys.resetKeyExpDuration
     
     // route collections
-    let userAndTokenController = UserAndTokenController()
+    let userAndTokenController = UserAndTokenController(cache)
     try router.register(collection: userAndTokenController)
     try router.register(collection: TimeBillingController(cache))
     try router.register(collection: ReportController(cache))

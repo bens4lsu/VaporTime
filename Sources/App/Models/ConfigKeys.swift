@@ -28,25 +28,10 @@ class ConfigKeys: Codable {
     
     struct Smtp: Codable {
         var hostname: String
-        var port: Int
+        var port: Int32
         var username: String
         var password: String
-        private var security: String
-        
-        var secure: SmtpSecureChannel {
-            if security == "ssl" || security == ".ssl" {
-                return .ssl
-            }
-            if security == "startTls" ||  security == ".startTls" {
-                return .startTls
-            }
-            if security == "startTlsWhenAvailable" || security == ".startTlsWhenAvailable" {
-                return .startTlsWhenAvailable
-            }
-            else {
-                return .none
-            }
-        }
+        var timeout: UInt
     }
     
     var database: ConfigKeys.Database
