@@ -40,6 +40,7 @@ class ConfigKeys: Codable {
     var myCompany: MyCompany
     var resetKeyExpDuration: Double
     var smtp: ConfigKeys.Smtp
+    var systemRootPublicURL: String
     
     init() {
     
@@ -54,6 +55,13 @@ class ConfigKeys: Codable {
             self.myCompany = decoder.myCompany
             self.resetKeyExpDuration = decoder.resetKeyExpDuration
             self.smtp = decoder.smtp
+            if decoder.systemRootPublicURL.suffix(1) == "/" {
+                let len = decoder.systemRootPublicURL.lengthOfBytes(using: .utf8)
+                self.systemRootPublicURL = String(decoder.systemRootPublicURL.prefix(len))
+            }
+            else {
+                self.systemRootPublicURL = decoder.systemRootPublicURL
+            }
             
         }
         catch {

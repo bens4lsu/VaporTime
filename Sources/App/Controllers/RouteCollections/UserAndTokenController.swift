@@ -180,9 +180,15 @@ class UserAndTokenController: RouteCollection {
             return resetRequest.save(on: req).flatMap(to: Response.self) { reset in
                 
                 let mailSender = self.cache.configKeys.smtp.username
-                let mail = Mailer.Message(from: mailSender, to: "bens4lsu@gmail.com", subject: "Oil spill", text: "Oooops I did it again", html: "<p>Oooops I did it again</p>")
+                guard let resetKey = reset.id?.uuidString else {
+                    throw Abort(.internalServerError, reason: "Error getting unique key for tracking password reset request.")
+                }
+                
+                let (html, text) = self.getResetEmailBody(key: resetKey)
+                
+                let mail = Mailer.Message(from: mailSender, to: "bens4lsu@gmail.com", subject: "Project/Time Reset request", text: text, html: html)
+                
                 return try req.mail.send(mail).flatMap(to: Response.self) { mailResult in
-                    
                     
                     switch mailResult {
                     case .serviceNotConfigured:
@@ -197,7 +203,21 @@ class UserAndTokenController: RouteCollection {
         }
     }
     
+
+// MARK: Private helper methods
+    
+    private func getResetEmailBody(key: String) -> (String, String) {
+        let resetLink = "\(self.cache.configKeys.systemRootPublicURL)/security/password-reset-process/\(key)"
         
+        let html = """
+            <p>We have received a password reset request for your account.  If you did not make this request, you can delete this email, and your password will remain unchanged.</p>
+            <p>If you do want to change your password, follow <a href="\(resetLink)">this link</a>.</p>
+        """
+        
+        let txt = "We have received a password reset request for your account.  If you did not make this request, you can delete this email, and your password will remain unchanged.\n\nIf you do want to change your password, visit \(resetLink) in your browser."
+        
+        return (html, txt)
+    }
 // MARK: Static methods - used for verification in other controllers
     
     static func redirectToLogin(_ req: Request) -> Future<Response> {
