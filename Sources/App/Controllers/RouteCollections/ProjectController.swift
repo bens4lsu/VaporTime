@@ -238,29 +238,19 @@ class ProjectController: RouteCollection {
             let _ = ProjectEvent(projectId: id, eventId: 18, personId: person, notes: message).save(on: req)
         }
         
-        
-        
+    
         // projected date changed
-        if let oldDate = old.projectedDateComplete,
-            let newDate = new.projectedDateComplete,
-            let oldDatePartOnly = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: oldDate),
-            let newDatePartOnly = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: newDate)
-        
-        {
-            if (old.projectedDateComplete == nil && new.projectedDateComplete != nil) ||
-                (old.projectedDateComplete != nil && new.projectedDateComplete == nil) ||
-                oldDatePartOnly != newDatePartOnly
-            {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MM/dd/yyyy"
-                formatter.timeZone = .current
-                let oldDateString = old.projectedDateComplete == nil ? "not set" : formatter.string(from: old.projectedDateComplete!)
-                let newDateString = new.projectedDateComplete == nil ? "not set" : formatter.string(from: new.projectedDateComplete!)
-                let message = "Completion date changed from \(oldDateString) to \(newDateString)."
-                let _ = ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).save(on:req)
-                //let _ = ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).save(on: req)
-            }
+        if old.projectedDateComplete.isSameDayAs(new.projectedDateComplete) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM/dd/yyyy"
+            formatter.timeZone = .current
+            let oldDateString = old.projectedDateComplete == nil ? "not set" : formatter.string(from: old.projectedDateComplete!)
+            let newDateString = new.projectedDateComplete == nil ? "not set" : formatter.string(from: new.projectedDateComplete!)
+            let message = "Completion date changed from \(oldDateString) to \(newDateString)."
+            let _ = ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).save(on:req)
+            //let _ = ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).save(on: req)
         }
+        
         
         // status changed
         if old.statusId != new.statusId {
@@ -276,7 +266,7 @@ class ProjectController: RouteCollection {
         if old.statusNotes != new.statusNotes {
             var message = ""
             if old.statusNotes == nil || old.statusNotes == "" {
-                message = "Status notes added.  Status notes were previuosly empty."
+                message = "Status notes added.  Status notes were previously empty."
             }
             else {
                 message = "Status notes updated.  Previous status notes were:  \(old.statusNotes!)"

@@ -30,5 +30,6 @@ if (window.self != window.top) {
     <p>Password: <input type="password" name="password" value="o1oscar" /></p>
     <p><input type="submit" class="btn btn-lg btn-primary" /></p>
     </form>
+    <a href="request-password-reset">Reset Password</a>
 </body>
 </html>

@@ -37,6 +37,7 @@ class UserAndTokenController: RouteCollection {
             //group.get("create", use: renderUserCreate)
             group.get("change-password", use: renderUserCreate)
             group.get("request-password-reset", use: renderPasswordResetForm)
+            group.get("check-email", use: renderCheckEmail)
             
             group.post("login", use: login)
             group.post("create", use: createUser)
@@ -57,6 +58,10 @@ class UserAndTokenController: RouteCollection {
     
     private func renderPasswordResetForm(_ req: Request) throws -> Future<View> {
         return try req.view().render("users-password-reset")
+    }
+    
+    private func renderCheckEmail(_ req: Request) throws -> Future<View> {
+        return try req.view().render("users-password-check-email")
     }
     
     
@@ -159,10 +164,10 @@ class UserAndTokenController: RouteCollection {
     
     // MARK:  Password reset methods
     private func sendPWResetEmail(_ req: Request) throws -> Future<Response> {
-        let email: String = try req.query.get(at: "emailAddress")
+        let email = try req.content.syncGet(String.self, at: "emailAddress")
         
         guard email.count > 0 else {
-            throw Abort(.badRequest)
+            throw Abort(.badRequest, reason:  "No email address received for password reset.")
         }
         
         return User.query(on: req).filter(\User.emailAddress == email).all().flatMap(to: Response.self) { userMatches in
@@ -174,7 +179,8 @@ class UserAndTokenController: RouteCollection {
                 throw Abort(.unauthorized, reason: "No user exists for that email address.")
             }
             
-            let userId = userMatches[0].id!
+            let user = userMatches[0]
+            let userId = user.id!
             
             let resetRequest = PasswordResetRequest(id: nil, exp: Date().addingTimeInterval(self.cache.configKeys.resetKeyExpDuration), person: userId)
             return resetRequest.save(on: req).flatMap(to: Response.self) { reset in
@@ -186,17 +192,18 @@ class UserAndTokenController: RouteCollection {
                 
                 let (html, text) = self.getResetEmailBody(key: resetKey)
                 
-                let mail = Mailer.Message(from: mailSender, to: "bens4lsu@gmail.com", subject: "Project/Time Reset request", text: text, html: html)
+                let mail = Mailer.Message(from: mailSender, to: user.emailAddress, subject: "Project/Time Reset request", text: text, html: html)
                 
-                return try req.mail.send(mail).flatMap(to: Response.self) { mailResult in
+                return try req.mail.send(mail).map(to: Response.self) { mailResult in
                     
                     switch mailResult {
                     case .serviceNotConfigured:
                         throw Abort(.internalServerError, reason: "SMTP services not configured.")
                     case .success:
-                        return try ("Mail sent succesfully").encode(for: req)
+                        // redirect to page that tells them to check their email...
+                        return req.redirect(to: "/security/check-email")
                     case .failure(let error):
-                        return try ("Mail error:  \(error)").encode(for: req)
+                        throw Abort (.internalServerError, reason: "Mail error:  \(error)")
                     }
                 }
             }
