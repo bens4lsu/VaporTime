@@ -44,6 +44,7 @@ class UserAndTokenController: RouteCollection {
             group.post("create", use: createUser)
             //group.post("change-password", use: changePassword)
             group.post("request-password-reset", use: sendPWResetEmail)
+            group.post("password-reset-process", use: verifyAndChangePassword)
         }
     }
     
@@ -184,20 +185,57 @@ class UserAndTokenController: RouteCollection {
         }
     }
     
-    private func verifyPasswordResetRequest(req: Request) throws -> Future<View> {
-        let parameter = try req.parameters.next(String.self)
-        guard let uuid = UUID(parameter) else {
+    private func verifyKey(_ req: Request, resetKey: String) throws -> Future<PasswordResetRequest> {
+        
+        guard let uuid = UUID(resetKey) else {
             throw Abort(.badRequest, reason: "No reset token read in request for password reset.")
         }
         
-        return PasswordResetRequest.query(on: req).filter(\.id == uuid).filter(\.exp >= Date()).first().flatMap(to: View.self) { resetRequestW in
-            guard let _ = resetRequestW else {
+        return PasswordResetRequest.query(on: req).filter(\.id == uuid).filter(\.exp >= Date()).first().map(to:PasswordResetRequest.self) { resetRequestW in
+            guard let resetRequest = resetRequestW else {
                 throw Abort(.badRequest, reason: "Reset link was invalid or expired.")
             }
+            return resetRequest
+        }
+    }
+    
+    private func verifyPasswordResetRequest(req: Request) throws -> Future<View> {
+        let parameter = try req.parameters.next(String.self)
+        
+        return try verifyKey(req, resetKey: parameter).flatMap(to:View.self) { _ in
             let context = ["resetKey" : parameter]
             return try req.view().render("users-password-change-form", context)
         }
     }
+    
+    private func verifyAndChangePassword(req: Request) throws -> Future<View> {
+        let pw1: String = try req.content.syncGet(at: "pw1")
+        let pw2: String = try req.content.syncGet(at: "pw2")
+        let resetKey: String = try req.content.syncGet(at: "resetKey")
+        
+        return try verifyKey(req, resetKey: resetKey).flatMap(to:View.self) { resetRequest in
+            guard pw1 == pw2 else {
+                throw Abort(.badRequest, reason: "Form submitted two passwords that don't match.")
+            }
+            
+            // TODO:  enforce minimum password requirement (configuration?)
+            // TODO:  verify no white space.  any other invalid characrters?
+            
+            return try self.changePassword(req, userId: resetRequest.person, newPassword: pw1).flatMap(to: View.self) {_ in
+                return try req.view().render("users-password-change-success")
+            }
+        }
+    }
+    
+    private func changePassword(_ req: Request, userId: Int, newPassword: String) throws -> Future<User> {
+        return User.query(on:req).filter(\.id == userId).all().flatMap(to: User.self) { userMatch in
+            var user = userMatch[0]
+            let passwordHash = try BCrypt.hash(newPassword)
+            user.passwordHash = passwordHash
+            return user.save(on: req)
+        }
+    }
+    
     
     private func changePassword(_ req: Request) throws -> Future<User> {
         let email: String = try req.content.syncGet(at: "emailAddress")
