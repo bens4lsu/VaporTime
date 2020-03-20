@@ -38,6 +38,7 @@ class UserAndTokenController: RouteCollection {
             group.get("change-password", use: renderUserCreate)
             group.get("request-password-reset", use: renderPasswordResetForm)
             group.get("check-email", use: renderCheckEmail)
+            group.get("password-reset-process", String.parameter, use: verifyPasswordResetRequest)
             
             group.post("login", use: login)
             group.post("create", use: createUser)
@@ -98,7 +99,7 @@ class UserAndTokenController: RouteCollection {
             
             // create access log entry
             let accessLog = AccessLog(personId: user.id!)
-            return accessLog.save(on: req).flatMap(to: Response.self) { access in
+            return accessLog.save(on: req).map(to: Response.self) { access in
                 let userPersistInfo = user.persistInfo()!
                 let ip = req.http.remotePeer.hostname
                 if let accessId = access.id {
@@ -109,36 +110,8 @@ class UserAndTokenController: RouteCollection {
                                       loginTime: access.accessTime)
                     try UserAndTokenController.saveSessionInfo(req: req, info: token, sessionKey: "token")
                 }
-                return req.future().map() {
-                    return req.redirect(to: "/")
-                }
+                return req.redirect(to: "/")
             }
-        }
-    }
-    
-    
-    private func changePassword(_ req: Request) throws -> Future<User> {
-        let email: String = try req.content.syncGet(at: "emailAddress")
-        let password: String = try req.content.syncGet(at: "password")
-        
-        guard email.count > 0, password.count > 0 else {
-            throw Abort(.badRequest)
-        }
-        
-        return User.query(on: req).filter(\User.emailAddress == email).all().flatMap(to: User.self) { userMatches in
-            
-            guard userMatches.count < 2 else {
-                throw Abort(.unauthorized, reason: "More than one user exists with that email address.")
-            }
-            
-            guard userMatches.count == 1 else {
-                throw Abort(.unauthorized, reason: "No user exists for that email address.")
-            }
-            
-            var user = userMatches[0]
-            let passwordHash = (try? BCrypt.hash(password)) ?? ""
-            user.passwordHash = passwordHash
-            return user.save(on: req)
         }
     }
     
@@ -192,6 +165,7 @@ class UserAndTokenController: RouteCollection {
                 
                 let (html, text) = self.getResetEmailBody(key: resetKey)
                 
+                print ("Sending email to \(user.emailAddress)")
                 let mail = Mailer.Message(from: mailSender, to: user.emailAddress, subject: "Project/Time Reset request", text: text, html: html)
                 
                 return try req.mail.send(mail).map(to: Response.self) { mailResult in
@@ -207,6 +181,46 @@ class UserAndTokenController: RouteCollection {
                     }
                 }
             }
+        }
+    }
+    
+    private func verifyPasswordResetRequest(req: Request) throws -> Future<View> {
+        let parameter = try req.parameters.next(String.self)
+        guard let uuid = UUID(parameter) else {
+            throw Abort(.badRequest, reason: "No reset token read in request for password reset.")
+        }
+        
+        return PasswordResetRequest.query(on: req).filter(\.id == uuid).filter(\.exp >= Date()).first().flatMap(to: View.self) { resetRequestW in
+            guard let _ = resetRequestW else {
+                throw Abort(.badRequest, reason: "Reset link was invalid or expired.")
+            }
+            let context = ["resetKey" : parameter]
+            return try req.view().render("users-password-change-form", context)
+        }
+    }
+    
+    private func changePassword(_ req: Request) throws -> Future<User> {
+        let email: String = try req.content.syncGet(at: "emailAddress")
+        let password: String = try req.content.syncGet(at: "password")
+        
+        guard email.count > 0, password.count > 0 else {
+            throw Abort(.badRequest)
+        }
+        
+        return User.query(on: req).filter(\User.emailAddress == email).all().flatMap(to: User.self) { userMatches in
+            
+            guard userMatches.count < 2 else {
+                throw Abort(.unauthorized, reason: "More than one user exists with that email address.")
+            }
+            
+            guard userMatches.count == 1 else {
+                throw Abort(.unauthorized, reason: "No user exists for that email address.")
+            }
+            
+            var user = userMatches[0]
+            let passwordHash = (try? BCrypt.hash(password)) ?? ""
+            user.passwordHash = passwordHash
+            return user.save(on: req)
         }
     }
     

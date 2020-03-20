@@ -25,4 +25,9 @@ extension Optional where Wrapped == Date {
         }
         return isDateChanged
     }
+    
+    func isSameDayAs(_ otherDate: Date) -> Bool {
+        guard let date = self else { return false }
+        return date.isSameDayAs(otherDate)
+    }
 }
