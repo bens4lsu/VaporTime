@@ -25,7 +25,7 @@ class UserAndTokenController: RouteCollection {
     static var tokenExpDuration: Double = 3600
     
     var cache: DataCache
-
+    
     init(_ cache: DataCache) {
         self.cache = cache
         UserAndTokenController.tokenExpDuration = self.cache.configKeys.tokenExpDuration
@@ -44,7 +44,7 @@ class UserAndTokenController: RouteCollection {
             group.post("create", use: createUser)
             //group.post("change-password", use: changePassword)
             group.post("request-password-reset", use: sendPWResetEmail)
-            group.post("password-reset-process", use: verifyAndChangePassword)
+            group.post("password-reset-process", String.parameter, use: verifyAndChangePassword)
         }
     }
     
@@ -58,9 +58,6 @@ class UserAndTokenController: RouteCollection {
         return try req.view().render("users-create")
     }
     
-    private func renderPasswordResetForm(_ req: Request) throws -> Future<View> {
-        return try req.view().render("users-password-reset")
-    }
     
     private func renderCheckEmail(_ req: Request) throws -> Future<View> {
         return try req.view().render("users-password-check-email")
@@ -128,15 +125,85 @@ class UserAndTokenController: RouteCollection {
             let password = form.password,
             let name = form.name,
             let passwordHash = try? BCrypt.hash(password)
-        else {
-            throw Abort(.partialContent, reason: "All fields on create user form are requird")
+            else {
+                throw Abort(.partialContent, reason: "All fields on create user form are requird")
         }
         let newUser = User(id: nil, name: name, emailAddress: emailAddress, passwordHash: passwordHash)
         return newUser.create(on: req)
     }
     
     
-    // MARK:  Password reset methods
+    
+    // MARK: Static methods - used for verification in other controllers
+    
+    static func redirectToLogin(_ req: Request) -> Future<Response> {
+        return req.future().map() {
+            // TODO:  Fix this.  Just putting /security/login -> 404
+            let session = try req.session()
+            session["token"] = nil
+            session["filter"] = nil
+            return req.redirect(to: "./security/login")
+        }
+    }
+    
+    
+    static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel, onSuccess: @escaping (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
+        guard let temp: Token? =  try? getSessionInfo(req: req, sessionKey: "token"),
+            var token = temp else {
+                return UserAndTokenController.redirectToLogin(req)
+        }
+        
+        guard token.exp >= Date() || token.ip != req.http.remotePeer.hostname else {
+            // token is expired, or ip address has changed
+            return UserAndTokenController.redirectToLogin(req)
+        }
+        
+        if !token.user.access.contains(accessLevel)  {
+            // TODO: reroute to a no permission for this resource page
+            throw Abort (.unauthorized)
+        }
+        
+        token.exp = (Date().addingTimeInterval(UserAndTokenController.tokenExpDuration))
+        try saveSessionInfo(req: req, info: token, sessionKey: "token")
+        
+        let accessLog = AccessLog(personId: token.user.id, id: token.accessLogId, loginTime: token.loginTime)
+        return accessLog.save(on: req).flatMap(to:Response.self) { _ in
+            return try onSuccess(token.user)
+        }
+    }
+    
+    
+    static func getSessionInfo<T: Codable>(req: Request, sessionKey: String) throws -> T?  {
+        let session = try req.session()
+        guard let stringifiedData = session[sessionKey] else {
+            return nil
+        }
+        let decoder = JSONDecoder()
+        guard let data: T = try? decoder.decode(T.self, from: stringifiedData) else {
+            return nil
+        }
+        return data
+    }
+    
+    static func saveSessionInfo<T: Codable>(req: Request, info: T, sessionKey: String) throws {
+        let session = try req.session()
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(info)
+        session[sessionKey] = String(data: data, encoding: .utf8)
+    }
+}
+
+
+
+// MARK:  Password reset methods
+
+extension UserAndTokenController {
+    
+    private func renderPasswordResetForm(_ req: Request) throws -> Future<View> {
+        return try req.view().render("users-password-reset")
+    }
+    
+    
     private func sendPWResetEmail(_ req: Request) throws -> Future<Response> {
         let email = try req.content.syncGet(String.self, at: "emailAddress")
         
@@ -163,6 +230,9 @@ class UserAndTokenController: RouteCollection {
                 guard let resetKey = reset.id?.uuidString else {
                     throw Abort(.internalServerError, reason: "Error getting unique key for tracking password reset request.")
                 }
+                
+                // TODO:  Delete expired keys
+                // TODO:  Delete any older (even unexpired) keys for this user.
                 
                 let (html, text) = self.getResetEmailBody(key: resetKey)
                 
@@ -262,77 +332,21 @@ class UserAndTokenController: RouteCollection {
         }
     }
     
-
-// MARK: Private helper methods
+    
+    
+    // MARK: Private helper methods
     
     private func getResetEmailBody(key: String) -> (String, String) {
         let resetLink = "\(self.cache.configKeys.systemRootPublicURL)/security/password-reset-process/\(key)"
         
         let html = """
-            <p>We have received a password reset request for your account.  If you did not make this request, you can delete this email, and your password will remain unchanged.</p>
-            <p>If you do want to change your password, follow <a href="\(resetLink)">this link</a>.</p>
+        <p>We have received a password reset request for your account.  If you did not make this request, you can delete this email, and your password will remain unchanged.</p>
+        <p>If you do want to change your password, follow <a href="\(resetLink)">this link</a>.</p>
         """
         
         let txt = "We have received a password reset request for your account.  If you did not make this request, you can delete this email, and your password will remain unchanged.\n\nIf you do want to change your password, visit \(resetLink) in your browser."
         
         return (html, txt)
-    }
-// MARK: Static methods - used for verification in other controllers
-    
-    static func redirectToLogin(_ req: Request) -> Future<Response> {
-        return req.future().map() {
-            // TODO:  Fix this.  Just putting /security/login -> 404
-            let session = try req.session()
-            session["token"] = nil
-            session["filter"] = nil
-            return req.redirect(to: "./security/login")
-        }
-    }
-
-    
-    static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel, onSuccess: @escaping (_: UserPersistInfo) throws -> Future<Response>) throws -> Future<Response> {
-        guard let temp: Token? =  try? getSessionInfo(req: req, sessionKey: "token"),
-            var token = temp else {
-            return UserAndTokenController.redirectToLogin(req)
-        }
-                
-        guard token.exp >= Date() || token.ip != req.http.remotePeer.hostname else {
-            // token is expired, or ip address has changed
-            return UserAndTokenController.redirectToLogin(req)
-        }
-        
-        if !token.user.access.contains(accessLevel)  {
-            // TODO: reroute to a no permission for this resource page
-            throw Abort (.unauthorized)
-        }
-        
-        token.exp = (Date().addingTimeInterval(UserAndTokenController.tokenExpDuration))
-        try saveSessionInfo(req: req, info: token, sessionKey: "token")
-        
-        let accessLog = AccessLog(personId: token.user.id, id: token.accessLogId, loginTime: token.loginTime)
-        return accessLog.save(on: req).flatMap(to:Response.self) { _ in
-            return try onSuccess(token.user)
-        }
-    }
-    
-    
-    static func getSessionInfo<T: Codable>(req: Request, sessionKey: String) throws -> T?  {
-        let session = try req.session()
-        guard let stringifiedData = session[sessionKey] else {
-            return nil
-        }
-        let decoder = JSONDecoder()
-        guard let data: T = try? decoder.decode(T.self, from: stringifiedData) else {
-            return nil
-        }
-        return data
-    }
-    
-    static func saveSessionInfo<T: Codable>(req: Request, info: T, sessionKey: String) throws {
-        let session = try req.session()
-        let encoder = JSONEncoder()
-        let data = try encoder.encode(info)
-        session[sessionKey] = String(data: data, encoding: .utf8)
     }
 }
 
