@@ -23,6 +23,7 @@ extension Optional where Wrapped == String {
         }
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MM/dd/yyyy"
+        dateFormatter.timeZone = .current
         if let date = dateFormatter.date(from: thisDate) {
             return date
         }

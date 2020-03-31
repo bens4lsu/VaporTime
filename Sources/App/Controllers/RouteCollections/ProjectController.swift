@@ -57,9 +57,13 @@ class ProjectController: RouteCollection {
                 
                 //update existing project
                 return Project.find(projectId, on: req).flatMap(to: Response.self) { project in
-                    guard let project = project else {
+                    guard var project = project else {
                         throw Abort(.badRequest, reason: "no project returned based on request with project id \(projectId)")
                     }
+                    
+                    project.startDate = project.startDate?.asLocal
+                    project.projectedDateComplete = project.projectedDateComplete?.asLocal
+                    
                     return try self.db.getTimeForProject(req, projectId: projectId).flatMap(to: Response.self) { totalTime in
                         
                         return try self.db.getRatesForProject(req, projectId: projectId).flatMap(to: Response.self) { rateLists in
@@ -221,8 +225,15 @@ class ProjectController: RouteCollection {
         guard let projectId = id else {
             return req.future(nil)
         }
-        
-        return Project.find(projectId, on: req)
+        return Project.find(projectId, on: req).map(to: Project?.self) { foundProject in
+            guard var project = foundProject else {
+                return nil
+            }
+            
+            project.startDate = project.startDate?.asLocal
+            project.projectedDateComplete = project.projectedDateComplete?.asLocal
+            return project
+        }
     }
     
     private func addProjectJournalUpdateEntries(oldProject: Project?, project new: Project, req: Request, person: Int) throws {
@@ -240,7 +251,7 @@ class ProjectController: RouteCollection {
         
     
         // projected date changed
-        if old.projectedDateComplete.isSameDayAs(new.projectedDateComplete) {
+        if !old.projectedDateComplete.isSameDayAs(new.projectedDateComplete) {
             let formatter = DateFormatter()
             formatter.dateFormat = "MM/dd/yyyy"
             formatter.timeZone = .current

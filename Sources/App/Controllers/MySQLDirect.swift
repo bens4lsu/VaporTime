@@ -56,6 +56,9 @@ class MySQLDirect {
             WHERE t.PersonID = \(userId) AND ExportStatus = 0 ORDER BY t.WorkDate
         """
         return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self)
+            .map(to: [TBTableColumns].self) { rows in
+                return rows.map({ $0.toLocalTime() })
+        }
     }
     
     func getTBTree(_ req: Request, userId: Int) throws -> Future<[TBTreeColumn]> {
@@ -92,8 +95,8 @@ class MySQLDirect {
     
     func getReportData(_ req: Request, filters: ReportFilters, userId: Int) throws -> Future<[ReportData]> {
         var sql = """
-            SELECT FirstDayOfWeekMonday + INTERVAL 12 HOUR AS FirstDayOfWeekMonday,
-                FirstOfMonth + INTERVAL 12 HOUR AS FirstOfMonth,
+            SELECT FirstDayOfWeekMonday AS FirstDayOfWeekMonday,
+                FirstOfMonth AS FirstOfMonth,
                 Duration,
                 WorkDate,
                 c.Description AS ContractDescription,
@@ -124,7 +127,10 @@ class MySQLDirect {
         if let projectId = filters.projectId {
             sql += " AND p.ProjectID = \(projectId)"
         }
-        return try getResultsRows(req, query: sql, decodeUsing: ReportData.self)
+        return try getResultsRows(req, query: sql, decodeUsing: ReportData.self).map(to:[ReportData].self) { data in
+            
+            return data.map({ $0.toLocal() })
+        }
     }
     
     func getLookupTrinity(_ req: Request) throws -> Future<[LookupTrinity]> {
@@ -179,9 +185,13 @@ class MySQLDirect {
                 LEFT OUTER JOIN LuPeople p ON ev.PersonID = p.PersonID
                 LEFT OUTER JOIN RefProjectEventsReportable r ON ev.EventID = r.EventID
             WHERE ev.ProjectID = \(projectId)
-            ORDER BY ev.ReportDate DESC
+            ORDER BY ev.ReportDate DESC, ev.ProjectEventID DESC
         """
         return try getResultsRows(req, query: sql, decodeUsing: Journal.self)
+            .map(to: [Journal].self) { journals in
+            return journals.map({ $0.reportDateToLocal() })
+        }
+            
     }
     
     func getRatesForProject(_ req: Request, projectId: Int) throws -> Future<[RateList]> {
@@ -194,7 +204,9 @@ class MySQLDirect {
             WHERE p.ProjectID = \(projectId)
             ORDER BY pe.Name, r.StartDate
         """
-        return try getResultsRows(req, query: sql, decodeUsing: RateList.self)
+        return try getResultsRows(req, query: sql, decodeUsing: RateList.self).map(to: [RateList].self) { result in
+            return result.map({ $0.toLocalDates() })
+        }
     }
     
 

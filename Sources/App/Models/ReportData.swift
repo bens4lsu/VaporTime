@@ -113,6 +113,14 @@ struct ReportData: Codable, Comparable {
         notes = "Notes"
     }
     
+    func toLocal() -> ReportData {
+        var temp = self
+        temp.firstDayOfWeekMonday = temp.firstDayOfWeekMonday.asLocal
+        temp.firstOfMonth = temp.firstOfMonth.asLocal
+        temp.workDate = temp.workDate.asLocal
+        return temp
+    }
+    
     static func < (lhs: ReportData, rhs: ReportData) -> Bool {
         return lhs.workDate < rhs.workDate
     }

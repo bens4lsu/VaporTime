@@ -54,6 +54,12 @@ struct TBTableColumns: Codable {
         self.exportStatus = try container.decodeIfPresent(Int.self, forKey: .exportStatus) ?? 0
         self.projectId = try container.decodeIfPresent(Int.self, forKey: .projectId)!
     }
+    
+    func toLocalTime() -> TBTableColumns {
+        var temp = self
+        temp.workDate = temp.workDate.asLocal
+        return temp
+    }
 }
 
 struct TBTableContext: Encodable {

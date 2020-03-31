@@ -30,6 +30,12 @@ struct Journal: Codable {
     var EventWhoGenerates: String?
     var Name: String?
     var id: Int
+    
+    func reportDateToLocal() -> Journal {
+        var tmpJournal = self
+        tmpJournal.ReportDate = tmpJournal.ReportDate.asLocal
+        return tmpJournal
+    }
 }
 
 struct RateList: Codable {
@@ -37,4 +43,11 @@ struct RateList: Codable {
     var RateDescription: String
     var StartDate: Date?
     var EndDate: Date?
+    
+    func toLocalDates() -> RateList {
+        var temp = self
+        temp.StartDate = temp.StartDate?.asLocal
+        temp.EndDate = temp.EndDate?.asLocal
+        return temp
+    }
 }

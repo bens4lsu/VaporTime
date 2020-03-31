@@ -39,7 +39,6 @@ class DataCache {
                                                         projectStatuses: statuses,
                                                         eventTypes: eventTypes,
                                                         rateSchedules: rateSchedules)
-                            print("Data cache has been refreshed.")
                             self.cachedLookupContext = context
                             return req.future(context)
                         }
@@ -121,7 +120,7 @@ class DataCache {
                     var label: String
                     if let projectNumber = row.projectNumber {
                         label = projectNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-                        label = level2.count > 0 ? "\(level2) - \(row.projectDescription)" : row.projectDescription
+                        label = level2.count > 0 ? "\(label) - \(row.projectDescription)" : row.projectDescription
                     } else {
                         label = row.projectDescription
                     }
