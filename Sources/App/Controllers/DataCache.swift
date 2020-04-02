@@ -119,8 +119,7 @@ class DataCache {
                 for row in rows {
                     var label: String
                     if let projectNumber = row.projectNumber {
-                        label = projectNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-                        label = level2.count > 0 ? "\(label) - \(row.projectDescription)" : row.projectDescription
+                        label = "\(projectNumber.trimmingCharacters(in: .whitespacesAndNewlines)) - \(row.projectDescription)"
                     } else {
                         label = row.projectDescription
                     }
