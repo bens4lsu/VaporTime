@@ -1,0 +1,61 @@
+
+
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/jquery.dataTables.css" />
+    <link rel="stylesheet" href="./css/concordtb.css" />
+    <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script language="javascript" src="./js/jquery.validate.pack.js"></script>
+   <style>
+        body {font-size:75%; font-family:Verdana, Arial, Sans-Serif;}
+        .group-heading-2, .group-footer-2 { background-color: #fff; }
+        ._group-footer-2 {border-top: 1px solid black; margin-bottom: 9px; }
+        ._group-heading-2 {border-bottom: 1px solid black; }
+        .group-heading-1, .group-footer-1 {background-color: #5c9ccc; color:white; font-weight: bold}
+        .table-footer {background-color: black; color:white; font-weight: bold}
+        table {min-width:500px; margin:50px 10px; border: 1px solid #5c9ccc; width:75%;}
+        tr.group-heading-1 td {min-width:95px;}
+    </style>
+
+</head>
+<body class="mainbox">
+
+<div class="nav"><a href="Report">Back to report selector</a></div>
+ #if(levels == 0) {
+    <p>There were no records that match your report criteria, or the results are assigned to projects that you do not have permission to view.</p>
+ }
+ 
+ #if(levels == 1) {
+    <table>
+        <tr class="group-heading-1"><td>&nbsp;</td><td># Billing Rows</td><td>Hours</td></tr>
+        #for(group1 in top) {
+            <tr class="group-heading-2"><td>#(group1.title)</td><td>#(group1.count)</td><td>#(group1.total)</td></tr>
+        }
+        <tr class="group-footer-1"><td>Totals:</td><td>#(count)</td><td>#(grandTotal)</td></tr>
+    </table>
+}
+ 
+ #if(levels == 2) {
+    #for(group1 in top) {
+        
+        <table>
+        <tr class="group-heading-1"><td>#(group1.title)</td><td># Billing Rows</td><td>Hours</td></tr>
+        #for(group2 in group1.childGroups) {
+            <tr class="group-heading-2"><td>#(group2.title)</td><td>#(group2.count)</td><td>#(group2.total)</td></tr>
+        }
+        
+        <tr class="group-footer-1"><td>Subtotals:</td><td>#(group1.count)</td><td>#(group1.total)</td></tr>
+
+    }
+        <tr class="table-footer"><td>Totals:</td><td width="18%">#(count)</td><td width="9%">#(grandTotal) </td></tr>
+    </table>
+    
+ }
+                        
+<div class="report-footnote">#linebreak(footnote)</div>
+</body>
+</html>

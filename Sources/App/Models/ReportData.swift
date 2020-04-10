@@ -143,8 +143,8 @@ class ReportRendererGroup: Encodable, Comparable {
     var childRecords: [ReportData]?
     var sortValue: String
     var total: Double = 0.0  // dumb workaround.  I can't get the caluclated property version of total to encode
-                            // for leaf.  The total might encode correctly, but it chokes on the [ReportData]? type.
-                            // See also mutating func at the end.
+                             // for leaf.  The total might encode correctly, but it chokes on the [ReportData]? type.
+                             // See also mutating func at the end.
     var count: Int = 0
     
     var totalCalc: (Double, Int) {
@@ -207,6 +207,7 @@ struct ReportContext: Encodable {
     var endDate: Date
     var grandTotal: Double = 0.0
     var count: Int = 0
+    var footnote: String
     
     mutating func updateTotals() {
         grandTotal = 0.0
@@ -219,11 +220,12 @@ struct ReportContext: Encodable {
     }
     
     // method for init on ubuntu swift 5.1.4
-    init(top: [ReportRendererGroup], levels: Int, startDate: Date, endDate: Date){
+    init(top: [ReportRendererGroup], levels: Int, startDate: Date, endDate: Date, footnote: String){
         self.top = top
         self.levels = levels
         self.startDate = startDate
         self.endDate = endDate
+        self.footnote = footnote
     }
 }
 

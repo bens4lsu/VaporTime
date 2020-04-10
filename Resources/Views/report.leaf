@@ -69,6 +69,6 @@
     
  }
                         
-
+<div class="report-footnote">#linebreak(footnote)</div>
 </body>
 </html>

@@ -15,6 +15,12 @@ class ReportController: RouteCollection {
     private let db = MySQLDirect()
     private let cache: DataCache
     
+    let df: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "MM/dd/yy"
+        return df
+    }()
+    
     private var cachedLookupContext: LookupContext?
         
     // MARK: Startup
@@ -38,8 +44,7 @@ class ReportController: RouteCollection {
         
     private func renderReport(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { user in
-            let df = DateFormatter()
-            df.dateFormat = "MM/dd/yy"
+            
             
             let startDateReqStr: String? = try? req.content.syncGet(at: "dateFrom")
             let endDateReqStr: String? = try? req.content.syncGet(at: "dateTo")
@@ -49,11 +54,12 @@ class ReportController: RouteCollection {
             let projectId: Int? = try? req.content.syncGet(at: "projectId")
             let groupBy1: Int? = try? req.content.syncGet(at: "group1")
             let groupBy2: Int? = try? req.content.syncGet(at: "group2")
+            let display: String? = try? req.content.syncGet(at: "display")
             
             guard let startDateReq = startDateReqStr,
-                  let endDateReq = endDateReqStr,
-                  let startDate = df.date(from: startDateReq),
-                  let endDate = df.date(from: endDateReq) else
+                let endDateReq = endDateReqStr,
+                let startDate = self.df.date(from: startDateReq),
+                let endDate = self.df.date(from: endDateReq) else
             {
                 throw Abort(.badRequest, reason: "Start Date and End Date are required for reporting.")
             }
@@ -61,17 +67,53 @@ class ReportController: RouteCollection {
             let filters = ReportFilters(startDate: startDate, endDate: endDate, billedById: billedById, contractId: contractId, servicesForCompanyId: servicesForCompanyId, projectId: projectId)
                         
             return try self.db.getReportData(req, filters: filters, userId: user.id).flatMap(to: Response.self) { reportData in
-                var records = [ReportRendererGroup]()
-                for row in reportData {
-                    records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,
-                                group2: ReportGroupBy.fromRaw(groupBy2) ?? nil)
+                return try self.cache.getLookupContext(req).flatMap(to: Response.self) { lookupData in
+                    let footnote = self.getFootnote(from: filters, and: lookupData)
+                    var records = [ReportRendererGroup]()
+                    for row in reportData {
+                        records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,
+                                    group2: ReportGroupBy.fromRaw(groupBy2) ?? nil)
+                    }
+                    records.sort()
+                    var context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate, footnote: footnote)
+                    context.updateTotals()
+                    let report = display == "s" ? "report-summary" : "report"
+                    return try req.view().render(report, context).encode(for: req)
                 }
-                records.sort()
-                var context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate)
-                context.updateTotals()
-                return try req.view().render("report", context).encode(for: req)
             }
         }
+    }
+    
+    func getFootnote(from filters: ReportFilters, and lookupData: LookupContext) -> String {
+        var footnote = "Data for dates from \(self.df.string(from: filters.startDate)) to \(self.df.string(from: filters.endDate)).\n"
+       
+        if let billedById = filters.billedById {
+            let biller = lookupData.timeBillers.filter({$0.id == billedById})[0].name
+            footnote += "Only showing rows billed by \(biller)\n"
+        }
+        
+        if let contractId = filters.contractId,
+            let contract = lookupData.contracts.filter({$0.id == contractId}).first
+        {
+            let name = contract.name
+            footnote += "Only showing rows for the contract named \"\(name)\""
+        }
+        
+        if let servicesForId = filters.servicesForCompanyId,
+            let servicesFor = lookupData.companies.filter({$0.id == servicesForId}).first
+        {
+            let name = servicesFor.name
+            footnote += "Only showing rows where services are for the company named \"\(name)\""
+        }
+        
+        if let projectId = filters.projectId,
+            let project = lookupData.projects.filter({$0.id == projectId}).first
+        {
+            let name = project.name
+            footnote += "Only showing rows for the project named \"\(name)\""
+        }
+        
+        return footnote
     }
 }
 

@@ -40,6 +40,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     var tags = LeafTagConfig.default()
     tags.use(ZebraTag(), as: "zebra")
     tags.use(Raw(), as: "raw")
+    tags.use(BreakLinesTag(), as: "linebreak")
     services.register(tags)
     
     var middlewareConfig = MiddlewareConfig.default()
