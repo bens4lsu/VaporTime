@@ -26,6 +26,8 @@ class UserAndTokenController: RouteCollection {
     
     var cache: DataCache
     
+    let db = MySQLDirect()
+    
     init(_ cache: DataCache) {
         self.cache = cache
         UserAndTokenController.tokenExpDuration = self.cache.configKeys.tokenExpDuration
@@ -292,7 +294,9 @@ extension UserAndTokenController {
             // TODO:  verify no white space.  any other invalid characrters?
             
             return try self.changePassword(req, userId: resetRequest.person, newPassword: pw1).flatMap(to: View.self) {_ in
-                return try req.view().render("users-password-change-success")
+                return try self.db.deleteExpiredAndCompleted(req, resetKey: resetKey).flatMap(to: View.self) { _ in
+                    return try req.view().render("users-password-change-success")
+                }
             }
         }
     }
@@ -348,6 +352,7 @@ extension UserAndTokenController {
         
         return (html, txt)
     }
+    
 }
 
 

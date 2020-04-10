@@ -49,7 +49,8 @@ class MySQLDirect {
         let sql = """
             SELECT t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription,
                 t.WorkDate, t.Duration,
-                t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus, t.ProjectID
+                t.UseOTRate, t.Notes, t.PreDeliveryFlag, t.ExportStatus, t.ProjectID,
+                t.DoNotBillFlag
             FROM fTime t
                 JOIN fProjects p on t.ProjectID = p.ProjectID
                 JOIN fContracts c ON p.ContractID = c.ContractID
@@ -241,6 +242,16 @@ class MySQLDirect {
             SELECT ContractID, ProjectID, \(personId), \(rateScheduleId), \(startDateString), \(endDateString)
             FROM fProjects
             WHERE ProjectID = \(projectId)
+        """
+        return try issueQuery(req, query: sql)
+    }
+    
+    func deleteExpiredAndCompleted(_ req: Request, resetKey: String) throws -> Future<Void> {
+        let sql = """
+            DELETE
+            FROM fPasswordResetRequests
+            WHERE BIN_TO_UUID(ResetRequestKey) = '\(resetKey)'
+            OR Expiration < NOW()
         """
         return try issueQuery(req, query: sql)
     }

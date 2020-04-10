@@ -23,6 +23,7 @@ struct TBTableColumns: Codable {
     var preDeliveryFlag: Bool
     var exportStatus: Int
     var projectId: Int
+    var doNotBillFlag: Bool
     
     // MARK: Map to MySQL database and columns
     
@@ -33,11 +34,12 @@ struct TBTableColumns: Codable {
         projectDescription = "ProjectDescription",
         workDate = "WorkDate",
         duration = "Duration",
-        useOTRate = "useOTRate",
+        useOTRate = "UseOTRate",
         notes = "Notes",
         preDeliveryFlag = "PreDeliveryFlag",
         exportStatus = "ExportStatus",
-        projectId = "ProjectID"
+        projectId = "ProjectID",
+        doNotBillFlag = "DoNotBillFlag"
     }
 
     init(from decoder: Decoder) throws {
@@ -48,11 +50,12 @@ struct TBTableColumns: Codable {
         self.projectDescription = try container.decodeIfPresent(String.self, forKey: .projectDescription) ?? ""
         self.workDate = try container.decodeIfPresent(Date.self, forKey: .workDate)!.addingTimeInterval(12*3600)
         self.duration = try container.decodeIfPresent(Double.self, forKey: .duration) ?? 0.0
-        self.useOTRate = (try? container.decodeIfPresent(String.self, forKey: .useOTRate)) == "1" ? true : false
+        self.useOTRate = (try? container.decodeIfPresent(Int.self, forKey: .useOTRate)) == 1 ? true : false
         self.notes = try container.decodeIfPresent(String.self, forKey: .notes) ?? ""
-        self.preDeliveryFlag = (try? container.decodeIfPresent(String.self, forKey: .useOTRate)) == "1" ? true : false
+        self.preDeliveryFlag = (try? container.decodeIfPresent(Int.self, forKey: .preDeliveryFlag)) == 1 ? true : false
         self.exportStatus = try container.decodeIfPresent(Int.self, forKey: .exportStatus) ?? 0
         self.projectId = try container.decodeIfPresent(Int.self, forKey: .projectId)!
+        self.doNotBillFlag = (try? container.decodeIfPresent(Int.self, forKey: .doNotBillFlag)) == 1 ? true : false
     }
     
     func toLocalTime() -> TBTableColumns {

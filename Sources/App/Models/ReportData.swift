@@ -23,6 +23,7 @@ enum ReportGroupBy: Int {
     case person
     case week
     case month
+    case day
     
     static func fromRaw(_ val: Int?) -> ReportGroupBy? {
         guard let value = val else {
@@ -51,6 +52,9 @@ enum ReportGroupBy: Int {
         case .month:
             formatter.dateFormat = "MM/yyyy"
             title = "Month of: \(formatter.string(from: row.firstOfMonth))"
+        case .day:
+            formatter.dateFormat = "MM/dd/yyyy"
+            title = "Work date: \(formatter.string(from: row.workDate))"
         }
         return title
     }
@@ -71,6 +75,8 @@ enum ReportGroupBy: Int {
             sortValue = String(row.firstDayOfWeekMonday.timeIntervalSinceReferenceDate)
         case .month:
             sortValue = String(row.firstOfMonth.timeIntervalSinceReferenceDate)
+        case .day:
+            sortValue = String(row.workDate.timeIntervalSinceReferenceDate)
         }
         return sortValue
     }
@@ -81,7 +87,8 @@ enum ReportGroupBy: Int {
             LookupContextPair(name: "Services For Company", id: ReportGroupBy.serviceFor.rawValue),
             LookupContextPair(name: "Billed By", id: ReportGroupBy.person.rawValue),
             LookupContextPair(name: "Week", id: ReportGroupBy.week.rawValue),
-            LookupContextPair(name: "Month", id: ReportGroupBy.month.rawValue)]
+            LookupContextPair(name: "Month", id: ReportGroupBy.month.rawValue),
+            LookupContextPair(name: "Day", id: ReportGroupBy.day.rawValue)]
     }
 }
 
