@@ -83,6 +83,9 @@
                 var hasRegexPattern = $('#inpRegex').val().trim() != "" && $('#inpRegex').val() != null
                 var regexPattern = hasRegexPattern ? new RegExp($('#inpRegex').val()) : /[\s\S]*./;
                 
+                console.log($('#selContract option:selected').text());
+                console.log(data[1]);
+                
                 return ($('#selContract').val() == "" || $('#selContract').val() == null || $('#selContract option:selected').text() == data[1])            &&
                        ($('#selProject').val() == "" || $('#selProject').val() == null || $('#selProject option:selected').text() == data[2])               &&
                        ($('#inpDateFrom').val().trim() == "" || $('#inpDateFrom').val() == null || new Date($('#inpDateFrom').val()) <= new Date(data[3]))  &&
@@ -211,8 +214,8 @@
     #for(row in entries) {
         <tr id="row#(row.TimeID)">
             <td>#(row.TimeID)
-            </td><td>#(row.Description) - #(row.PreDeliveryFlag)
-            </td><td>#if(row.ProjectNumber) { #(row.ProjectNumber) - } #(row.ProjectDescription) 
+            </td><td>#(row.Description)
+            </td><td>#(row.ProjectDescription) 
             </td><td>#date(row.WorkDate, "MM/dd/yyyy")
             </td><td class="dur">#(row.Duration)
             </td><td>#if(row.DoNotBillFlag) {<img src="./images/do-not-bill.png" alt ="&lt;Not Billed&gt;" style="height:1.25em; margin-right:0.33em;" title="Do Not Bill"> }
