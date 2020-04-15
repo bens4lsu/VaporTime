@@ -38,7 +38,7 @@ struct LookupTrinity: Codable {
     }
 }
 
-struct LookupPerson: Codable {
+struct LookupPerson: Codable, Comparable {
     var name: String
     var id: Int
     
@@ -52,25 +52,33 @@ struct LookupPerson: Codable {
         self.name = try container.decodeIfPresent(String.self, forKey: .name)!
         self.id = try container.decodeIfPresent(Int.self, forKey: .id)!
     }
+    
+    static func ==(lhs: LookupPerson, rhs: LookupPerson) -> Bool {
+        return lhs.name == rhs.name
+    }
+    
+    static func <(lhs: LookupPerson, rhs: LookupPerson) -> Bool {
+        return lhs.name < rhs.name
+    }
 }
 
-struct LookupContextPair: Codable , Hashable{
+struct LookupContextPair: Codable , Hashable, Comparable {
     var name: String
     var id: Int
     
     static func ==(lhs: LookupContextPair, rhs: LookupContextPair) -> Bool {
-        return lhs.id == rhs.id
+        return lhs.name == rhs.name
     }
     
     static func <(lhs: LookupContextPair, rhs: LookupContextPair) -> Bool {
-        return lhs.id < rhs.id
+        return lhs.name < rhs.name
     }
 }
 
 struct LookupContext: Codable {
-    var contracts: Set<LookupContextPair>
-    var companies: Set<LookupContextPair>
-    var projects: Set<LookupContextPair>
+    var contracts: [LookupContextPair]
+    var companies: [LookupContextPair]
+    var projects: [LookupContextPair]
     var timeBillers: [LookupPerson]
     var groupBy: [LookupContextPair]
     var projectStatuses: [RefProjectStatuses]

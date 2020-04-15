@@ -137,14 +137,17 @@ struct ReportData: Codable, Comparable {
     }
 }
 
+
 class ReportRendererGroup: Encodable, Comparable {
     var title: String
-    var childGroups: [ReportRendererGroup]?
+    var childGroups: [ReportRendererGroup]?         // would rather model this as an enum with groups or records as cases and then the arrays
+                                                    // as associated values, but there doesn't seem to be a way to make such a thing
+                                                    // conform to Codable.  bms 2020-04-14
     var childRecords: [ReportData]?
     var sortValue: String
     var total: Double = 0.0  // dumb workaround.  I can't get the caluclated property version of total to encode
                              // for leaf.  The total might encode correctly, but it chokes on the [ReportData]? type.
-                             // See also mutating func at the end.
+                             // See also updateTotal func at the end.
     var count: Int = 0
     
     var totalCalc: (Double, Int) {

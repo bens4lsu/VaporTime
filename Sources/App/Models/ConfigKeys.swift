@@ -66,7 +66,6 @@ class ConfigKeys: Codable {
         }
         catch {
             print ("Could not initialize app from Config.json.  Initilizing with hard-coded default values. \n \(error)")
-            
             exit(0)
         }
     }

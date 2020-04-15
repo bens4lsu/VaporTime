@@ -310,4 +310,16 @@ class ProjectController: RouteCollection {
             return req.future(ourStatusUnwrapped.description)
         }
     }
+    
+    private func validateNoOverlappingRateSchedules(_ req: Request, contractId: Int, projectId: Int, personId: Int, startDate: Date, endDate: Date) -> Future<Bool> {
+        
+        // if no record for this contract/project/person, all good.
+        // else if record exists for this contract/project/person, one of these must be true (for each record)
+
+        //  1.  it has an endDate, which is < newStartDate
+        //  2.  it has a startDate which is > newEndDate
+        
+        
+        
+    }
 }

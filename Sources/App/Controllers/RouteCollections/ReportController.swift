@@ -20,9 +20,7 @@ class ReportController: RouteCollection {
         df.dateFormat = "MM/dd/yy"
         return df
     }()
-    
-    private var cachedLookupContext: LookupContext?
-        
+            
     // MARK: Startup
     init(_ cache: DataCache) {
         self.cache = cache
@@ -33,6 +31,7 @@ class ReportController: RouteCollection {
         router.post("Report", use: renderReport)
     }
     
+    
     private func renderReportSelector(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
             return try self.cache.getLookupContext(req).flatMap(to: Response.self) { context in
@@ -40,8 +39,8 @@ class ReportController: RouteCollection {
             }
         }
     }
-        
-        
+    
+    
     private func renderReport(_ req: Request) throws -> Future<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { user in
             
@@ -195,12 +194,12 @@ extension Array where Element == ReportRendererGroup {
     }
     
     mutating func sort() {
-        for elem in self {
-            if var childGroups = elem.childGroups {
-                childGroups.sort()
+        for index in 0..<self.count {
+            if self[index].childGroups != nil {
+                self[index].childGroups!.sort()
             }
-            if var childRecords = elem.childRecords {
-                childRecords.sort()
+            else if self[index].childRecords != nil {
+                self[index].childRecords!.sort()
             }
         }
     }

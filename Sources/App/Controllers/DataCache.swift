@@ -31,10 +31,10 @@ class DataCache {
                     return try self.db.getEventTypes(req).flatMap(to: LookupContext.self) { eventTypes in
                         return LuRateSchedules.query(on: req).all().flatMap(to: LookupContext.self) { rateSchedules in
                             let statuses = projectStatuses.sorted()
-                            let context = LookupContext(contracts: lookupTrinity.contracts,
-                                                        companies: lookupTrinity.companies,
-                                                        projects: lookupTrinity.projects,
-                                                        timeBillers: lookupPerson,
+                            let context = LookupContext(contracts: lookupTrinity.contracts.sorted(),
+                                                        companies: lookupTrinity.companies.sorted(),
+                                                        projects: lookupTrinity.projects.sorted(),
+                                                        timeBillers: lookupPerson.sorted(),
                                                         groupBy: ReportGroupBy.list(),
                                                         projectStatuses: statuses,
                                                         eventTypes: eventTypes,
