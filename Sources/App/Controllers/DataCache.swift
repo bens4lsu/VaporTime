@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import SwiftSMTP
 
 class DataCache {
     
@@ -15,6 +16,22 @@ class DataCache {
     private let db = MySQLDirect()
     
     public var configKeys = ConfigKeys()
+    
+    var smtp: SMTP {
+        let smtpKeys = configKeys.smtp
+        return SMTP(hostname: smtpKeys.hostname,
+                       email: smtpKeys.username,
+                    password: smtpKeys.password,
+                        port: smtpKeys.port,
+                     tlsMode: .normal,
+            tlsConfiguration: nil,
+                 authMethods: [.login],
+                 //accessToken: nil,
+                  domainName: "localhost",
+                     timeout: smtpKeys.timeout)
+    }
+                     
+
     
     public func clear() {
         cachedLookupContext = nil

@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import FluentMySQL
 import Crypto
-import MailCore
+import SwiftSMTP
 
 enum UserAccessLevel: String, Codable {
     case timeBilling = "T"
@@ -27,11 +27,15 @@ class UserAndTokenController: RouteCollection {
     var cache: DataCache
     
     let db = MySQLDirect()
+    let concordMail: ConcordMail
     
     init(_ cache: DataCache) {
         self.cache = cache
         UserAndTokenController.tokenExpDuration = self.cache.configKeys.tokenExpDuration
+        
+        concordMail = ConcordMail(configKeys: cache.configKeys)
     }
+    
     
     func boot(router: Router) throws {
         router.group("security") { group in
@@ -236,12 +240,22 @@ extension UserAndTokenController {
                 // TODO:  Delete expired keys
                 // TODO:  Delete any older (even unexpired) keys for this user.
                 
-                let (html, text) = self.getResetEmailBody(key: resetKey)
+                let (_, text) = self.getResetEmailBody(key: resetKey)
                 
-                print ("Sending email to \(user.emailAddress)")
-                let mail = Mailer.Message(from: mailSender, to: user.emailAddress, subject: "Project/Time Reset request", text: text, html: html)
+                //print ("Sending email to \(user.emailAddress)")
+                //let mail = Mailer.Message(from: mailSender, to: user.emailAddress, subject: "Project/Time Reset request", text: text, html: html)
                 
-                return try req.mail.send(mail).map(to: Response.self) { mailResult in
+                let mailFrom = Mail.User(name: nil, email: mailSender)
+                let mailTo = Mail.User(name: nil, email: user.emailAddress)
+
+                let mail = Mail(
+                    from: mailFrom,
+                    to: [mailTo],
+                    subject: "Project/Time Reset request",
+                    text: text
+                )
+                
+                return self.concordMail.send(req, mail).map(to: Response.self) { mailResult in
                     
                     switch mailResult {
                     case .serviceNotConfigured:

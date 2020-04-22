@@ -1,7 +1,6 @@
 import FluentMySQL
 import Vapor
 import Leaf
-import MailCore
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
@@ -16,7 +15,6 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Load values from Resources/Config.json
     let keys = ConfigKeys()
     let dbKeys = keys.database
-    let smtpKeys = keys.smtp
     
     // Register database
     try services.register(FluentMySQLProvider())
@@ -48,21 +46,5 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     middlewareConfig.use(FileMiddleware.self)
     services.register(middlewareConfig)
     config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
-    
-    
-    // smtp
-    let smtp = SMTP(hostname: smtpKeys.hostname,
-                       email: smtpKeys.username,
-                    password: smtpKeys.password,
-                        port: smtpKeys.port,
-                     tlsMode: .normal,
-            tlsConfiguration: nil,
-                 authMethods: [.login],
-                 //accessToken: nil,
-                  domainName: "localhost",
-                     timeout: smtpKeys.timeout)
-                     
-    let config = Mailer.Config.smtp(smtp)
-    try Mailer(config: config, registerOn: &services)
     
 }
