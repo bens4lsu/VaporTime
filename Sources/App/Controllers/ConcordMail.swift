@@ -28,7 +28,6 @@ class ConcordMail {
     }
     
     public enum Result {
-        case serviceNotConfigured
         case success
         case failure(error: Error)
     }

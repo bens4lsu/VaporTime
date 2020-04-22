@@ -258,8 +258,6 @@ extension UserAndTokenController {
                 return self.concordMail.send(req, mail).map(to: Response.self) { mailResult in
                     
                     switch mailResult {
-                    case .serviceNotConfigured:
-                        throw Abort(.internalServerError, reason: "SMTP services not configured.")
                     case .success:
                         // redirect to page that tells them to check their email...
                         return req.redirect(to: "/security/check-email")
