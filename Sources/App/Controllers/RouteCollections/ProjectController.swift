@@ -320,6 +320,9 @@ class ProjectController: RouteCollection {
         //  2.  it has a startDate which is > newEndDate
         
         
-        
+        // TODO:  complete logic for this method
+        return req.future().map(to: Bool.self) {
+            return true
+        }
     }
 }
