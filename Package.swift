@@ -11,7 +11,11 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "3.3.0"),
         .package(url: "https://github.com/vapor/fluent-mysql.git", .upToNextMinor(from: "3.0.0")),
         .package(url: "https://github.com/vapor/leaf.git", .upToNextMinor(from: "3.0.0")),
-        .package(url: "https://github.com/IBM-Swift/Swift-SMTP", .upToNextMinor(from: "5.1.0")),
+        .package(url: "https://github.com/IBM-Swift/Swift-SMTP.git", .upToNextMinor(from: "5.1.0")),
+        // pin the logger in IBM-Swift/LoggerAPI to an older version
+        // see https://forums.swift.org/t/logging-module-name-clash-in-vapor-3/25466
+        .package(url: "https://github.com/IBM-Swift/LoggerAPI.git", .upToNextMinor(from: "1.8.0")),
+
     ],
     targets: [
         .target(name: "App", dependencies: ["Vapor", "Leaf", "FluentMySQL", "SwiftSMTP"]),
