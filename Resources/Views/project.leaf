@@ -324,7 +324,7 @@
                             <button class="btnLittleHeader btnEditJournal" id="btnEditJournal-#(journal.id)"><img src="/images/edit-ben.png" alt="e"></button>
                         }
                     </div>
-                    #if(journal.EventDescription) { <div class="eventDescription"> #(journal.EventDescription) </div> }
+                    #if(journal.EventDescription) { <div class="eventDescription"> #linebreak(journal.EventDescription) </div> }
                     #if(journal.Notes) { <div class="notes"> #(journal.Notes) </div> }
                 </div>
             }

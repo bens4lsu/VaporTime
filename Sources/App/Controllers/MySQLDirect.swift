@@ -143,8 +143,8 @@ class MySQLDirect {
                     c.ContractID,
                     p.ProjectID,
                     pc.CompanyID
-                FROM fProjects p
-                    JOIN fContracts c ON p.ContractID = c.ContractID
+                FROM fContracts c
+                    LEFT OUTER JOIN fProjects p ON p.ContractID = c.ContractID
                     JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
                 WHERE ContractCompleted = 0
             """

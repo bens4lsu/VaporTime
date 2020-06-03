@@ -31,12 +31,15 @@ extension Date {
 
 extension Optional where Wrapped == Date {
     func isSameDayAs(_ otherDate: Date?) -> Bool {
-        var isDateChanged = (self == nil && otherDate != nil) ||
-                            (self != nil && otherDate == nil)
+        var isSame = true
         if let date1 = self, let date2 = otherDate {
-            isDateChanged = isDateChanged || date1.isSameDayAs(date2)
+            isSame = date1.isSameDayAs(date2)
         }
-        return isDateChanged
+        else if (self == nil && otherDate != nil) ||
+                (self != nil && otherDate == nil) {
+            isSame = false
+        }
+        return isSame
     }
     
     func isSameDayAs(_ otherDate: Date) -> Bool {

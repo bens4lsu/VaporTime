@@ -280,7 +280,7 @@ class ProjectController: RouteCollection {
                 message = "Status notes added.  Status notes were previously empty."
             }
             else {
-                message = "Status notes updated.  Previous status notes were:  \(old.statusNotes!)"
+                message = "Status notes updated.  Previous status notes were:  \n\(old.statusNotes!)"
             }
             let _ = ProjectEvent(projectId: id, eventId: 25, personId: person, notes: message).save(on: req)
         }

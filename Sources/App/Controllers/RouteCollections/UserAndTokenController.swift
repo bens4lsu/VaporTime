@@ -159,7 +159,7 @@ class UserAndTokenController: RouteCollection {
                 return UserAndTokenController.redirectToLogin(req)
         }
         
-        guard token.exp >= Date() || token.ip != req.http.remotePeer.hostname else {
+        guard token.exp >= Date() || token.ip == req.http.remotePeer.hostname else {
             // token is expired, or ip address has changed
             return UserAndTokenController.redirectToLogin(req)
         }

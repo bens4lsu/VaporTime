@@ -15,7 +15,8 @@ public final class BreakLinesTag: TagRenderer {
         
         return Future.map(on: parsed.container) {
             if let str = parsed.parameters[0].string {
-                return .string(str.replacingOccurrences(of: "\n", with: "<br>"))
+                return .string(str.replacingOccurrences(of: "\r\n", with: "<br>")
+                                  .replacingOccurrences(of: "\n", with: "<br>"))
             } else {
                 return .null
             }
