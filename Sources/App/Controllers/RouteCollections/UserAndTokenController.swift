@@ -64,7 +64,6 @@ class UserAndTokenController: RouteCollection {
         return try req.view().render("users-create")
     }
     
-    
     private func renderCheckEmail(_ req: Request) throws -> Future<View> {
         return try req.view().render("users-password-check-email")
     }

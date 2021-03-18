@@ -46,6 +46,23 @@
             } )
             
             $("#resizable").resizable({handles: 'e, w'});
+            
+            
+            // log out if page idle 2 hours
+            var idleTime = 0;
+            var idleInterval = setInterval(function(){
+                idleTime++;
+                if (idleTime > 23) {        // redirect if > 23 x 5 minute intervals
+                    window.top.location = "/security/login"
+                }
+            }, 300000); // 5 minute intervals
+            //Zero the idle timer on mouse movement.
+            $(this).mousemove(function (e) {
+                idleTime = 0;
+            });
+            $(this).keypress(function (e) {
+                idleTime = 0;
+            });
 
         });
 
