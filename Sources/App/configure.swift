@@ -1,9 +1,10 @@
+import Fluent
 import FluentMySQL
 import Vapor
 import Leaf
 
 /// Called before your application initializes.
-public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
+public func configure(_ app: Application) throws {
     // Register providers first
   //FluentMySQL  try services.register(FluentMySQL())
 
