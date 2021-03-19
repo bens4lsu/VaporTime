@@ -8,6 +8,8 @@
 import Foundation
 import Vapor
 import SwiftSMTP
+import Fluent
+import FluentMySQLDriver
 
 class DataCache {
     
@@ -38,15 +40,15 @@ class DataCache {
         savedTrees = [:]
     }
     
-    public func getLookupContext(_ req: Request) throws -> Future<LookupContext> {
+    public func getLookupContext(_ req: Request) throws -> EventLoopFuture<LookupContext> {
         if let context = cachedLookupContext {
-            return req.future(context)
+            return req.eventLoop.makeSucceededFuture(context)
         }
         return try db.getLookupTrinity(req).flatMap(to: LookupContext.self) { lookupTrinity in
             return try self.db.getLookupPerson(req).flatMap(to: LookupContext.self) { lookupPerson in
-                return RefProjectStatuses.query(on: req).all().flatMap(to: LookupContext.self) { projectStatuses in
+                return RefProjectStatuses.query(on: req.db).all().flatMap(to: LookupContext.self) { projectStatuses in
                     return try self.db.getEventTypes(req).flatMap(to: LookupContext.self) { eventTypes in
-                        return LuRateSchedules.query(on: req).all().flatMap(to: LookupContext.self) { rateSchedules in
+                        return LuRateSchedules.query(on: req.db).all().flatMap(to: LookupContext.self) { rateSchedules in
                             let statuses = projectStatuses.sorted()
                             let context = LookupContext(contracts: lookupTrinity.contracts.sorted(),
                                                         companies: lookupTrinity.companies.sorted(),
@@ -66,7 +68,7 @@ class DataCache {
     }
     
     
-    public func getProjectTree(_ req: Request, userId: Int) throws -> Future<TBTreeContext> {
+    public func getProjectTree(_ req: Request, userId: Int) throws -> EventLoopFuture<TBTreeContext> {
         if let tree = self.savedTrees[userId] {
             return req.future(tree)
         }

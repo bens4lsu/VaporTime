@@ -1,9 +1,9 @@
 import Vapor
-import FluentMySQL
+import FluentMySQLDriver
 import Crypto
 
 /// Register your application's routes here.
-public func routes(_ router: Router) throws {
+public func routes(_ app: Application) throws {
         
     // establish data cache and read info from config.json
     let cache = DataCache()
@@ -18,7 +18,7 @@ public func routes(_ router: Router) throws {
     
     // MARK:  Miscellaneous Routes
     
-    router.get { req-> Future<Response> in
+    router.get { req-> EventLoopFuture<Response> in
         return try UserAndTokenController.verifyAccess(req, accessLevel: .activeOnly) { user in
             
             struct IndexContext: Codable {
@@ -30,7 +30,7 @@ public func routes(_ router: Router) throws {
             let accessDictionary = user.accessDictionary()
             let context = IndexContext(version: version, accessDictionary: accessDictionary)
             
-            return try req.view().render("index", context).encode(for: req)
+            return try req.view.render("index", context).encode(for: req)
         }
     }
     

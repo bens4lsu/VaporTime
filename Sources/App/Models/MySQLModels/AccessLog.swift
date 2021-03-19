@@ -6,19 +6,27 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct AccessLog: Content, MySQLModel, Codable {
+final class AccessLog: Content, Model, Codable {
+
+    @Field(key: "PersonID")
     var personId: Int
+    
+    @ID(custom: "AccessID")
     var id: Int?
+    
+    @Field(key: "LoginTime")
     var loginTime: Date
+    
+    @Field(key: "LastAccessTime")
     var accessTime: Date
 
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "fAccessLog"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "fAccessLog"
 
     private enum CodingKeys: String, CodingKey {
         case personId = "PersonID",
@@ -42,4 +50,9 @@ struct AccessLog: Content, MySQLModel, Codable {
         self.loginTime = loginTime
         self.accessTime = Date()
     }
+    
+    required init() {
+        
+    }
+    
 }

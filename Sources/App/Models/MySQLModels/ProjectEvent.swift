@@ -6,22 +6,35 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct ProjectEvent: Content, MySQLModel, Codable {
+final class ProjectEvent: Content, Model, Codable {
+    @Field(key: "ProjectID")
     var projectId: Int
+    
+    @ID(custom: "ProjectEventID")
     var id: Int?
+    
+    @OptionalField(key: "EventID")
     var eventId: Int?
+    
+    @Field(key: "ReportDate")
     var reportDate: Date
+    
+    @OptionalField(key: "Notes")
     var notes: String?
+    
+    @Field(key: "PersonID")
     var personId: Int
+    
+    @Field(key: "RecordedDateTime")
     var recordedDateTime: Date
 
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "fProjectEvents"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "fProjectEvents"
 
     private enum CodingKeys: String, CodingKey {
         case projectId = "ProjectID",
@@ -43,22 +56,24 @@ struct ProjectEvent: Content, MySQLModel, Codable {
         self.eventId = eventId
     }
         
-    init (projectId: Int, eventId: Int, personId: Int) {
+    convenience init (projectId: Int, eventId: Int, personId: Int) {
         self.init(projectId: projectId, id: nil, eventId: eventId, reportDate: Date(), notes: nil, personId: personId, recordedDateTime: Date())
     }
     
-    init (projectId: Int, eventId: Int, personId: Int, notes: String) {
+    convenience init (projectId: Int, eventId: Int, personId: Int, notes: String) {
         self.init(projectId: projectId, id: nil, eventId: eventId, reportDate: Date(), notes: notes, personId: personId, recordedDateTime: Date())
 
     }
     
-    init (projectId: Int, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
+    convenience init (projectId: Int, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
         self.init(projectId: projectId, id: nil, eventId: eventId, reportDate: eventDate, notes: notes, personId: personId, recordedDateTime: Date())
 
     }
     
-    init (projectId: Int, id: Int?, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
+    convenience init (projectId: Int, id: Int?, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
         self.init(projectId: projectId, id: id, eventId: eventId, reportDate: eventDate, notes: notes, personId: personId, recordedDateTime: Date())
 
     }
+    
+    required init() { }
 }

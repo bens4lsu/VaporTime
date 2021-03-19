@@ -6,31 +6,56 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct User: Content, MySQLModel, Codable {
+final class User: Content, Model, Codable {
+    @ID(custom: "PersonID")
     var id: Int?
+    
+    @Field(key: "Name")
     var name: String
+    
+    @Field(key: "Email")
     var emailAddress: String
+    
+    @Field(key: "ActiveUser")
     var isActive: Bool
+    
+    @Field(key: "BillsTime")
     var isTimeBiller: Bool
+    
+    @Field(key: "SysAdmin")
     var isAdmin: Bool
+    
+    @Field(key: "ReportViewer")
     var isReportViewer: Bool
+    
+    @Field(key: "CRMUser")
     var isCRMUser: Bool
+    
+    @Field(key: "DocUser")
     var isDocUser: Bool
+    
+    @OptionalField(key: "WorkPhone")
     var workPhone: String?
+    
+    @OptionalField(key: "MobilePhone")
     var mobilePhone: String?
+    
+    @OptionalField(key: "PersonalNote")
     var personalNote: String?
+    
+    @Field(key: "PasswordHash")
     var passwordHash: String
     
     
     // MARK: Map to MySQL database and columns
     
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "LuPeople"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "LuPeople"
     
     private enum CodingKeys: String, CodingKey {
         case id = "PersonID",
@@ -81,17 +106,16 @@ struct User: Content, MySQLModel, Codable {
         return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress, access: access)
     }
         
-    static func prepare(on: MySQLConnection) {
-        
-    }
+    //static func prepare(on: MySQLConnection) {  }
+    
+    required init() { }
 }
 
 // MARK: Validatable Protocol Conformation
 extension User: Validatable {
-    static func validations() throws -> Validations<User> {
-        var validations = Validations(User.self)
-        try validations.add(\.emailAddress, .email)
-        return validations
+    static func validations(_ validations: inout Validations) {
+        var validations = Validations()
+        validations.add("emailAddress", as: String.self, is: .email)
     }
 }
 

@@ -6,20 +6,29 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct LuRateSchedules: Content, MySQLModel, Codable {
+final class LuRateSchedules: Content, Model, Codable {
+    @ID(custom: "RateScheduleID")
     var id: Int?
+    
+    @Field(key: "RateDescription")
     var description: String
+    
+    @Field(key: "RegularRate")
     var regularRate: Double
+    
+    @Field(key: "OTRate")
     var otRate: Double?
+    
+    @Field(key: "DiscountPercent")
     var discountPercentage: Double?
 
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "LuRateSchedules"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "LuRateSchedules"
 
     private enum CodingKeys: String, CodingKey {
         case id = "RateScheduleID",
@@ -28,4 +37,6 @@ struct LuRateSchedules: Content, MySQLModel, Codable {
         otRate = "OTRate",
         discountPercentage = "DiscountPercent"
     }
+    
+    required init() { }
 }

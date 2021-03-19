@@ -7,7 +7,7 @@
 
 import Foundation
 import Vapor
-import FluentMySQL
+import FluentMySQLDriver
 import Leaf
 
 class ReportController: RouteCollection {
@@ -26,22 +26,22 @@ class ReportController: RouteCollection {
         self.cache = cache
     }
 
-    func boot(router: Router) throws {
-        router.get("Report", use: renderReportSelector)
-        router.post("Report", use: renderReport)
+    func boot(routes: RoutesBuilder) throws {
+        routes.get("Report", use: renderReportSelector)
+        routes.post("Report", use: renderReport)
     }
     
     
-    private func renderReportSelector(_ req: Request) throws -> Future<Response> {
+    private func renderReportSelector(_ req: Request) throws -> EventLoopFuture<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
             return try self.cache.getLookupContext(req).flatMap(to: Response.self) { context in
-                return try req.view().render("report-selector", context).encode(for: req)
+                return try req.view.render("report-selector", context).encode(for: req)
             }
         }
     }
     
     
-    private func renderReport(_ req: Request) throws -> Future<Response> {
+    private func renderReport(_ req: Request) throws -> EventLoopFuture<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { user in
             
             
@@ -77,7 +77,7 @@ class ReportController: RouteCollection {
                     var context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate, footnote: footnote)
                     context.updateTotals()
                     let report = display == "s" ? "report-summary" : "report"
-                    return try req.view().render(report, context).encode(for: req)
+                    return try req.view.render(report, context).encode(for: req)
                 }
             }
         }

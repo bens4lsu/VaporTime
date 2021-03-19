@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import FluentMySQL
+import FluentMySQLDriver
 import Vapor
 
 struct Token: Codable {

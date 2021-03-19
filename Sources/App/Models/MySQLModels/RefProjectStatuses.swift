@@ -6,19 +6,27 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct RefProjectStatuses: Content, MySQLModel, Codable, Comparable {
+final class RefProjectStatuses: Content, Model, Codable, Comparable {
+    
+    @ID(custom: "StatusID")
     var id: Int?
+    
+    @Field(key: "StatusDescription")
     var description: String
+    
+    @Field(key: "DisplayOrder")
     var displayOrder: Int
+    
+    @Field(key: "CanCompleteProject")
     var canCompleteProject: Bool
 
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "RefProjectStatuses"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "RefProjectStatuses"
 
     private enum CodingKeys: String, CodingKey {
         case id = "StatusID",
@@ -34,4 +42,6 @@ struct RefProjectStatuses: Content, MySQLModel, Codable, Comparable {
     static func == (lhs: RefProjectStatuses, rhs: RefProjectStatuses) -> Bool {
         return lhs.displayOrder == rhs.displayOrder
     }
+    
+    required init() { }
 }

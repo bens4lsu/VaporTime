@@ -35,6 +35,7 @@ class ConfigKeys: Codable {
     }
     
     var database: ConfigKeys.Database
+    var listenOnPort: Int
     var tokenExpDuration: Double
     var bugUrl: String
     var myCompany: MyCompany
@@ -44,7 +45,7 @@ class ConfigKeys: Codable {
     
     init() {
     
-        let path = DirectoryConfig.detect().workDir
+        let path = DirectoryConfiguration.detect().resourcesDirectory
         let url = URL(fileURLWithPath: path).appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("Config.json")
         do {
             let data = try Data(contentsOf: url)

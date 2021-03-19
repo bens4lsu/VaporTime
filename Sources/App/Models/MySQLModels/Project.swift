@@ -6,30 +6,58 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct Project: Content, MySQLModel, Codable {
+final class Project: Content, Model, Codable {
+    
+    @ID(custom: "ProjectID")
     var id: Int?
+    
+    @Field(key: "ContractID")
     var contractId: Int
+    
+    @Field(key: "ServicesForCompany")
     var companyId: Int
+    
+    @Field(key: "ProjectDescription")
     var description: String
+    
+    @OptionalField(key: "StatusID")
     var statusId: Int?
+    
+    @OptionalField(key: "ProjectNumber")
     var projectNumber: String?
+    
+    @OptionalField(key: "StatusNotes")
     var statusNotes: String?
+    
+    @OptionalField(key: "MantisProjectID")
     var mantisProjectId: Int?
+    
+    @Field(key: "IsActive")
     var isActive: Bool
+    
+    @OptionalField(key: "ProjectedTime")
     var projectedTime: Double?
+    
+    @OptionalField(key: "ProjectedDateComplete")
     var projectedDateComplete: Date?
+    
+    @OptionalField(key: "PMProjectID")
     var pmProjectId: Int?
+    
+    @OptionalField(key: "HideTimeReporting")
     var hideTimeReporting: Bool?
+    
+    @OptionalField(key: "StartDate")
     var startDate: Date?
 
 
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "fProjects"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "fProjects"
 
     private enum CodingKeys: String, CodingKey {
         case id = "ProjectID",
@@ -47,4 +75,6 @@ struct Project: Content, MySQLModel, Codable {
         hideTimeReporting = "HideTimeReporting",
         startDate = "StartDate"
     }
+    
+    required init() { }
 }

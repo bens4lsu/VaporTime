@@ -6,28 +6,47 @@
 //
 
 import Foundation
-import FluentMySQL
+import Fluent
 import Vapor
 
-struct Time: Content, MySQLModel, Codable {
+final class Time: Content, Model, Codable {
     
+    @ID(custom: "TimeID")
     var id: Int?
+    
+    @Field(key: "PersonID")
     var personId: Int
+    
+    @Field(key: "ProjectID")
     var projectId: Int
+    
+    @Field(key: "WorkDate")
     var workDate: Date
+    
+    @Field(key: "Duration")
     var duration: Double
+    
+    @Field(key: "UseOTRate")
     var useOTRate: Bool
+    
+    @Field(key: "Notes")
     var notes: String
+    
+    @Field(key: "ExportStatus")
     var exportStatus: Int
+    
+    @Field(key: "PreDeliveryFlag")
     var preDeliveryFlag: Bool
+    
+    @Field(key: "DoNotBillFlag")
     var doNotBillFlag: Bool
     
     // MARK: Map to MySQL database and columns
     
-    typealias Database = MySQLDatabase
-    typealias ID = Int
-    static let idKey: IDKey = \.id
-    static let entity = "fTime"
+//    typealias Database = MySQLDatabase
+//    typealias ID = Int
+//    static let idKey: IDKey = \.id
+    static let schema = "fTime"
     
     private enum CodingKeys: String, CodingKey {
         case id = "TimeID",
@@ -41,4 +60,6 @@ struct Time: Content, MySQLModel, Codable {
              preDeliveryFlag = "PreDeliveryFlag",
              doNotBillFlag = "DoNotBillFlag"
     }
+    
+    required init() { }
 }

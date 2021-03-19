@@ -7,10 +7,11 @@
 
 import Foundation
 import Vapor
-import FluentMySQL
+import FluentMySQLDriver
 import Leaf
 
 class ProjectController: RouteCollection {
+    
     let cache: DataCache
     let db = MySQLDirect()
         
@@ -19,32 +20,32 @@ class ProjectController: RouteCollection {
         self.cache = cache
     }
 
-    func boot(router: Router) throws {
-        router.get("ProjectTree", use: renderProjectTree)
-        router.get("ProjectAddEdit", use: renderProjectAddEdit)
-        router.post("ProjectAddEdit", use: addEditProject)
-        router.post("ProjectClose", use: closeProject)
-        router.post("ProjectAddJournal", use: addJournal)
-        router.post("ProjectAddRate", use: addRateSchedule)
+    func boot(routes: RoutesBuilder) throws {
+        routes.get("ProjectTree", use: renderProjectTree)
+        routes.get("ProjectAddEdit", use: renderProjectAddEdit)
+        routes.post("ProjectAddEdit", use: addEditProject)
+        routes.post("ProjectClose", use: closeProject)
+        routes.post("ProjectAddJournal", use: addJournal)
+        routes.post("ProjectAddRate", use: addRateSchedule)
         
     }
     
     
     // MARK:  Rendering Routes
     
-    private func renderProjectTree(_ req: Request) throws -> Future<Response> {
+    private func renderProjectTree(_ req: Request) throws -> EventLoopFuture<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             return try self.cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
                 var updatePage = context
                 updatePage.editPage = "ProjectAddEdit"
                 updatePage.heading = "Edit Project"
                 updatePage.parentWindow = "frPrDetails"
-                return try req.view().render("time-tree", updatePage).encode(for: req)
+                return try req.view.render("time-tree", updatePage).encode(for: req)
             }
         }
     }
     
-    private func renderProjectAddEdit(_ req: Request)throws -> Future<Response> {
+    private func renderProjectAddEdit(_ req: Request)throws -> EventLoopFuture<Response> {
         let optProjectId = try? req.query.get(Int.self, at: "projectId")
         
         return try UserAndTokenController.verifyAccess(req, accessLevel: UserAccessLevel.timeBilling) { user in
@@ -52,7 +53,7 @@ class ProjectController: RouteCollection {
             return try self.cache.getLookupContext(req).flatMap(to:Response.self) { lookup in
                 
                 guard let projectId = optProjectId else {
-                    return try req.view().render("project", ["lookup" : lookup]).encode(for: req)
+                    return try req.view.render("project", ["lookup" : lookup]).encode(for: req)
                 }
                 
                 //update existing project
@@ -76,7 +77,7 @@ class ProjectController: RouteCollection {
                                 }
                                 let bugLink = self.cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
                                 let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink, journals: journals, rateLists: rateLists)
-                                return try req.view().render("project", context).encode(for: req)
+                                return try req.view.render("project", context).encode(for: req)
                             }
                         }
                     }
@@ -88,7 +89,7 @@ class ProjectController: RouteCollection {
     
     // MARK: Updating routes
     
-    private func addEditProject(_ req: Request) throws -> Future<Response> {
+    private func addEditProject(_ req: Request) throws -> EventLoopFuture<Response> {
         
         let projectId = try? req.content.syncGet(Int.self, at: "projectId")
         let inp_contractId = try? req.content.syncGet(Int.self, at: "contractId")
@@ -142,7 +143,7 @@ class ProjectController: RouteCollection {
     }
     
     
-    private func closeProject(_ req: Request) throws -> Future<Response> {
+    private func closeProject(_ req: Request) throws -> EventLoopFuture<Response> {
         let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
         
         guard let projectId = ajaxProjectId else {
@@ -171,7 +172,7 @@ class ProjectController: RouteCollection {
     }
     
     
-    private func addJournal(_ req: Request)throws -> Future<Response> {
+    private func addJournal(_ req: Request)throws -> EventLoopFuture<Response> {
         let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
         let journalId = try? req.content.syncGet(Int.self, at: "journalId")
         let eventId = try? req.content.syncGet(Int.self, at: "eventId")
@@ -197,7 +198,7 @@ class ProjectController: RouteCollection {
     }
     
     
-    private func addRateSchedule(_ req: Request)throws -> Future<Response> {
+    private func addRateSchedule(_ req: Request)throws -> EventLoopFuture<Response> {
         let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
         let ajaxPersonId = try? req.content.syncGet(Int.self, at: "personId")
         let ajaxRateScheduleId = try? req.content.syncGet(Int.self, at: "rateScheduleId")
@@ -220,7 +221,7 @@ class ProjectController: RouteCollection {
     
     // MARK:  Helper functions
     
-    private func getPreUpdatedProject(_ id: Int?, on req: Request) -> Future<Project?> {
+    private func getPreUpdatedProject(_ id: Int?, on req: Request) -> EventLoopFuture<Project?> {
         
         guard let projectId = id else {
             return req.future(nil)
@@ -265,8 +266,8 @@ class ProjectController: RouteCollection {
         
         // status changed
         if old.statusId != new.statusId {
-            let _ =  try getProjectStatusDescription(forStatus: old.statusId, req: req).flatMap() { oldStatusText -> Future<ProjectEvent> in
-                try self.getProjectStatusDescription(forStatus: new.statusId, req: req).flatMap() { newStatusText -> Future<ProjectEvent> in
+            let _ =  try getProjectStatusDescription(forStatus: old.statusId, req: req).flatMap() { oldStatusText -> EventLoopFuture<ProjectEvent> in
+                try self.getProjectStatusDescription(forStatus: new.statusId, req: req).flatMap() { newStatusText -> EventLoopFuture<ProjectEvent> in
                     let message = "Status changed from \(oldStatusText) to \(newStatusText)."
                     return ProjectEvent(projectId: id, eventId: 20, personId: person, notes: message).save(on: req)
                 }
@@ -287,13 +288,13 @@ class ProjectController: RouteCollection {
     }
     
         
-    private func futureRedirectResponse(path: String, req: Request) -> Future<Response> {
+    private func futureRedirectResponse(path: String, req: Request) ->  EventLoopFuture<Response> {
         return req.future().map(to: Response.self) {
             return req.redirect(to: path)
         }
     }
     
-    private func getProjectStatusDescription(forStatus id: Int?, req: Request) throws -> Future<String> {
+    private func getProjectStatusDescription(forStatus id: Int?, req: Request) throws -> EventLoopFuture<String> {
         guard let _ = id else {
             return req.future("not set")
         }
@@ -311,7 +312,7 @@ class ProjectController: RouteCollection {
         }
     }
     
-    private func validateNoOverlappingRateSchedules(_ req: Request, contractId: Int, projectId: Int, personId: Int, startDate: Date, endDate: Date) -> Future<Bool> {
+    private func validateNoOverlappingRateSchedules(_ req: Request, contractId: Int, projectId: Int, personId: Int, startDate: Date, endDate: Date) -> EventLoopFuture<Bool> {
         
         // if no record for this contract/project/person, all good.
         // else if record exists for this contract/project/person, one of these must be true (for each record)

@@ -32,13 +32,13 @@ class ConcordMail {
         case failure(error: Error)
     }
     
-    func send(_ req: Request, _ mail: Mail) -> Future<ConcordMail.Result> {
-        let promise = req.eventLoop.newPromise(ConcordMail.Result.self)
+    func send(_ req: Request, _ mail: Mail) -> EventLoopFuture<ConcordMail.Result> {
+        let promise = req.eventLoop.makePromise(of: ConcordMail.Result.self)
         smtp.send(mail) { error in
             if let error = error {
-                promise.succeed(result: ConcordMail.Result.failure(error: error))
+                promise.succeed(ConcordMail.Result.failure(error: error))
             } else {
-                promise.succeed(result: ConcordMail.Result.success)
+                promise.succeed(ConcordMail.Result.success)
             }
         }
         return promise.futureResult

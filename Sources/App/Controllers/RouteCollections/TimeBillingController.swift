@@ -7,7 +7,7 @@
 
 import Foundation
 import Vapor
-import FluentMySQL
+import FluentMySQLDriver
 import Leaf
 
 class TimeBillingController: RouteCollection {
@@ -20,13 +20,13 @@ class TimeBillingController: RouteCollection {
         self.cache = cache
     }
     
-    func boot(router: Router) throws {
-        router.get("TBTable", use: renderTimeTable)
-        router.post("ajax/savesession", use: updateSessionFilters)
-        router.get("TBTree", use: renderTimeTree)
-        router.get("TBAddEdit", use: renderTimeAddEdit)
-        router.post("TBAddEdit", use: addEditTimeEntry)
-        router.post("ajax/deleteTimeRecord", use: deleteTimeEntry)
+    func boot(routes: RoutesBuilder) throws {
+        routes.get("TBTable", use: renderTimeTable)
+        routes.post("ajax/savesession", use: updateSessionFilters)
+        routes.get("TBTree", use: renderTimeTree)
+        routes.get("TBAddEdit", use: renderTimeAddEdit)
+        routes.post("TBAddEdit", use: addEditTimeEntry)
+        routes.post("ajax/deleteTimeRecord", use: deleteTimeEntry)
     }
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
@@ -41,7 +41,7 @@ class TimeBillingController: RouteCollection {
     // MARK:  Methods connected to routes that return Views
     
     
-    private func renderTimeTable(_ req: Request) throws -> Future<Response> {
+    private func renderTimeTable(_ req: Request) throws -> EventLoopFuture<Response> {
         let highlightRow = try? req.query.get(Int.self, at: "highlightRow")
         
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
@@ -52,7 +52,7 @@ class TimeBillingController: RouteCollection {
                                                  filter: self.sessionSortOptions(req),
                                                  highlightRow: highlightRow,
                                                  lookup: lookup)
-                    return try req.view().render("time-table", context).encode(for: req)
+                    return try req.view.render("time-table", context).encode(for: req)
                     
                 }
             }
@@ -60,15 +60,15 @@ class TimeBillingController: RouteCollection {
     }
     
     
-    private func renderTimeTree(_ req: Request) throws -> Future<Response> {
+    private func renderTimeTree(_ req: Request) throws ->  EventLoopFuture<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             return try self.cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
-                return (try req.view().render("time-tree", context).encode(for: req))
+                return (try req.view.render("time-tree", context).encode(for: req))
             }
         }
     }
     
-    private func renderTimeAddEdit(_ req: Request) throws -> Future<Response> {
+    private func renderTimeAddEdit(_ req: Request) throws -> EventLoopFuture<Response> {
         guard let projectId = try? req.query.get(Int.self, at: "projectId") else {
             throw Abort(.badRequest, reason: "Time edit requested with no projectId.")
         }
@@ -82,14 +82,14 @@ class TimeBillingController: RouteCollection {
                 if let timeId = timeId {
                     return Time.find(timeId, on: req).flatMap(to: Response.self) { time in
                         guard var time = time else {
-                            return try req.view().render("time-add-edit", context).encode(for: req)
+                            return try req.view.render("time-add-edit", context).encode(for: req)
                         }
                         time.workDate = time.workDate.addingTimeInterval(12*3600)
                         context.time = time
-                        return try req.view().render("time-add-edit", context).encode(for: req)
+                        return try req.view.render("time-add-edit", context).encode(for: req)
                     }
                 } else {
-                    return try req.view().render("time-add-edit", context).encode(for: req)
+                    return try req.view.render("time-add-edit", context).encode(for: req)
                 }
                 
             }
@@ -99,7 +99,7 @@ class TimeBillingController: RouteCollection {
     
     // MARK:  Methods connected to routes that return data or redirect
     
-    private func updateSessionFilters(_ req: Request) throws -> Future<Response> {
+    private func updateSessionFilters(_ req: Request) throws -> EventLoopFuture<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             let sesContract = try? req.content.syncGet(String.self, at: "sesContract").trimmingCharacters(in: .whitespaces)
             
@@ -127,7 +127,7 @@ class TimeBillingController: RouteCollection {
         }
     }
     
-    private func addEditTimeEntry(_ req: Request) throws -> Future<Response> {
+    private func addEditTimeEntry(_ req: Request) throws -> EventLoopFuture<Response> {
         let timeId = try? req.query.get(Int.self, at: "timeId")
         let projectIdOpt = try? req.query.get(Int.self, at: "projectId")
         let workDateOpt = (try? req.content.syncGet(at: "datepicker")).toDate()
@@ -153,7 +153,7 @@ class TimeBillingController: RouteCollection {
         }
     }
     
-    private func deleteTimeEntry(_ req: Request) throws -> Future<Response> {
+    private func deleteTimeEntry(_ req: Request) throws -> EventLoopFuture<Response> {
         return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
             let timeId = try? req.content.syncGet(Int.self, at: "timeId")
             guard let time = timeId else {
