@@ -25,9 +25,13 @@ class MySQLDirect {
     }
     
     private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> EventLoopFuture<[T]> {
-        return req.withPooledConnection(to: .mysql) { conn in
-            return conn.raw(query).all(decoding: T.self)
+//        return req.withPooledConnection(to: .mysql) { conn in
+//            return conn.raw(query).all(decoding: T.self)
+//        }
+        guard let db = req.db else {
+            throw Abort(.internalServerError, "Query result requested, but request object has no SQL database in its db property.")
         }
+        return db.raw(query).all()
     }
     
     private func getResultRow<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> EventLoopFuture<T?> {
