@@ -5,7 +5,8 @@ import Leaf
 
 /// Called before your application initializes.
 public func configure(_ app: Application) throws {
-    // Register providers first
+    
+    try routes(app)
 
     // Load values from Resources/Config.json
     let keys = ConfigKeys()
@@ -26,5 +27,9 @@ public func configure(_ app: Application) throws {
     
     app.leaf.tags["zebra"] = ZebraTag()
     app.leaf.tags["linebreak"] = BreakLinesTag()
+    
+    /// setup public file middleware (for hosting our uploaded files)
+    app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    app.middleware.use(app.sessions.middleware)
     
 }

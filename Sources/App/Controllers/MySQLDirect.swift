@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SQLKit
 import FluentMySQLDriver
 import Vapor
 
@@ -25,26 +26,19 @@ class MySQLDirect {
     }
     
     private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> EventLoopFuture<[T]> {
-//        return req.withPooledConnection(to: .mysql) { conn in
-//            return conn.raw(query).all(decoding: T.self)
-//        }
-        guard let db = req.db else {
-            throw Abort(.internalServerError, "Query result requested, but request object has no SQL database in its db property.")
-        }
-        return db.raw(query).all()
+        let queryString = SQLQueryString(stringLiteral: query)
+        return (req.db as! SQLDatabase).raw(queryString).all(decoding: T.self)
     }
     
     private func getResultRow<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> EventLoopFuture<T?> {
-        return req.withPooledConnection(to: .mysql) { conn in
-            return conn.raw(query).first(decoding: T.self)
-        }
+        let queryString = SQLQueryString(stringLiteral: query)
+        return (req.db as! SQLDatabase).raw(queryString).first(decoding: T.self)
     }
     
     private func issueQuery (_ req: Request, query: String) throws -> EventLoopFuture<Void> {
-        return req.withPooledConnection(to: .mysql) { conn in
-            return conn.raw(query).all().map() { _ in
-                return
-            }
+        let queryString = SQLQueryString(stringLiteral: query)
+        return (req.db as! SQLDatabase).raw(queryString).all().map { _ in
+            return
         }
     }
     
@@ -60,9 +54,9 @@ class MySQLDirect {
                 JOIN fContracts c ON p.ContractID = c.ContractID
             WHERE t.PersonID = \(userId) AND ExportStatus = 0 ORDER BY t.WorkDate
         """
-        return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self)
-            .map(to: [TBTableColumns].self) { rows in
-                return rows.map({ $0.toLocalTime() })
+        
+        return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self).map { rows in
+            return rows.map{ $0.toLocalTime() }
         }
     }
     
@@ -132,8 +126,7 @@ class MySQLDirect {
         if let projectId = filters.projectId {
             sql += " AND p.ProjectID = \(projectId)"
         }
-        return try getResultsRows(req, query: sql, decodeUsing: ReportData.self).map(to:[ReportData].self) { data in
-            
+        return try getResultsRows(req, query: sql, decodeUsing: ReportData.self).map { data in
             return data.map({ $0.toLocal() })
         }
     }
@@ -170,14 +163,12 @@ class MySQLDirect {
             WHERE t.ProjectID = \(projectId)
             GROUP BY t.ProjectID
         """
-        return try getResultRow(req, query: sql, decodeUsing: TotalTime.self).flatMap(to:TotalTime.self) { tt in
+        return try getResultRow(req, query: sql, decodeUsing: TotalTime.self).flatMap{ tt in
             let totalTime = TotalTime (
                 TotalTime: tt?.TotalTime ?? 0.0,
                 CompletionByTime: tt?.CompletionByTime ?? 0.1,
                 CompletionByDate: tt?.CompletionByDate ?? 0.1)
-            return req.future().map() {
-                totalTime
-            }
+            return req.eventLoop.makeSucceededFuture(totalTime)
         }
     }
     
@@ -192,9 +183,8 @@ class MySQLDirect {
             WHERE ev.ProjectID = \(projectId)
             ORDER BY ev.ReportDate DESC, ev.ProjectEventID DESC
         """
-        return try getResultsRows(req, query: sql, decodeUsing: Journal.self)
-            .map(to: [Journal].self) { journals in
-            return journals.map({ $0.reportDateToLocal() })
+        return try getResultsRows(req, query: sql, decodeUsing: Journal.self).map { journals in
+            return journals.map { $0.reportDateToLocal() }
         }
             
     }
@@ -209,8 +199,8 @@ class MySQLDirect {
             WHERE p.ProjectID = \(projectId)
             ORDER BY pe.Name, r.StartDate
         """
-        return try getResultsRows(req, query: sql, decodeUsing: RateList.self).map(to: [RateList].self) { result in
-            return result.map({ $0.toLocalDates() })
+        return try getResultsRows(req, query: sql, decodeUsing: RateList.self).map { result in
+            return result.map { $0.toLocalDates() }
         }
     }
     

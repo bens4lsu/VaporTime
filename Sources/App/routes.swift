@@ -1,6 +1,7 @@
 import Vapor
 import FluentMySQLDriver
 import Crypto
+import SQLKit
 
 /// Register your application's routes here.
 public func routes(_ app: Application) throws {
@@ -10,54 +11,59 @@ public func routes(_ app: Application) throws {
     
     // route collections
     let userAndTokenController = UserAndTokenController(cache)
-    try router.register(collection: userAndTokenController)
-    try router.register(collection: TimeBillingController(cache))
-    try router.register(collection: ReportController(cache))
-    try router.register(collection: ProjectController(cache))
+    try app.register(collection: userAndTokenController)
+    try app.register(collection: TimeBillingController(cache))
+    try app.register(collection: ReportController(cache))
+    try app.register(collection: ProjectController(cache))
     
     
     // MARK:  Miscellaneous Routes
     
-    router.get { req-> EventLoopFuture<Response> in
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .activeOnly) { user in
-            
-            struct IndexContext: Codable {
-                var version: String
-                var accessDictionary: [String: Bool]
+    app.get { req throws -> EventLoopFuture<Response> in
+        
+        struct IndexContext: Encodable, ResponseEncodable, Content {
+            func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
+                let response = Response(status: HTTPResponseStatus(statusCode: 200))
+                
+                // TODO:  get rid of !
+                try! response.content.encode(self)
+                return request.eventLoop.future(response)
             }
             
+            var version: String
+            var accessDictionary: [String: Bool]
+        }
+        
+        return try UserAndTokenController.verifyAccess(req, accessLevel: .activeOnly) { user in
             let version = Version().version
             let accessDictionary = user.accessDictionary()
             let context = IndexContext(version: version, accessDictionary: accessDictionary)
-            
-            return try req.view.render("index", context).encode(for: req)
+            return req.view.render("index", context).encodeResponse(for: req)
         }
     }
     
 
     // test sql connectivity
-    struct MySQLVersion: Codable {
+    struct MySQLVersion: Decodable {
         let version: String
     }
-    
-    router.get("sql") { req in
-        return req.withPooledConnection(to: .mysql) { conn in
-            return conn.raw("SELECT @@version as version")
-                .all(decoding: MySQLVersion.self)
-        }.map { rows in
-            return rows[0].version
+        
+    app.get("sql") { req -> EventLoopFuture<String> in
+        let queryString = SQLQueryString(stringLiteral: "SELECT @@version as version")
+        return (req.db as! SQLDatabase).raw(queryString).first(decoding: MySQLVersion.self).map { mySqlVersion in
+            return mySqlVersion?.version ?? "error retrieving mysql version"
         }
     }
     
     
-    router.get("blankpage") { req in
-        return try req.future("").encode(for: req)
+    app.get("blankpage") { req in
+        return req.eventLoop.makeSucceededFuture("")
     }
     
     
-    router.get("clearcache") {req in
-        return req.future(cache.clear()).map() {
-            return try req.future("Caches Cleard.").encode(for: req)
+    app.get("clearcache") { req in
+        return req.eventLoop.makeSucceededFuture(cache.clear()).map() {
+            return req.eventLoop.makeSucceededFuture("Caches Cleard.")
         }
     }
 
