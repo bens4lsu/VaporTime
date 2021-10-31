@@ -40,46 +40,40 @@ class DataCache {
         savedTrees = [:]
     }
     
-    public func getLookupContext(_ req: Request) throws -> EventLoopFuture<LookupContext> {
+    public func getLookupContext(_ req: Request) async throws -> LookupContext {
         if let context = cachedLookupContext {
-            return req.eventLoop.makeSucceededFuture(context)
+            return context
         }
-        return try db.getLookupTrinity(req).flatMap(to: LookupContext.self) { lookupTrinity in
-            return try self.db.getLookupPerson(req).flatMap(to: LookupContext.self) { lookupPerson in
-                return RefProjectStatuses.query(on: req.db).all().flatMap(to: LookupContext.self) { projectStatuses in
-                    return try self.db.getEventTypes(req).flatMap(to: LookupContext.self) { eventTypes in
-                        return LuRateSchedules.query(on: req.db).all().flatMap(to: LookupContext.self) { rateSchedules in
-                            let statuses = projectStatuses.sorted()
-                            let context = LookupContext(contracts: lookupTrinity.contracts.sorted(),
-                                                        companies: lookupTrinity.companies.sorted(),
-                                                        projects: lookupTrinity.projects.sorted(),
-                                                        timeBillers: lookupPerson.sorted(),
-                                                        groupBy: ReportGroupBy.list(),
-                                                        projectStatuses: statuses,
-                                                        eventTypes: eventTypes,
-                                                        rateSchedules: rateSchedules)
-                            self.cachedLookupContext = context
-                            return req.future(context)
-                        }
-                    }
-                }
-            }
-        }
+        
+        async let lookupTrinitiyTask = try db.getLookupTrinity(req)
+        async let lookupPerson = try db.getLookupPerson(req)
+        async let projectStatuses = try RefProjectStatuses.query(on: req.db).all()
+        async let eventTypes = try db.getEventTypes(req)
+        async let rateSchedules = try LuRateSchedules.query(on: req.db).all()
+        let statuses = try await projectStatuses.sorted()
+        let lookupTrinity = try await lookupTrinitiyTask
+        let context = LookupContext(contracts: lookupTrinity.contracts.sorted(),
+                                    companies: lookupTrinity.companies.sorted(),
+                                    projects:  lookupTrinity.projects.sorted(),
+                                    timeBillers: try await lookupPerson.sorted(),
+                                    groupBy: ReportGroupBy.list(),
+                                    projectStatuses: statuses,
+                                    eventTypes: try await eventTypes,
+                                    rateSchedules: try await rateSchedules)
+        cachedLookupContext = context
+        return context
     }
     
     
-    public func getProjectTree(_ req: Request, userId: Int) throws -> EventLoopFuture<TBTreeContext> {
+    public func getProjectTree(_ req: Request, userId: Int) async throws -> TBTreeContext {
         if let tree = self.savedTrees[userId] {
-            return req.future(tree)
+            return tree
         }
-        return try db.getTBTree(req, userId: userId).flatMap(to:TBTreeContext.self) { items in
-            let treeItems = self.convertDbItemsToTreeItems(items: items)
-            return req.future().map() {
-                let tree = TBTreeContext(items: treeItems)
-                self.savedTrees[userId] = tree
-                return tree
-            }
-        }
+        let items = try await db.getTBTree(req, userId: userId)
+        let treeItems = convertDbItemsToTreeItems(items: items)
+        let tree = TBTreeContext(items: treeItems)
+        savedTrees[userId] = tree
+        return tree
     }
     
     private func convertDbItemsToTreeItems(items: [TBTreeColumn]) -> [TBTreeItem] {

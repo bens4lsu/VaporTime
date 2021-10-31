@@ -51,6 +51,7 @@ class ConfigKeys: Codable {
             let data = try Data(contentsOf: url)
             let decoder = try JSONDecoder().decode(ConfigKeys.self, from: data)
             self.database = decoder.database
+            self.listenOnPort = decoder.listenOnPort
             self.tokenExpDuration = decoder.tokenExpDuration
             self.bugUrl = decoder.bugUrl
             self.myCompany = decoder.myCompany

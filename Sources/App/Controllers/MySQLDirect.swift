@@ -11,6 +11,7 @@ import FluentMySQLDriver
 import Vapor
 
 class MySQLDirect {
+    
         
     let dateFormatter: DateFormatter =  {
         let formatter = DateFormatter()
@@ -25,25 +26,24 @@ class MySQLDirect {
         return "'\(dateFormatter.string(from: unwrapped))'"
     }
     
-    private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> EventLoopFuture<[T]> {
+    private func getResultsRows<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) async throws -> [T] {
         let queryString = SQLQueryString(stringLiteral: query)
-        return (req.db as! SQLDatabase).raw(queryString).all(decoding: T.self)
+        return try await (req.db as! SQLDatabase).raw(queryString).all(decoding: T.self).get()
     }
     
-    private func getResultRow<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) throws -> EventLoopFuture<T?> {
+    private func getResultRow<T: Decodable>(_ req: Request, query: String, decodeUsing: T.Type) async throws -> T? {
         let queryString = SQLQueryString(stringLiteral: query)
-        return (req.db as! SQLDatabase).raw(queryString).first(decoding: T.self)
+        return try await (req.db as! SQLDatabase).raw(queryString).first(decoding: T.self).get()
     }
     
-    private func issueQuery (_ req: Request, query: String) throws -> EventLoopFuture<Void> {
+    private func issueQuery (_ req: Request, query: String) async throws  {
         let queryString = SQLQueryString(stringLiteral: query)
-        return (req.db as! SQLDatabase).raw(queryString).all().map { _ in
-            return
-        }
+        let _ = try await(req.db as! SQLDatabase).raw(queryString).all().get()
+        return
     }
     
     
-    func getTBTable(_ req: Request, userId: Int) throws -> EventLoopFuture<[TBTableColumns]> {
+    func getTBTable(_ req: Request, userId: Int) async throws -> [TBTableColumns] {
         let sql = """
             SELECT t.TimeID, c.Description, p.ProjectNumber, p.ProjectDescription,
                 t.WorkDate, t.Duration,
@@ -55,12 +55,10 @@ class MySQLDirect {
             WHERE t.PersonID = \(userId) AND ExportStatus = 0 ORDER BY t.WorkDate
         """
         
-        return try getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self).map { rows in
-            return rows.map{ $0.toLocalTime() }
-        }
+        return try await getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self).map { $0.toLocalTime() }
     }
     
-    func getTBTree(_ req: Request, userId: Int) throws -> EventLoopFuture<[TBTreeColumn]> {
+    func getTBTree(_ req: Request, userId: Int) async throws -> [TBTreeColumn] {
         let sql = """
             SELECT ppp.ContractID,
                 ppp.ProjectID,
@@ -78,10 +76,10 @@ class MySQLDirect {
                 AND p.IsActive = 1
                 AND ppp.PersonID = \(userId)
         """
-        return try getResultsRows(req, query: sql, decodeUsing: TBTreeColumn.self)
+        return try await getResultsRows(req, query: sql, decodeUsing: TBTreeColumn.self)
     }
     
-    func getTBAdd(_ req: Request, projectId: Int) throws -> EventLoopFuture<TBEditProjectLabel?> {
+    func getTBAdd(_ req: Request, projectId: Int) async throws -> TBEditProjectLabel? {
             let sql = """
                 SELECT c.Description, co.CompanyName, p.ProjectDescription, p.ProjectNumber, p.ProjectID
                 FROM fProjects p
@@ -89,10 +87,10 @@ class MySQLDirect {
                     JOIN LuCompanies co ON p.ServicesForCompany = co.CompanyID
                 WHERE p.ProjectID = \(projectId)
             """
-        return try getResultRow(req, query: sql, decodeUsing: TBEditProjectLabel.self)
+        return try await getResultRow(req, query: sql, decodeUsing: TBEditProjectLabel.self)
     }
     
-    func getReportData(_ req: Request, filters: ReportFilters, userId: Int) throws -> EventLoopFuture<[ReportData]> {
+    func getReportData(_ req: Request, filters: ReportFilters, userId: Int) async throws -> [ReportData] {
         var sql = """
             SELECT FirstDayOfWeekMonday AS FirstDayOfWeekMonday,
                 FirstOfMonth AS FirstOfMonth,
@@ -126,12 +124,10 @@ class MySQLDirect {
         if let projectId = filters.projectId {
             sql += " AND p.ProjectID = \(projectId)"
         }
-        return try getResultsRows(req, query: sql, decodeUsing: ReportData.self).map { data in
-            return data.map({ $0.toLocal() })
-        }
+        return try await getResultsRows(req, query: sql, decodeUsing: ReportData.self).map { $0.toLocal() }
     }
     
-    func getLookupTrinity(_ req: Request) throws -> EventLoopFuture<[LookupTrinity]> {
+    func getLookupTrinity(_ req: Request) async throws -> [LookupTrinity] {
             let sql = """
                 SELECT c.Description AS ContractDescription,
                     p.ProjectDescription,
@@ -145,15 +141,15 @@ class MySQLDirect {
                     JOIN LuCompanies pc ON p.ServicesForCompany = pc.CompanyID
                 WHERE ContractCompleted = 0
             """
-        return try getResultsRows(req, query: sql, decodeUsing: LookupTrinity.self)
+        return try await getResultsRows(req, query: sql, decodeUsing: LookupTrinity.self)
     }
     
-    func getLookupPerson(_ req: Request) throws -> EventLoopFuture<[LookupPerson]> {
+    func getLookupPerson(_ req: Request) async throws -> [LookupPerson] {
         let sql = "SELECT PersonID, `Name` FROM LuPeople WHERE BillsTime = 1"
-        return try getResultsRows(req, query: sql, decodeUsing: LookupPerson.self)
+        return try await getResultsRows(req, query: sql, decodeUsing: LookupPerson.self)
     }
     
-    func getTimeForProject(_ req: Request, projectId: Int) throws -> EventLoopFuture<TotalTime> {
+    func getTimeForProject(_ req: Request, projectId: Int) async throws -> TotalTime {
         let sql = """
             SELECT SUM(t.Duration) AS TotalTime,
                 SUM(t.Duration) / MAX(ProjectedTime) * 100 AS CompletionByTime,
@@ -163,16 +159,15 @@ class MySQLDirect {
             WHERE t.ProjectID = \(projectId)
             GROUP BY t.ProjectID
         """
-        return try getResultRow(req, query: sql, decodeUsing: TotalTime.self).flatMap{ tt in
-            let totalTime = TotalTime (
-                TotalTime: tt?.TotalTime ?? 0.0,
-                CompletionByTime: tt?.CompletionByTime ?? 0.1,
-                CompletionByDate: tt?.CompletionByDate ?? 0.1)
-            return req.eventLoop.makeSucceededFuture(totalTime)
-        }
+        let tt =  try await getResultRow(req, query: sql, decodeUsing: TotalTime.self)
+        return TotalTime (
+            TotalTime: tt?.TotalTime ?? 0.0,
+            CompletionByTime: tt?.CompletionByTime ?? 0.1,
+            CompletionByDate: tt?.CompletionByDate ?? 0.1)
+        
     }
     
-    func getJournalForProject(_ req: Request, projectId: Int) throws ->  EventLoopFuture<[Journal]> {
+    func getJournalForProject(_ req: Request, projectId: Int) async throws ->  [Journal] {
         let sql = """
             SELECT ev.ReportDate, ev.Notes, r.EventDescription,
                 r.EventWhoGenerates, p.Name,
@@ -183,13 +178,10 @@ class MySQLDirect {
             WHERE ev.ProjectID = \(projectId)
             ORDER BY ev.ReportDate DESC, ev.ProjectEventID DESC
         """
-        return try getResultsRows(req, query: sql, decodeUsing: Journal.self).map { journals in
-            return journals.map { $0.reportDateToLocal() }
-        }
-            
+        return try await getResultsRows(req, query: sql, decodeUsing: Journal.self).map {  $0.reportDateToLocal() }
     }
     
-    func getRatesForProject(_ req: Request, projectId: Int) throws -> EventLoopFuture<[RateList]> {
+    func getRatesForProject(_ req: Request, projectId: Int) async throws -> [RateList] {
         let sql = """
             SELECT pe.Name, rs.RateDescription, r.StartDate, r.EndDate
             FROM fProjects p
@@ -199,36 +191,34 @@ class MySQLDirect {
             WHERE p.ProjectID = \(projectId)
             ORDER BY pe.Name, r.StartDate
         """
-        return try getResultsRows(req, query: sql, decodeUsing: RateList.self).map { result in
-            return result.map { $0.toLocalDates() }
-        }
+        return try await getResultsRows(req, query: sql, decodeUsing: RateList.self).map { $0.toLocalDates() }
     }
     
 
     
-    func getEventTypes(_ req: Request) throws -> EventLoopFuture<[LookupContextPair]> {
+    func getEventTypes(_ req: Request) async throws -> [LookupContextPair] {
         let sql = """
             SELECT EventID AS id, EventDescription AS name
             FROM RefProjectEventsReportable
             WHERE EventWhoGenerates = 'USER'
             ORDER BY SortOrder
         """
-        return try getResultsRows(req, query: sql, decodeUsing: LookupContextPair.self)
+        return try await getResultsRows(req, query: sql, decodeUsing: LookupContextPair.self)
     }
     
     
     // MARK: Methods that modify data
     
-    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) throws -> EventLoopFuture<Void> {
+    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) async throws {
         let sql = """
             UPDATE fTime
             SET ExportStatus = 1
             WHERE ProjectID = \(projectId)
         """
-        return try issueQuery(req, query: sql)
+        return try await issueQuery(req, query: sql)
     }
     
-    func addProjectRateSchedule(_ req: Request, projectId: Int, personId: Int, rateScheduleId: Int, startDate: Date?, endDate: Date?) throws -> EventLoopFuture<Void> {
+    func addProjectRateSchedule(_ req: Request, projectId: Int, personId: Int, rateScheduleId: Int, startDate: Date?, endDate: Date?) async throws {
         let startDateString = quotedDateOrNull(startDate)
         let endDateString = quotedDateOrNull(endDate)
         let sql = """
@@ -237,17 +227,17 @@ class MySQLDirect {
             FROM fProjects
             WHERE ProjectID = \(projectId)
         """
-        return try issueQuery(req, query: sql)
+        return try await issueQuery(req, query: sql)
     }
     
-    func deleteExpiredAndCompleted(_ req: Request, resetKey: String) throws -> EventLoopFuture<Void> {
+    func deleteExpiredAndCompleted(_ req: Request, resetKey: String) async throws {
         let sql = """
             DELETE
             FROM fPasswordResetRequests
             WHERE BIN_TO_UUID(ResetRequestKey) = '\(resetKey)'
             OR Expiration < NOW()
         """
-        return try issueQuery(req, query: sql)
+        return try await issueQuery(req, query: sql)
     }
 }
 

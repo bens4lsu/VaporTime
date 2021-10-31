@@ -1,10 +1,10 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 import PackageDescription
 
 let package = Package(
     name: "VaporTime",
     platforms: [
-        .macOS(.v10_15),
+        .macOS(.v12),
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
@@ -35,7 +35,7 @@ let package = Package(
                     // builds. See <https://github.com/swift-server/guides#building-for-production> for details.
                     .unsafeFlags(["-cross-module-optimization"], .when(configuration: .release))
                 ]),
-        .target(name: "Run", dependencies: ["App"]),
+        .executableTarget(name: "Run", dependencies: [.target(name: "App")]),
         .testTarget(name: "AppTests", dependencies: [
             .target(name: "App"),
             .product(name: "XCTVapor", package: "vapor")])

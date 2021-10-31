@@ -56,16 +56,16 @@ class UserAndTokenController: RouteCollection {
     
     
     // MARK:  Methods connected to routes that return Views
-    private func renderLogin(_ req: Request) throws -> EventLoopFuture<View> {
-        return req.view.render("users-login")
+    private func renderLogin(_ req: Request) async throws -> View {
+        return try await req.view.render("users-login")
     }
     
-    private func renderUserCreate(_ req: Request) throws -> EventLoopFuture<View> {
-        return req.view.render("users-create")
+    private func renderUserCreate(_ req: Request) async throws -> View {
+        return try await req.view.render("users-create")
     }
     
-    private func renderCheckEmail(_ req: Request) throws -> EventLoopFuture<View> {
-        return req.view.render("users-password-check-email")
+    private func renderCheckEmail(_ req: Request) throws -> View {
+        return try await req.view.render("users-password-check-email")
     }
     
     
