@@ -230,14 +230,15 @@ class MySQLDirect {
         return try await issueQuery(req, query: sql)
     }
     
-    func deleteExpiredAndCompleted(_ req: Request, resetKey: String) async throws {
+    func deleteExpiredAndCompleted(_ req: Request, resetKey: String) async throws -> Bool {
         let sql = """
             DELETE
             FROM fPasswordResetRequests
             WHERE BIN_TO_UUID(ResetRequestKey) = '\(resetKey)'
             OR Expiration < NOW()
         """
-        return try await issueQuery(req, query: sql)
+        try await issueQuery(req, query: sql)
+        return true
     }
 }
 
