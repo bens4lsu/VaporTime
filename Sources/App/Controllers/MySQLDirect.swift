@@ -209,13 +209,14 @@ class MySQLDirect {
     
     // MARK: Methods that modify data
     
-    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) async throws {
+    func markTimeBillingItemsAsSatisfiedForProject(_ req: Request, projectId: Int) async throws -> Bool {
         let sql = """
             UPDATE fTime
             SET ExportStatus = 1
             WHERE ProjectID = \(projectId)
         """
-        return try await issueQuery(req, query: sql)
+        try await issueQuery(req, query: sql)
+        return true
     }
     
     func addProjectRateSchedule(_ req: Request, projectId: Int, personId: Int, rateScheduleId: Int, startDate: Date?, endDate: Date?) async throws {

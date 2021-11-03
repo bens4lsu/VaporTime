@@ -33,76 +33,70 @@ class ProjectController: RouteCollection {
     
     // MARK:  Rendering Routes
     
-    private func renderProjectTree(_ req: Request) throws -> EventLoopFuture<Response> {
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return try self.cache.getProjectTree(req, userId: user.id).flatMap(to:Response.self) { context in
-                var updatePage = context
-                updatePage.editPage = "ProjectAddEdit"
-                updatePage.heading = "Edit Project"
-                updatePage.parentWindow = "frPrDetails"
-                return try req.view.render("time-tree", updatePage).encode(for: req)
-            }
+    private func renderProjectTree(_ req: Request) async throws -> Response {
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
+            let context = try await cache.getProjectTree(req, userId: user.id)
+            var updatePage = context
+            updatePage.editPage = "ProjectAddEdit"
+            updatePage.heading = "Edit Project"
+            updatePage.parentWindow = "frPrDetails"
+            return try await req.view.render("time-tree", updatePage).encodeResponse(for: req)
         }
+
     }
     
-    private func renderProjectAddEdit(_ req: Request)throws -> EventLoopFuture<Response> {
+    private func renderProjectAddEdit(_ req: Request) async throws -> Response {
         let optProjectId = try? req.query.get(Int.self, at: "projectId")
         
-        return try UserAndTokenController.verifyAccess(req, accessLevel: UserAccessLevel.timeBilling) { user in
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
+            async let lookupTask = cache.getLookupContext(req)
             
-            return try self.cache.getLookupContext(req).flatMap(to:Response.self) { lookup in
-                
-                guard let projectId = optProjectId else {
-                    return try req.view.render("project", ["lookup" : lookup]).encode(for: req)
-                }
-                
-                //update existing project
-                return Project.find(projectId, on: req).flatMap(to: Response.self) { project in
-                    guard var project = project else {
-                        throw Abort(.badRequest, reason: "no project returned based on request with project id \(projectId)")
-                    }
-                    
-                    project.startDate = project.startDate?.asLocal
-                    project.projectedDateComplete = project.projectedDateComplete?.asLocal
-                    
-                    return try self.db.getTimeForProject(req, projectId: projectId).flatMap(to: Response.self) { totalTime in
-                        
-                        return try self.db.getRatesForProject(req, projectId: projectId).flatMap(to: Response.self) { rateLists in
-                            
-                            return try self.db.getJournalForProject(req, projectId: projectId).flatMap(to: Response.self) { journals in
-                            
-                                var strBugID = ""
-                                if let bugId = project.mantisProjectId {
-                                    strBugID = "\(bugId)"
-                                }
-                                let bugLink = self.cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
-                                let context = ProjectAddEdit(lookup: lookup, project: project, totalTime: totalTime, buglink: bugLink, journals: journals, rateLists: rateLists)
-                                return try req.view.render("project", context).encode(for: req)
-                            }
-                        }
-                    }
-                }
+            guard let projectId = optProjectId else {
+                return try await req.view.render("project", ["lookup" : await lookupTask]).encodeResponse(for: req)
             }
+            
+            guard let project = try await Project.find(projectId, on: req.db) else {
+                throw Abort(.badRequest, reason: "no project returned based on request with project id \(projectId)")
+            }
+            
+            project.startDate = project.startDate?.asLocal
+            project.projectedDateComplete = project.projectedDateComplete?.asLocal
+            async let totalTimeTask = db.getTimeForProject(req, projectId: projectId)
+            async let rateListsTask = db.getRatesForProject(req, projectId: projectId)
+            async let journalsTask = db.getJournalForProject(req, projectId: projectId)
+            var strBugID = ""
+            if let bugId = project.mantisProjectId {
+                strBugID = "\(bugId)"
+            }
+            let bugLink = cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
+            let context = ProjectAddEdit(lookup: try await lookupTask,
+                                         project: project,
+                                         totalTime: try await totalTimeTask,
+                                         buglink: bugLink,
+                                         journals: try await journalsTask,
+                                         rateLists: try await rateListsTask)
+            return try await req.view.render("project", context).encodeResponse(for: req)
+            
         }
     }
     
     
     // MARK: Updating routes
     
-    private func addEditProject(_ req: Request) throws -> EventLoopFuture<Response> {
+    private func addEditProject(_ req: Request) async throws -> Response {
         
-        let projectId = try? req.content.syncGet(Int.self, at: "projectId")
-        let inp_contractId = try? req.content.syncGet(Int.self, at: "contractId")
-        let inp_servicesForCompanyId = try? req.content.syncGet(Int.self, at: "companyId")
-        let inp_description = (try? req.content.syncGet(String.self, at: "description"))
-        let projectNumber = (try? req.content.syncGet(String.self, at: "projectNumber")) ?? ""
-        let statusId = try? req.content.syncGet(Int.self, at: "statusId")
-        let notes = (try? req.content.syncGet(String.self, at: "notes")) ?? ""
-        let mantisId = try? req.content.syncGet(Int.self, at: "mantisId")
-        let hideTimeReporting = (try? req.content.syncGet(at: "hideTimeReporting")).toBool()
-        let projectedTime = try? req.content.syncGet(Double.self, at: "projectedTime")
-        let startDate = (try? req.content.syncGet(at: "startDate")).toDate()
-        let endDate = (try? req.content.syncGet(at: "endDate")).toDate()
+        let projectId = try? req.query.get(Int.self, at: "projectId")
+        let inp_contractId = try? req.query.get(Int.self, at: "contractId")
+        let inp_servicesForCompanyId = try? req.query.get(Int.self, at: "companyId")
+        let inp_description = try? req.query.get(String.self, at: "description")
+        let projectNumber = (try? req.query.get(String.self, at: "projectNumber")) ?? ""
+        let statusId = try? req.query.get(Int.self, at: "statusId")
+        let notes = (try? req.query.get(String.self, at: "notes")) ?? ""
+        let mantisId = try? req.query.get(Int.self, at: "mantisId")
+        let hideTimeReporting = (try? req.query.get(String.self, at: "hideTimeReporting")).toBool()
+        let projectedTime = try? req.query.get(Double.self, at: "projectedTime")
+        let startDate = (try? req.query.get(at: "startDate")).toDate()
+        let endDate = (try? req.query.get(at: "endDate")).toDate()
         
         let isNewProject = projectId == nil
         
@@ -110,74 +104,62 @@ class ProjectController: RouteCollection {
             throw Abort(.badRequest, reason: "Project add or update entry submitted without at least one required value (contract, services for, description).")
         }
         
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            return self.getPreUpdatedProject(projectId, on: req).flatMap(to: Response.self) { oldProject in
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
+            async let oldProject = getPreUpdatedProject(projectId, on: req)
+            let project = Project(id: projectId, contractId: contractId, companyId: servicesForCompanyId, description: description, statusId: statusId, projectNumber: projectNumber, statusNotes: notes, mantisProjectId: mantisId, isActive: true, projectedTime: projectedTime, projectedDateComplete: endDate, pmProjectId: nil, hideTimeReporting: hideTimeReporting, startDate: startDate)
+            try await project.save(on: req.db)
             
-                let project = Project(id: projectId, contractId: contractId, companyId: servicesForCompanyId, description: description, statusId: statusId, projectNumber: projectNumber, statusNotes: notes, mantisProjectId: mantisId, isActive: true, projectedTime: projectedTime, projectedDateComplete: endDate, pmProjectId: nil, hideTimeReporting: hideTimeReporting, startDate: startDate)
-                
-                return project.save(on: req).flatMap(to: Response.self) { projectRow in
-                    
-                    guard let newProjectId = projectRow.id else {
-                        throw Abort(.internalServerError, reason: "The update to the project table may have failed.  Check system logs.")
-                    }
-                        
-                    // we're going to clear the cache on any update.  The description might have changed.
-                    self.cache.clear()
-                    
-                    // for new projects add the system event to the journal and return the project page
-                    if isNewProject {
-                        let projectEvent = ProjectEvent(projectId: newProjectId, eventId: 21, personId: user.id)
-                        return projectEvent.save(on: req).flatMap(to: Response.self) { event in
-                            return self.futureRedirectResponse(path: "ProjectAddEdit?projectId=\(newProjectId)", req: req)
-                        }
-                    }
-                        
-                    // for existing projects, have to check for changes and add journal entries where they belong
-                    else {
-                        try self.addProjectJournalUpdateEntries(oldProject: oldProject, project: projectRow, req: req, person: user.id)
-                        return self.futureRedirectResponse(path: "ProjectAddEdit?projectId=\(newProjectId)", req: req)
-                    }
-                }
+            guard let newProjectId = project.id else {
+                throw Abort(.internalServerError, reason: "The update to the project table may have failed.  Check system logs.")
+            }
+            
+            cache.clear()
+            if isNewProject {
+                let projectEvent = ProjectEvent(projectId: newProjectId, eventId: 21, personId: user.id)
+                try await projectEvent.save(on: req.db)
+                return req.redirect(to: "ProjectAddEdit?projectId=\(newProjectId)")
+            }
+            else {
+                try await addProjectJournalUpdateEntries(oldProject: oldProject, project: project, req: req, person: user.id)
+                return req.redirect(to: "ProjectAddEdit?projectId=\(newProjectId)")
             }
         }
     }
     
     
-    private func closeProject(_ req: Request) throws -> EventLoopFuture<Response> {
-        let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
+    private func closeProject(_ req: Request) async throws -> Response {
+        let ajaxProjectId = try? req.query.get(Int.self, at: "projectId")
         
         guard let projectId = ajaxProjectId else {
             throw Abort (.badRequest, reason: "Request to close a project without a projectID")
         }
         
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            
-            return Project.find(projectId, on: req).flatMap(to: Response.self) { optionalProject in
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
+            let optionalProject = try await Project.find(projectId, on: req.db)
                 
-                guard var project = optionalProject else {
-                    return try ("Error:  no project found with id number \(projectId).").encode(for: req)
-                }
-            
-                project.isActive = false
-                return project.save(on: req).flatMap(to: Response.self) { _ in
-                    self.cache.clear()
-                    
-                    // now we have to clear associated time billing items
-                    return try self.db.markTimeBillingItemsAsSatisfiedForProject(req, projectId: projectId).flatMap(to: Response.self) {
-                        return try ("ok").encode(for: req)
-                    }
-                }
+            guard let project = optionalProject else {
+                return try await ("Error:  no project found with id number \(projectId).").encodeResponse(for: req)
             }
+            
+            project.isActive = false
+            async let savedProject = project.saveAndReturn(on: req.db)
+            self.cache.clear()
+                    
+            // now we have to clear associated time billing items
+            async let tbMarker = db.markTimeBillingItemsAsSatisfiedForProject(req, projectId: projectId)
+            let _ = try await savedProject
+            let _ = try await tbMarker
+            return try await ("ok").encodeResponse(for: req)
         }
     }
     
     
-    private func addJournal(_ req: Request)throws -> EventLoopFuture<Response> {
-        let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
-        let journalId = try? req.content.syncGet(Int.self, at: "journalId")
-        let eventId = try? req.content.syncGet(Int.self, at: "eventId")
-        let ajaxEventDate = (try? req.content.syncGet(at: "eventDate")).toDate()
-        let notes = (try? req.content.syncGet(String.self, at: "notes")) ?? ""
+    private func addJournal(_ req: Request) async throws -> Response {
+        let ajaxProjectId = try? req.query.get(Int.self, at: "projectId")
+        let journalId = try? req.query.get(Int.self, at: "journalId")
+        let eventId = try? req.query.get(Int.self, at: "eventId")
+        let ajaxEventDate = (try? req.query.get(at: "eventDate")).toDate()
+        let notes = (try? req.query.get(String.self, at: "notes")) ?? ""
 
         guard let projectId = ajaxProjectId else {
             throw Abort (.badRequest, reason: "Request to close a project without a projectID")
@@ -187,132 +169,123 @@ class ProjectController: RouteCollection {
             throw Abort (.badRequest, reason: "Journal entries require an event date.")
         }
     
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
             let entry = ProjectEvent(projectId: projectId, id: journalId, eventId: eventId, eventDate: eventDate, personId: user.id, notes: notes)
-         
-            return entry.save(on: req).flatMap(to: Response.self) { _ in
-                return try req.future("ok").encode(for: req)
-            }
+            try await entry.save(on: req.db)
+            return try await ("ok").encodeResponse(for: req)
         }
     }
     
     
-    private func addRateSchedule(_ req: Request)throws -> EventLoopFuture<Response> {
-        let ajaxProjectId = try? req.content.syncGet(Int.self, at: "projectId")
-        let ajaxPersonId = try? req.content.syncGet(Int.self, at: "personId")
-        let ajaxRateScheduleId = try? req.content.syncGet(Int.self, at: "rateScheduleId")
-        let rateStartDate = (try? req.content.syncGet(at: "rateStartDate")).toDate()
-        let rateEndDate = (try? req.content.syncGet(at: "rateEndDate")).toDate()
+    private func addRateSchedule(_ req: Request) async throws -> Response {
+        let ajaxProjectId = try? req.query.get(Int.self, at: "projectId")
+        let ajaxPersonId = try? req.query.get(Int.self, at: "personId")
+        let ajaxRateScheduleId = try? req.query.get(Int.self, at: "rateScheduleId")
+        let rateStartDate = (try? req.query.get(at: "rateStartDate")).toDate()
+        let rateEndDate = (try? req.query.get(at: "rateEndDate")).toDate()
         
         guard let projectId = ajaxProjectId, let personId = ajaxPersonId, let rateScheduleId = ajaxRateScheduleId else {
             throw Abort(.badRequest, reason: "Add Rate Schedule requested with at least one required field missing (project ID, person ID, rate schedule ID.")
         }
     
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .timeBilling) { user in
-            
-            return try self.db.addProjectRateSchedule(req, projectId: projectId, personId: personId, rateScheduleId: rateScheduleId, startDate: rateStartDate, endDate: rateEndDate).flatMap(to:Response.self) { _ in
-                
-                return try req.future("ok").encode(for: req)
-            }
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
+            try await db.addProjectRateSchedule(req, projectId: projectId, personId: personId, rateScheduleId: rateScheduleId, startDate: rateStartDate, endDate: rateEndDate)
+            return try await ("ok").encodeResponse(for: req)
         }
     }
     
     
     // MARK:  Helper functions
     
-    private func getPreUpdatedProject(_ id: Int?, on req: Request) -> EventLoopFuture<Project?> {
+    private func getPreUpdatedProject(_ id: Int?, on req: Request) async -> Project? {
         
         guard let projectId = id else {
-            return req.future(nil)
+            return nil
         }
-        return Project.find(projectId, on: req).map(to: Project?.self) { foundProject in
-            guard var project = foundProject else {
-                return nil
-            }
+        
+        guard let project = try? await Project.find(projectId, on: req.db) else {
+            return nil
+        }
             
-            project.startDate = project.startDate?.asLocal
-            project.projectedDateComplete = project.projectedDateComplete?.asLocal
-            return project
-        }
+        project.startDate = project.startDate?.asLocal
+        project.projectedDateComplete = project.projectedDateComplete?.asLocal
+        return project
     }
     
-    private func addProjectJournalUpdateEntries(oldProject: Project?, project new: Project, req: Request, person: Int) throws {
+    private func addProjectJournalUpdateEntries(oldProject: Project?, project new: Project, req: Request, person: Int) async throws {
         guard let old = oldProject, let id = new.id else {
             return
         }
-                
-        // projected time changed
-        if old.projectedTime != new.projectedTime {
-            let oldTimeString = old.projectedTime == nil ? "not set" : String(old.projectedTime!)
-            let newTimeString = new.projectedTime == nil ? "not set" : String(new.projectedTime!)
-            let message = "Estimate changed from \(oldTimeString) to \(newTimeString) hours."
-            let _ = ProjectEvent(projectId: id, eventId: 18, personId: person, notes: message).save(on: req)
-        }
         
-    
-        // projected date changed
-        if !old.projectedDateComplete.isSameDayAs(new.projectedDateComplete) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MM/dd/yyyy"
-            formatter.timeZone = .current
-            let oldDateString = old.projectedDateComplete == nil ? "not set" : formatter.string(from: old.projectedDateComplete!)
-            let newDateString = new.projectedDateComplete == nil ? "not set" : formatter.string(from: new.projectedDateComplete!)
-            let message = "Completion date changed from \(oldDateString) to \(newDateString)."
-            let _ = ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).save(on:req)
-            //let _ = ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).save(on: req)
-        }
+        try await withThrowingTaskGroup(of: Bool.self) { group in
         
+            // projected time changed
+            if old.projectedTime != new.projectedTime {
+                let oldTimeString = old.projectedTime == nil ? "not set" : String(old.projectedTime!)
+                let newTimeString = new.projectedTime == nil ? "not set" : String(new.projectedTime!)
+                let message = "Estimate changed from \(oldTimeString) to \(newTimeString) hours."
+                group.addTask{
+                    return try await ProjectEvent(projectId: id, eventId: 18, personId: person, notes: message).saveAndReturn(on: req.db)
+                }
+            }
         
-        // status changed
-        if old.statusId != new.statusId {
-            let _ =  try getProjectStatusDescription(forStatus: old.statusId, req: req).flatMap() { oldStatusText -> EventLoopFuture<ProjectEvent> in
-                try self.getProjectStatusDescription(forStatus: new.statusId, req: req).flatMap() { newStatusText -> EventLoopFuture<ProjectEvent> in
-                    let message = "Status changed from \(oldStatusText) to \(newStatusText)."
-                    return ProjectEvent(projectId: id, eventId: 20, personId: person, notes: message).save(on: req)
+            // projected date changed
+            if !old.projectedDateComplete.isSameDayAs(new.projectedDateComplete) {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MM/dd/yyyy"
+                formatter.timeZone = .current
+                let oldDateString = old.projectedDateComplete == nil ? "not set" : formatter.string(from: old.projectedDateComplete!)
+                let newDateString = new.projectedDateComplete == nil ? "not set" : formatter.string(from: new.projectedDateComplete!)
+                let message = "Completion date changed from \(oldDateString) to \(newDateString)."
+                group.addTask {
+                    return try await ProjectEvent(projectId: id, eventId: 19, personId: person, notes: message).saveAndReturn(on:req.db)
+                }
+            }
+            
+            // status changed
+            if old.statusId != new.statusId {
+                async let oldStatusText = getProjectStatusDescription(forStatus: old.statusId, req: req)
+                async let newStatusText = getProjectStatusDescription(forStatus: new.statusId, req: req)
+                let message = "Status changed from \(try await oldStatusText) to \(try await newStatusText)."
+                group.addTask {
+                    return try await ProjectEvent(projectId: id, eventId: 20, personId: person, notes: message).saveAndReturn(on: req.db)
+                }
+            }
+            
+            // status note changed
+            if old.statusNotes != new.statusNotes {
+                group.addTask {
+                    var message = ""
+                    if old.statusNotes == nil || old.statusNotes == "" {
+                        message = "Status notes added.  Status notes were previously empty."
+                    }
+                    else {
+                        message = "Status notes updated.  Previous status notes were:  \n\(old.statusNotes!)"
+                    }
+                    return try await ProjectEvent(projectId: id, eventId: 25, personId: person, notes: message).saveAndReturn(on: req.db)
                 }
             }
         }
-        
-        // status note changed
-        if old.statusNotes != new.statusNotes {
-            var message = ""
-            if old.statusNotes == nil || old.statusNotes == "" {
-                message = "Status notes added.  Status notes were previously empty."
-            }
-            else {
-                message = "Status notes updated.  Previous status notes were:  \n\(old.statusNotes!)"
-            }
-            let _ = ProjectEvent(projectId: id, eventId: 25, personId: person, notes: message).save(on: req)
-        }
     }
     
-        
-    private func futureRedirectResponse(path: String, req: Request) ->  EventLoopFuture<Response> {
-        return req.future().map(to: Response.self) {
-            return req.redirect(to: path)
-        }
-    }
-    
-    private func getProjectStatusDescription(forStatus id: Int?, req: Request) throws -> EventLoopFuture<String> {
+    private func getProjectStatusDescription(forStatus id: Int?, req: Request) async throws -> String {
         guard let _ = id else {
-            return req.future("not set")
+            return "not set"
         }
         
-        return try self.cache.getLookupContext(req).flatMap(to: String.self) { lookup in
-            let ourStatus = lookup.projectStatuses.filter {
-                $0.id == id
-            }.first
+        let lookup = try await cache.getLookupContext(req)
+        let ourStatus = lookup.projectStatuses.filter {
+            $0.id == id
+        }.first
             
-            guard let ourStatusUnwrapped = ourStatus else {
-                return req.future("not set")
-            }
-            
-            return req.future(ourStatusUnwrapped.description)
+        guard let ourStatusUnwrapped = ourStatus else {
+            return "not set"
         }
+            
+        return ourStatusUnwrapped.description
     }
     
-    private func validateNoOverlappingRateSchedules(_ req: Request, contractId: Int, projectId: Int, personId: Int, startDate: Date, endDate: Date) -> EventLoopFuture<Bool> {
+    private func validateNoOverlappingRateSchedules(_ req: Request, contractId: Int, projectId: Int, personId: Int, startDate: Date, endDate: Date) -> Bool {
         
         // if no record for this contract/project/person, all good.
         // else if record exists for this contract/project/person, one of these must be true (for each record)
@@ -322,8 +295,6 @@ class ProjectController: RouteCollection {
         
         
         // TODO:  complete logic for this method
-        return req.future().map(to: Bool.self) {
-            return true
-        }
+        return true
     }
 }

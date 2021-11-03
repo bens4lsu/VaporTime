@@ -77,4 +77,21 @@ final class Project: Content, Model, Codable {
     }
     
     required init() { }
+    
+    init(id: Int?, contractId: Int, companyId: Int, description: String, statusId: Int?, projectNumber: String?, statusNotes: String?, mantisProjectId: Int?, isActive: Bool, projectedTime: Double?, projectedDateComplete: Date?, pmProjectId: Int?, hideTimeReporting: Bool?, startDate: Date?) {
+        self.id = id
+        self.contractId = contractId
+        self.companyId = companyId
+        self.description = description
+        self.statusId = statusId
+        self.projectNumber = projectNumber
+        self.statusNotes = statusNotes
+        self.mantisProjectId = mantisProjectId
+        self.isActive = isActive
+        self.projectedTime = projectedTime
+        self.projectedDateComplete = projectedDateComplete
+        self.pmProjectId = pmProjectId
+        self.hideTimeReporting = hideTimeReporting
+        self.startDate = startDate
+    }
 }

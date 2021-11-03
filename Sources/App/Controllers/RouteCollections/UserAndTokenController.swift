@@ -165,7 +165,7 @@ class UserAndTokenController: RouteCollection {
     }
     
     
-    static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel) async throws -> VerifyAccessResponse {
+    private static func verifyAccess(_ req: Request, accessLevel: UserAccessLevel) async throws -> VerifyAccessResponse {
         guard let temp: Token? =  try? getSessionInfo(req: req, sessionKey: "token"),
             var token = temp else {
                 return .failure(UserAndTokenController.redirectToLogin(req))
@@ -187,6 +187,16 @@ class UserAndTokenController: RouteCollection {
         let accessLog = AccessLog(personId: token.user.id, id: token.accessLogId, loginTime: token.loginTime)
         try await accessLog.save(on: req.db)
         return .success(token.user)
+    }
+    
+    static func ifVerifiedDo(_ req: Request, accessLevel: UserAccessLevel, onSuccess: (_ user: UserPersistInfo) async throws -> Response) async throws -> Response {
+        let accessResponse = try await Self.verifyAccess(req, accessLevel: accessLevel)
+        switch accessResponse {
+        case .success(let userPersistInfo):
+            return try await onSuccess(userPersistInfo)
+        case .failure(let response):
+            return response
+        }
     }
     
     
