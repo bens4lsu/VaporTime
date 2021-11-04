@@ -38,6 +38,33 @@ struct LookupTrinity: Codable {
     }
 }
 
+extension Array where Element == LookupTrinity {
+    var contracts: Set<LookupContextPair>{
+        var set = Set<LookupContextPair>()
+        for elem in self {
+            set.insert(LookupContextPair(name: elem.contractDescription, id: elem.contractId))
+        }
+    return set
+    }
+    
+    var companies: Set<LookupContextPair>{
+        var set = Set<LookupContextPair>()
+        for elem in self {
+            set.insert(LookupContextPair(name: elem.servicesForCompany, id: elem.companyId))
+        }
+        return set
+    }
+    
+    var projects: Set<LookupContextPair>{
+        var set = Set<LookupContextPair>()
+        for elem in self {
+            set.insert(LookupContextPair(name: elem.projectDescription, id: elem.projectId))
+        }
+        return set
+    }
+}
+
+
 struct LookupPerson: Codable, Comparable {
     var name: String
     var id: Int

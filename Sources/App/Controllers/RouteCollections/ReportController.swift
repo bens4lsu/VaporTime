@@ -32,54 +32,49 @@ class ReportController: RouteCollection {
     }
     
     
-    private func renderReportSelector(_ req: Request) throws -> EventLoopFuture<Response> {
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { _ in
-            return try self.cache.getLookupContext(req).flatMap(to: Response.self) { context in
-                return try req.view.render("report-selector", context).encode(for: req)
-            }
+    private func renderReportSelector(_ req: Request) async throws -> Response {
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .report) { _ in
+            let context = try await cache.getLookupContext(req)
+            return try await req.view.render("report-selector", context).encodeResponse(for: req)
         }
     }
     
     
-    private func renderReport(_ req: Request) throws -> EventLoopFuture<Response> {
-        return try UserAndTokenController.verifyAccess(req, accessLevel: .report) { user in
-            
-            
-            let startDateReqStr: String? = try? req.content.syncGet(at: "dateFrom")
-            let endDateReqStr: String? = try? req.content.syncGet(at: "dateTo")
-            let billedById: Int? = try? req.content.syncGet(at: "billedById")
-            let contractId: Int? = try? req.content.syncGet(at: "contractId")
-            let servicesForCompanyId: Int? = try? req.content.syncGet(at: "companyId")
-            let projectId: Int? = try? req.content.syncGet(at: "projectId")
-            let groupBy1: Int? = try? req.content.syncGet(at: "group1")
-            let groupBy2: Int? = try? req.content.syncGet(at: "group2")
-            let display: String? = try? req.content.syncGet(at: "display")
-            
-            guard let startDateReq = startDateReqStr,
-                let endDateReq = endDateReqStr,
-                let startDate = self.df.date(from: startDateReq),
-                let endDate = self.df.date(from: endDateReq) else
-            {
-                throw Abort(.badRequest, reason: "Start Date and End Date are required for reporting.")
-            }
-            
+    private func renderReport(_ req: Request) async throws -> Response {
+        let startDateReqStr: String? = try? req.query.get(at: "dateFrom")
+        let endDateReqStr: String? = try? req.query.get(at: "dateTo")
+        let billedById: Int? = try? req.query.get(at: "billedById")
+        let contractId: Int? = try? req.query.get(at: "contractId")
+        let servicesForCompanyId: Int? = try? req.query.get(at: "companyId")
+        let projectId: Int? = try? req.query.get(at: "projectId")
+        let groupBy1: Int? = try? req.query.get(at: "group1")
+        let groupBy2: Int? = try? req.query.get(at: "group2")
+        let display: String? = try? req.query.get(at: "display")
+        
+        guard let startDateReq = startDateReqStr,
+            let endDateReq = endDateReqStr,
+            let startDate = self.df.date(from: startDateReq),
+            let endDate = self.df.date(from: endDateReq) else
+        {
+            throw Abort(.badRequest, reason: "Start Date and End Date are required for reporting.")
+        }
+        
+        return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .report) { user in
             let filters = ReportFilters(startDate: startDate, endDate: endDate, billedById: billedById, contractId: contractId, servicesForCompanyId: servicesForCompanyId, projectId: projectId)
                         
-            return try self.db.getReportData(req, filters: filters, userId: user.id).flatMap(to: Response.self) { reportData in
-                return try self.cache.getLookupContext(req).flatMap(to: Response.self) { lookupData in
-                    let footnote = self.getFootnote(from: filters, and: lookupData)
-                    var records = [ReportRendererGroup]()
-                    for row in reportData {
-                        records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,
-                                    group2: ReportGroupBy.fromRaw(groupBy2) ?? nil)
-                    }
-                    records.sort()
-                    var context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate, footnote: footnote)
-                    context.updateTotals()
-                    let report = display == "s" ? "report-summary" : "report"
-                    return try req.view.render(report, context).encode(for: req)
-                }
+            async let reportData = db.getReportData(req, filters: filters, userId: user.id)
+            async let lookupData = cache.getLookupContext(req)
+            let footnote = self.getFootnote(from: filters, and: try await lookupData)
+            var records = [ReportRendererGroup]()
+            for row in try await reportData {
+                records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,
+                            group2: ReportGroupBy.fromRaw(groupBy2) ?? nil)
             }
+            records.sort()
+            var context = ReportContext(top: records, levels: records.levels, startDate: startDate, endDate: endDate, footnote: footnote)
+            context.updateTotals()
+            let report = display == "s" ? "report-summary" : "report"
+            return try await req.view.render(report, context).encodeResponse(for: req)
         }
     }
     
@@ -205,28 +200,3 @@ extension Array where Element == ReportRendererGroup {
     }
 }
 
-extension Array where Element == LookupTrinity {
-    var contracts: Set<LookupContextPair>{
-        var set = Set<LookupContextPair>()
-        for elem in self {
-            set.insert(LookupContextPair(name: elem.contractDescription, id: elem.contractId))
-        }
-    return set
-    }
-    
-    var companies: Set<LookupContextPair>{
-        var set = Set<LookupContextPair>()
-        for elem in self {
-            set.insert(LookupContextPair(name: elem.servicesForCompany, id: elem.companyId))
-        }
-        return set
-    }
-    
-    var projects: Set<LookupContextPair>{
-        var set = Set<LookupContextPair>()
-        for elem in self {
-            set.insert(LookupContextPair(name: elem.projectDescription, id: elem.projectId))
-        }
-        return set
-    }
-}
