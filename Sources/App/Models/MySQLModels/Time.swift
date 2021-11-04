@@ -62,4 +62,17 @@ final class Time: Content, Model, Codable {
     }
     
     required init() { }
+    
+    init(id: Int?, personId: Int, projectId: Int, workDate: Date, duration: Double, useOTRate: Bool, notes: String, exportStatus: Int, preDeliveryFlag: Bool, doNotBillFlag: Bool) {
+        self.id = id
+        self.personId = personId
+        self.projectId = projectId
+        self.workDate = workDate
+        self.duration = duration
+        self.useOTRate = useOTRate
+        self.notes = notes
+        self.exportStatus = exportStatus
+        self.preDeliveryFlag = preDeliveryFlag
+        self.doNotBillFlag = doNotBillFlag
+    }
 }
