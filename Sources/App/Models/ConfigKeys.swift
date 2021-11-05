@@ -46,7 +46,7 @@ class ConfigKeys: Codable {
     init() {
     
         let path = DirectoryConfiguration.detect().resourcesDirectory
-        let url = URL(fileURLWithPath: path).appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("Config.json")
+        let url = URL(fileURLWithPath: path).appendingPathComponent("Config.json")
         do {
             let data = try Data(contentsOf: url)
             let decoder = try JSONDecoder().decode(ConfigKeys.self, from: data)
