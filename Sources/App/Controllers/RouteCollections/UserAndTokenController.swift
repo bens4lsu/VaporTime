@@ -8,7 +8,6 @@
 import Foundation
 import Vapor
 import Fluent
-import SwiftSMTP
 
 enum UserAccessLevel: String, Codable {
     case timeBilling = "T"
@@ -275,17 +274,18 @@ extension UserAndTokenController {
         //print ("Sending email to \(user.emailAddress)")
         //let mail = Mailer.Message(from: mailSender, to: user.emailAddress, subject: "Project/Time Reset request", text: text, html: html)
                         
-        let mailFrom = Mail.User(name: nil, email: mailSender)
-        let mailTo = Mail.User(name: nil, email: user.emailAddress)
+        let mailFrom = ConcordMail.Mail.User(name: nil, email: mailSender)
+        let mailTo = ConcordMail.Mail.User(name: nil, email: user.emailAddress)
 
-        let mail = Mail(
+        let mail = ConcordMail.Mail(
             from: mailFrom,
-            to: [mailTo],
+            to: mailTo,
             subject: "Project/Time Reset request",
+            contentType: .html,
             text: text
         )
                         
-        let mailResult = try await self.concordMail.send(req, mail)
+        let mailResult = try await self.concordMail.send(mail: mail)
         switch mailResult {
         case .success:
             // redirect to page that tells them to check their email...

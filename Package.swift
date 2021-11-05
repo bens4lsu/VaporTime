@@ -13,21 +13,17 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/leaf.git", from: "4.0.0"),
-        .package(name: "SwiftSMTP", url: "https://github.com/IBM-Swift/Swift-SMTP.git", .upToNextMinor(from: "5.1.0")),
-        // pin the logger in IBM-Swift/LoggerAPI to an older version
-        // see https://forums.swift.org/t/logging-module-name-clash-in-vapor-3/25466
-        //.package(url: "https://github.com/IBM-Swift/LoggerAPI.git", .upToNextMinor(from: "1.8.0")),
-
+        .package(url: "https://github.com/Joannis/SMTPKitten.git", from: "0.1.6")
     ],
     
     targets: [
         .target(name: "App",
                 dependencies: [
                     .product(name: "Vapor", package: "vapor"),
-                    .product(name: "SwiftSMTP", package: "SwiftSMTP"),
                     .product(name: "Leaf", package: "leaf"),
                     .product(name: "Fluent", package: "fluent"),
                     .product(name: "FluentMySQLDriver", package:"fluent-mysql-driver"),
+                    .product(name: "SMTPKitten", package: "SMTPKitten")
                 ],
                 swiftSettings: [
                     // Enable better optimizations when building in Release configuration. Despite the use of

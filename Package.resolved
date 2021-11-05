@@ -20,33 +20,6 @@
         }
       },
       {
-        "package": "Cryptor",
-        "repositoryURL": "https://github.com/Kitura/BlueCryptor.git",
-        "state": {
-          "branch": null,
-          "revision": "ee5880e031da4c609f372cf7472476ab51d5dd19",
-          "version": "1.0.200"
-        }
-      },
-      {
-        "package": "Socket",
-        "repositoryURL": "https://github.com/Kitura/BlueSocket.git",
-        "state": {
-          "branch": null,
-          "revision": "c9894fd117457f1d006575fbfb2fdfd6f79eac03",
-          "version": "1.0.200"
-        }
-      },
-      {
-        "package": "SSLService",
-        "repositoryURL": "https://github.com/Kitura/BlueSSLService.git",
-        "state": {
-          "branch": null,
-          "revision": "ae5889d2a8b068d2d3ab91ec73aa8f557c03cd8a",
-          "version": "1.0.200"
-        }
-      },
-      {
         "package": "console-kit",
         "repositoryURL": "https://github.com/vapor/console-kit.git",
         "state": {
@@ -101,15 +74,6 @@
         }
       },
       {
-        "package": "LoggerAPI",
-        "repositoryURL": "https://github.com/Kitura/LoggerAPI.git",
-        "state": {
-          "branch": null,
-          "revision": "e82d34eab3f0b05391082b11ea07d3b70d2f65bb",
-          "version": "1.9.200"
-        }
-      },
-      {
         "package": "multipart-kit",
         "repositoryURL": "https://github.com/vapor/multipart-kit.git",
         "state": {
@@ -143,6 +107,15 @@
           "branch": null,
           "revision": "a0801a36a6ad501d5ad6285cbcd4774de6b0a734",
           "version": "4.3.0"
+        }
+      },
+      {
+        "package": "SMTPKitten",
+        "repositoryURL": "https://github.com/Joannis/SMTPKitten.git",
+        "state": {
+          "branch": null,
+          "revision": "34cbdc8aaa987dafe0ad714dffeb49afddd86ef9",
+          "version": "0.1.6"
         }
       },
       {
@@ -233,15 +206,6 @@
           "branch": null,
           "revision": "e7f5278a26442dc46783ba7e063643d524e414a0",
           "version": "1.11.3"
-        }
-      },
-      {
-        "package": "SwiftSMTP",
-        "repositoryURL": "https://github.com/IBM-Swift/Swift-SMTP.git",
-        "state": {
-          "branch": null,
-          "revision": "d892f67ddbdde635787a1f2f96e654e91a2edbaa",
-          "version": "5.1.200"
         }
       },
       {
