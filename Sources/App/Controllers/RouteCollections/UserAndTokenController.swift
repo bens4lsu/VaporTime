@@ -76,13 +76,17 @@ class UserAndTokenController: RouteCollection {
     // MARK:  Methods connected to routes that return data
     
     private func login(_ req: Request) async throws -> Response {
-        struct PostVars: Content {
-            var email: String
-            var passowrd: String
+        struct Form: Content {
+            var email: String?
+            var password: String?
         }
-        let postVars = try req.content.decode(PostVars.self)
-        let email = postVars.email
-        let password = postVars.passowrd
+        
+        let content = try req.content.decode(Form.self)
+
+        guard let email = content.email, let password = content.password else {
+            throw Abort(.badRequest)
+        }
+        
         guard email.count > 0, password.count > 0 else {
             throw Abort(.badRequest)
         }
@@ -231,10 +235,7 @@ extension UserAndTokenController {
     
     
     private func sendPWResetEmail(_ req: Request) async throws -> Response {
-        struct PostVar: Content {
-            var emailAddress: String
-        }
-        let email = try req.query.decode(PostVar.self).emailAddress
+        let email = req.parameters.get("emailAddress") ?? ""
         
         guard email.count > 0 else {
             throw Abort(.badRequest, reason:  "No email address received for password reset.")
