@@ -15,8 +15,8 @@ extension Model {
     // but with a Bool return value so I can use
     // async let and have the rest of this code running
     // while the save happens in the background.
-    func saveAndReturn(on database: Database) async throws -> Bool {
-        try await self.save(on: database).get()
-        return true
+    func saveAndReturn<T: Model>(on database: Database) async throws -> T {
+        try await self.save(on: database)
+        return self as! T
     }
 }

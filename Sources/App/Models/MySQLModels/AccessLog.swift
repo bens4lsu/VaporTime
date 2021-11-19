@@ -7,6 +7,7 @@
 
 import Foundation
 import Fluent
+import FluentMySQLDriver
 import Vapor
 
 final class AccessLog: Content, Model, Codable {
@@ -28,12 +29,12 @@ final class AccessLog: Content, Model, Codable {
 //    static let idKey: IDKey = \.id
     static let schema = "fAccessLog"
 
-    private enum CodingKeys: String, CodingKey {
-        case personId = "PersonID",
-             id = "AccessID",
-             loginTime = "LoginTime",
-             accessTime = "LastAccessTime"
-    }
+//    private enum CodingKeys: String, CodingKey {
+//        case personId = "PersonID",
+//             id = "AccessID",
+//             loginTime = "LoginTime",
+//             accessTime = "LastAccessTime"
+//    }
 
     init(personId: Int) {
         // used to create a new row in the access log (login)
@@ -49,6 +50,9 @@ final class AccessLog: Content, Model, Codable {
         self.id = id
         self.loginTime = loginTime
         self.accessTime = Date()
+        self.$id.exists = true  // 2021.11.19 - need this to fool Fluent into understanding
+                                //              that the id property is set.  It was trying
+                                //              to insert where I needed an update.
     }
     
     required init() {

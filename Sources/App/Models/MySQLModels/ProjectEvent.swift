@@ -72,7 +72,12 @@ final class ProjectEvent: Content, Model, Codable {
     
     convenience init (projectId: Int, id: Int?, eventId: Int?, eventDate: Date, personId: Int, notes: String?) {
         self.init(projectId: projectId, id: id, eventId: eventId, reportDate: eventDate, notes: notes, personId: personId, recordedDateTime: Date())
-
+        
+        if id != nil {
+            self.$id.exists = true  // 2021.11.19 - need this to fool Fluent into understanding
+                                    //              that the id property is set.  It was trying
+                                    //              to insert where I needed an update.
+        }
     }
     
     required init() { }

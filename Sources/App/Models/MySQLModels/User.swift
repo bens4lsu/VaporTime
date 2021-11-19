@@ -91,8 +91,13 @@ final class User: Content, Model, Codable {
         self.mobilePhone = ""
         self.personalNote = ""
         self.passwordHash = passwordHash
+        
+        if id != nil {
+            self.$id.exists = true  // 2021.11.19 - need this to fool Fluent into understanding
+                                    //              that the id property is set.  It was trying
+                                    //              to insert where I needed an update.
+        }
     }
-    
     
     func persistInfo() -> UserPersistInfo? {
         guard let id = self.id else { return nil }

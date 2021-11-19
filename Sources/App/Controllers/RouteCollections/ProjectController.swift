@@ -109,7 +109,7 @@ class ProjectController: RouteCollection {
             let project = Project(id: projectId, contractId: contractId, companyId: servicesForCompanyId, description: description, statusId: statusId, projectNumber: projectNumber, statusNotes: notes, mantisProjectId: mantisId, isActive: true, projectedTime: projectedTime, projectedDateComplete: endDate, pmProjectId: nil, hideTimeReporting: hideTimeReporting, startDate: startDate)
             try await project.save(on: req.db)
             
-            guard let newProjectId = project.id else {
+            guard let newProjectId: Int = project.id else {
                 throw Abort(.internalServerError, reason: "The update to the project table may have failed.  Check system logs.")
             }
             
@@ -142,7 +142,7 @@ class ProjectController: RouteCollection {
             }
             
             project.isActive = false
-            async let savedProject = project.saveAndReturn(on: req.db)
+            async let savedProject: Project = project.saveAndReturn(on: req.db)
             self.cache.clear()
                     
             // now we have to clear associated time billing items
@@ -217,7 +217,7 @@ class ProjectController: RouteCollection {
             return
         }
         
-        try await withThrowingTaskGroup(of: Bool.self) { group in
+        try await withThrowingTaskGroup(of: ProjectEvent.self) { group in
         
             // projected time changed
             if old.projectedTime != new.projectedTime {

@@ -74,5 +74,11 @@ final class Time: Content, Model, Codable {
         self.exportStatus = exportStatus
         self.preDeliveryFlag = preDeliveryFlag
         self.doNotBillFlag = doNotBillFlag
+        
+        if id != nil {
+            self.$id.exists = true  // 2021.11.19 - need this to fool Fluent into understanding
+                                    //              that the id property is set.  It was trying
+                                    //              to insert where I needed an update.
+        }
     }
 }

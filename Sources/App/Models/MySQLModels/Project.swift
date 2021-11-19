@@ -78,7 +78,8 @@ final class Project: Content, Model, Codable {
     
     required init() { }
     
-    init(id: Int?, contractId: Int, companyId: Int, description: String, statusId: Int?, projectNumber: String?, statusNotes: String?, mantisProjectId: Int?, isActive: Bool, projectedTime: Double?, projectedDateComplete: Date?, pmProjectId: Int?, hideTimeReporting: Bool?, startDate: Date?) {
+    init (id: Int?, contractId: Int, companyId: Int, description: String, statusId: Int?, projectNumber: String?, statusNotes: String?, mantisProjectId: Int?, isActive: Bool, projectedTime: Double?, projectedDateComplete: Date?, pmProjectId: Int?, hideTimeReporting: Bool?, startDate: Date?) {
+        
         self.id = id
         self.contractId = contractId
         self.companyId = companyId
@@ -93,5 +94,11 @@ final class Project: Content, Model, Codable {
         self.pmProjectId = pmProjectId
         self.hideTimeReporting = hideTimeReporting
         self.startDate = startDate
+        
+        if id != nil {
+            self.$id.exists = true  // 2021.11.19 - need this to fool Fluent into understanding
+                                    //              that the id property is set.  It was trying
+                                    //              to insert where I needed an update.
+        }
     }
 }

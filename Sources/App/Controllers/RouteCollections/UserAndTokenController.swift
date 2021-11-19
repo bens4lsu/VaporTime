@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 import Fluent
+import CryptoKit
 
 enum UserAccessLevel: String, Codable {
     case timeBilling = "T"
@@ -120,7 +121,8 @@ class UserAndTokenController: RouteCollection {
                 
         // create access log entry
         let accessLog = AccessLog(personId: user.id!)
-        async let logTask = accessLog.saveAndReturn(on: req.db)     // saveAndReturn() from Extionsions -> Model
+        //let savedLog: AccessLog = try await accessLog.saveAndReturn(on: req.db)     // saveAndReturn() from Extionsions -> Model
+        try await accessLog.save(on: req.db)
                 
         let userPersistInfo = user.persistInfo()!
         let ip = req.remoteAddress?.ipAddress
@@ -132,7 +134,6 @@ class UserAndTokenController: RouteCollection {
                               loginTime: accessLog.accessTime)
             try UserAndTokenController.saveSessionInfo(req: req, info: token, sessionKey: "token")
         }
-        let _ = try await logTask
         return req.redirect(to: "/")
     }
 
@@ -204,8 +205,7 @@ class UserAndTokenController: RouteCollection {
     
     
     static func getSessionInfo<T: Decodable>(req: Request, sessionKey: String) throws -> T?  {
-        let session = req.session.data
-        guard let stringifiedData = session[sessionKey],
+        guard let stringifiedData = req.session.data[sessionKey],
               let datafiedString = stringifiedData.data(using: .utf8) else {
             return nil
         }
@@ -217,10 +217,10 @@ class UserAndTokenController: RouteCollection {
     }
     
     static func saveSessionInfo<T: Codable>(req: Request, info: T, sessionKey: String) throws {
-        var session = req.session.data
         let encoder = JSONEncoder()
         let data = try encoder.encode(info)
-        session[sessionKey] = String(data: data, encoding: .utf8)
+        req.session.data[sessionKey] = String(data: data, encoding: .utf8)
+        print ("Saved session data:  \(sessionKey) = \(info)")
     }
 }
 

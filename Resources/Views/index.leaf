@@ -29,23 +29,23 @@
         $(document).ready(function() {
 
 
-            $("#tabs").tabs({
+            $("\#tabs").tabs({
                 beforeActivate: function(event, ui) {
                     var selected = ui.newPanel.attr('id');
                     if (selected == "tabs-2") {
-                        $("#frPrTree").attr("src", "ProjectTree");
+                        $("\#frPrTree").attr("src", "ProjectTree");
                     }
                     else if (selected == "tabs-5") {
-                        $("#frReport").attr("src", "Report");
+                        $("\#frReport").attr("src", "Report");
                     }
                 }
             });
             
-            var mTable = $("#main_table").dataTable( {
+            var mTable = $("\#main_table").dataTable( {
                 "iDisplayLength" : 25
             } )
             
-            $("#resizable").resizable({handles: 'e, w'});
+            $("\#resizable").resizable({handles: 'e, w'});
             
             
             // log out if page idle 2 hours
@@ -73,15 +73,15 @@
     <div id="tabs">
         
         <ul>
-            #if(accessDictionary.timeBilling) { <li><a href="#tabs-1">Time Billing</a></li> }
-            #if(accessDictionary.report){ <li><a href="#tabs-2">Projects</a></li> }
-            #if(accessDictionary.crm){ <li><a href="#tabs-3">CRM</a></li> }
-            #if(accessDictionary.doc){ <li><a href="#tabs-4">Documents</a></li> }
-            #if(accessDictionary.report){ <li><a href="#tabs-5">Reports</a></li> }
-            #if(accessDictionary.admin){ <li><a href="#tabs-6">Admin</a></li> }
+            #if(accessDictionary.timeBilling) { <li><a href="\#tabs-1">Time Billing</a></li> }
+            #if(accessDictionary.report){ <li><a href="\#tabs-2">Projects</a></li> }
+            #if(accessDictionary.crm){ <li><a href="\#tabs-3">CRM</a></li> }
+            #if(accessDictionary.doc){ <li><a href="\#tabs-4">Documents</a></li> }
+            #if(accessDictionary.report){ <li><a href="\#tabs-5">Reports</a></li> }
+            #if(accessDictionary.admin){ <li><a href="\#tabs-6">Admin</a></li> }
         </ul>
         
-        #if(accessDictionary.timeBilling) {
+        #if(accessDictionary.timeBilling):
                     
             <div id="tabs-1" class="tlevbox">
                 <div id="resizable"><iframe src="TBTree" id="frTBTree" name="frTBTree"></iframe></div>
@@ -89,11 +89,11 @@
                 <div style="clear:both"></div>
             </div>
             
-        }
+        #endif
     
 
     
-        #if(accessDictionary.report) {
+        #if(accessDictionary.report):
             
             <div id="tabs-2" class="tlevbox">
                 <div id="resizable"><iframe src="/blankpage" id="frPrTree" name="frPrTree"></iframe></div>
@@ -101,48 +101,48 @@
                 <div style="clear:both"></div>
             </div>
             
-        }
+        #endif
     
 
     
-        #if(accessDictionary.crm) {
+        #if(accessDictionary.crm):
             
             <div id="tabs-3" class="tlevbox" >
                 <iframe src="/blankpage" id="frCRM" name="frCRM"></iframe>
             </div>
             
-        }
+        #endif
     
     
     
-        #if(accessDictionary.doc) {
+        #if(accessDictionary.doc):
             
             <div id="tabs-4" class="tlevbox" >
                 
             </div>
             
-        }
+        #endif
     
     
     
-        #if(accessDictionary.report) {
+        #if(accessDictionary.report):
             
             <div id="tabs-5" class="tlevbox" >
                 <iframe src="/blankpage" id="frReport" name="frReport"></iframe>
             </div>
             
-        }
+        #endif
     
     
     
-        #if(accessDictionary.admin) {
+        #if(accessDictionary.admin):
             
             <div id="tabs-6" class="tlevbox">
                 <iframe src="/blankpage" id="frAdmin" name="frAdmin"></iframe>
     
             </div>
             
-        }
+        #endif
         
     </div>
     <div style="float: right;">#(version)</div>
