@@ -193,6 +193,7 @@ class UserAndTokenController: RouteCollection {
         return .success(token.user)
     }
     
+    
     static func ifVerifiedDo(_ req: Request, accessLevel: UserAccessLevel, onSuccess: (_ user: UserPersistInfo) async throws -> Response) async throws -> Response {
         let accessResponse = try await Self.verifyAccess(req, accessLevel: accessLevel)
         switch accessResponse {
@@ -220,7 +221,6 @@ class UserAndTokenController: RouteCollection {
         let encoder = JSONEncoder()
         let data = try encoder.encode(info)
         req.session.data[sessionKey] = String(data: data, encoding: .utf8)
-        print ("Saved session data:  \(sessionKey) = \(info)")
     }
 }
 

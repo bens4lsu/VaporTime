@@ -39,7 +39,7 @@ final class Project: Content, Model, Codable {
     var isActive: Bool
     
     @OptionalField(key: "ProjectedTime")
-    var projectedTime: Double?
+    var projectedTime: Int?
     
     @OptionalField(key: "ProjectedDateComplete")
     var projectedDateComplete: Date?
@@ -59,26 +59,26 @@ final class Project: Content, Model, Codable {
 //    static let idKey: IDKey = \.id
     static let schema = "fProjects"
 
-    private enum CodingKeys: String, CodingKey {
-        case id = "ProjectID",
-        contractId = "ContractID",
-        companyId = "ServicesForCompany",
-        description = "ProjectDescription",
-        statusId = "StatusID",
-        projectNumber = "ProjectNumber",
-        statusNotes = "StatusNotes",
-        mantisProjectId = "MantisProjectID",
-        isActive = "IsActive",
-        projectedTime = "ProjectedTime",
-        projectedDateComplete = "ProjectedDateComplete",
-        pmProjectId = "PMProjectID",
-        hideTimeReporting = "HideTimeReporting",
-        startDate = "StartDate"
-    }
+//    private enum CodingKeys: String, CodingKey {
+//        case id = "ProjectID",
+//        contractId = "ContractID",
+//        companyId = "ServicesForCompany",
+//        description = "ProjectDescription",
+//        statusId = "StatusID",
+//        projectNumber = "ProjectNumber",
+//        statusNotes = "StatusNotes",
+//        mantisProjectId = "MantisProjectID",
+//        isActive = "IsActive",
+//        projectedTime = "ProjectedTime",
+//        projectedDateComplete = "ProjectedDateComplete",
+//        pmProjectId = "PMProjectID",
+//        hideTimeReporting = "HideTimeReporting",
+//        startDate = "StartDate"
+//    }
     
     required init() { }
     
-    init (id: Int?, contractId: Int, companyId: Int, description: String, statusId: Int?, projectNumber: String?, statusNotes: String?, mantisProjectId: Int?, isActive: Bool, projectedTime: Double?, projectedDateComplete: Date?, pmProjectId: Int?, hideTimeReporting: Bool?, startDate: Date?) {
+    init (id: Int?, contractId: Int, companyId: Int, description: String, statusId: Int?, projectNumber: String?, statusNotes: String?, mantisProjectId: Int?, isActive: Bool, projectedTime: Int?, projectedDateComplete: Date?, pmProjectId: Int?, hideTimeReporting: Bool?, startDate: Date?) {
         
         self.id = id
         self.contractId = contractId

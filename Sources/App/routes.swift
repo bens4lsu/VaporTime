@@ -22,13 +22,13 @@ public func routes(_ app: Application) throws {
     app.get { req async throws -> Response in
         
         struct IndexContext: Encodable, ResponseEncodable, Content {
-            func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
-                let response = Response(status: HTTPResponseStatus(statusCode: 200))
-                
-                // TODO:  get rid of !
-                try! response.content.encode(self)
-                return request.eventLoop.future(response)
-            }
+//            func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
+//                let response = Response(status: HTTPResponseStatus(statusCode: 200))
+//                
+//                // TODO:  get rid of !
+//                try! response.content.encode(self)
+//                return request.eventLoop.future(response)
+//            }
             
             var version: String
             var accessDictionary: [String: Bool]

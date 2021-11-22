@@ -10,7 +10,7 @@ import Foundation
 struct TotalTime: Codable {
     var TotalTime: Double?
     var CompletionByTime: Double?
-    var CompletionByDate: Double?
+    var CompletionByDate: Double?   // not an error on the type.  This is the measure used for the progress circle
 }
 
 

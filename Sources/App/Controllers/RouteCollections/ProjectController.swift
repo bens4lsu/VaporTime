@@ -52,13 +52,13 @@ class ProjectController: RouteCollection {
             async let lookupTask = cache.getLookupContext(req)
             
             guard let projectId = optProjectId else {
-                return try await req.view.render("project", ["lookup" : await lookupTask]).encodeResponse(for: req)
+                return try await req.view.render("project", ["lookup" : try await lookupTask]).encodeResponse(for: req)
             }
             
             guard let project = try await Project.find(projectId, on: req.db) else {
                 throw Abort(.badRequest, reason: "no project returned based on request with project id \(projectId)")
             }
-            
+
             project.startDate = project.startDate?.asLocal
             project.projectedDateComplete = project.projectedDateComplete?.asLocal
             async let totalTimeTask = db.getTimeForProject(req, projectId: projectId)
@@ -76,7 +76,6 @@ class ProjectController: RouteCollection {
                                          journals: try await journalsTask,
                                          rateLists: try await rateListsTask)
             return try await req.view.render("project", context).encodeResponse(for: req)
-            
         }
     }
     
@@ -94,7 +93,7 @@ class ProjectController: RouteCollection {
         let notes = (try? req.query.get(String.self, at: "notes")) ?? ""
         let mantisId = try? req.query.get(Int.self, at: "mantisId")
         let hideTimeReporting = (try? req.query.get(String.self, at: "hideTimeReporting")).toBool()
-        let projectedTime = try? req.query.get(Double.self, at: "projectedTime")
+        let projectedTime = try? req.query.get(Int.self, at: "projectedTime")
         let startDate = (try? req.query.get(at: "startDate")).toDate()
         let endDate = (try? req.query.get(at: "endDate")).toDate()
         

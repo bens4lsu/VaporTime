@@ -9,11 +9,11 @@
     <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
     <script type="text/javascript" src="./js/jstree.js"></script>
     <style>
-        #tree .jstree-closed > a > i { background-image:url("./images/folder.png");  background-position:left center;}
-        #tree .jstree-open > a > i { background-image:url("./images/folder.png");  background-position:left center;}
-        #tree .jstree-leaf > a > i { background-image:url("./images/blueplus.png"); background-position:left center;  }
-        h2 {font-size:90%; width:100%; background-color: #C4C4C4; padding:4px 1.8em; font-family:Verdana, Arial, Sans-Serif; }
-        #btnAddNewProject {margin-top:22px;}
+        \#tree .jstree-closed > a > i { background-image:url("./images/folder.png");  background-position:left center;}
+        \#tree .jstree-open > a > i { background-image:url("./images/folder.png");  background-position:left center;}
+        \#tree .jstree-leaf > a > i { background-image:url("./images/blueplus.png"); background-position:left center;  }
+        h2 {font-size:90%; width:100%; background-color: \#C4C4C4; padding:4px 1.8em; font-family:Verdana, Arial, Sans-Serif; }
+        \#btnAddNewProject {margin-top:22px;}
     
     </style>
 
@@ -23,10 +23,10 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
-            $("#tree").jstree();
+            $("\#tree").jstree();
             
-            $("#btnAddNewProject").button().click(function() {
-                parent.window.frames['#(parentWindow)'].location='#(editPage)';
+            $("\#btnAddNewProject").button().click(function() {
+                parent.window.frames['\#(parentWindow)'].location='\#(editPage)';
             });
             
         });
@@ -36,55 +36,54 @@
     
     <div id="tree"><ul>
     
-     #for(item in items) {
+     #for(item in items):
      
-         #if(item.levels == 1) {
+        #if(item.levels == 1):
          
-             <li class="node_addTime"><a href="#" title="#(item.level1.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(item.level1.projectId)'">#(item.level1.label)</a></li>
-        }
+             <li class="node_addTime"><a href="\#" title="#(item.level1.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(item.level1.projectId)'">#(item.level1.label)</a></li>
+        #endif
 
-        #if(item.levels == 2) {
+        #if(item.levels == 2):
         
             <li><a href="#">#(item.level1.label)</a><ul>
             
-            #for(itemlev2 in item.level1.children) {
+            #for(itemlev2 in item.level1.children):
             
-                <li class="node_addTime"><a href="#" title="#(itemlev2.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlev2.projectId)'">#(itemlev2.label)</a></li>
+                <li class="node_addTime"><a href="\#" title="#(itemlev2.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlev2.projectId)'">#(itemlev2.label)</a></li>
                 
-            }
+            #endfor
             </ul>
-        }
+        #endif
         
-        #if(item.levels == 3) {
+        #if(item.levels == 3):
         
             <li><a href="#">#(item.level1.label)</a><ul>
             
-            #for(itemlevel2 in item.level1.children) {
+            #for(itemlevel2 in item.level1.children):
             
-                #if(itemlevel2.children) {
+                #if(itemlevel2.children):
                     <li><a href="#">#(itemlevel2.label)</a><ul>
-                } else {
-                    <li class="node_addTime"><a href="#" title="#(itemlevel2.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlevel2.projectId)'">#(itemlevel2.label)</a></li>
-                }
-                
-                #for(itemlev3 in itemlevel2.children) {
-                
-                    <li class="node_addTime"><a href="#" title="#(itemlev3.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlev3.projectId)'">#(itemlev3.label)</a></li>
-                }
-            
-                #if(itemlevel2.children) {
+                    
+                    #for(itemlev3 in itemlevel2.children):
+                        <li class="node_addTime"><a href="\#" title="#(itemlev3.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlev3.projectId)'">#(itemlev3.label)</a></li>
+                    #endfor
+                    
                     </ul>
-                }
-            }
+                
+                #else:
+                    <li class="node_addTime"><a href="\#" title="#(itemlevel2.label)" onclick="parent.window.frames['#(parentWindow)'].location='#(editPage)?projectId=#(itemlevel2.projectId)'">#(itemlevel2.label)</a></li>
+                #endif
+
+            #endfor
             </ul>
 
-        }
-    }
+        #endif
+    #endfor
     </ul></div>
     
-    #if(editPage == "ProjectAddEdit") {
+    #if(editPage == "ProjectAddEdit"):
         <button id="btnAddNewProject">Add New Project on Existing Contract</button>
-      }
+    #endif
     
 </body>
 </html>

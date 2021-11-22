@@ -73,12 +73,10 @@
     <div id="tabs">
         
         <ul>
-            #if(accessDictionary.timeBilling) { <li><a href="\#tabs-1">Time Billing</a></li> }
-            #if(accessDictionary.report){ <li><a href="\#tabs-2">Projects</a></li> }
-            #if(accessDictionary.crm){ <li><a href="\#tabs-3">CRM</a></li> }
-            #if(accessDictionary.doc){ <li><a href="\#tabs-4">Documents</a></li> }
-            #if(accessDictionary.report){ <li><a href="\#tabs-5">Reports</a></li> }
-            #if(accessDictionary.admin){ <li><a href="\#tabs-6">Admin</a></li> }
+            #if(accessDictionary.timeBilling): <li><a href="\#tabs-1">Time Billing</a></li> #endif
+            #if(accessDictionary.report): <li><a href="\#tabs-2">Projects</a></li> #endif
+            #if(accessDictionary.report): <li><a href="\#tabs-5">Reports</a></li> #endif
+            #if(accessDictionary.admin): <li><a href="\#tabs-6">Admin</a></li> #endif
         </ul>
         
         #if(accessDictionary.timeBilling):
@@ -102,29 +100,9 @@
             </div>
             
         #endif
-    
 
-    
-        #if(accessDictionary.crm):
-            
-            <div id="tabs-3" class="tlevbox" >
-                <iframe src="/blankpage" id="frCRM" name="frCRM"></iframe>
-            </div>
-            
-        #endif
-    
-    
-    
-        #if(accessDictionary.doc):
-            
-            <div id="tabs-4" class="tlevbox" >
-                
-            </div>
-            
-        #endif
-    
-    
-    
+
+
         #if(accessDictionary.report):
             
             <div id="tabs-5" class="tlevbox" >

@@ -44,8 +44,8 @@
         .journal-entry {margin-bottom: 1em; border-bottom: 1px solid #ccc; padding-bottom:0.8em;}
         .journal-section {width: 66%; display:inline-block;}
         .rates-section {width: 30%; display:inline-block; margin-left:10px; vertical-align:top;}
-        #btnCloseProject, #btnConfirmCloseProject {float:right;}
-        #chartProgress{height: 170px;}
+        \#btnCloseProject, \#btnConfirmCloseProject {float:right;}
+        \#chartProgress{height: 170px;}
         .btnLittleHeader{display: inline; margin-left: 1em; max-height: 17px; padding: 2px;}
         .btnLittleHeader img {object-fit: scale-down;}
         
@@ -95,7 +95,7 @@
                     url: 'ProjectClose',
                     type: 'post',
                     data: {
-                        projectId: #if(project.ProjectID): #(project.ProjectID) #else: -1 #endif
+                        projectId: #if(project.id): #(project.id) #else: -1 #endif
                     },
                     success: function(data, status) {
                         if(data == "ok") {
@@ -156,7 +156,7 @@
                     url: 'ProjectAddJournal',
                     type: 'post',
                     data: {
-                        projectId: #if(project.ProjectID): #(project.ProjectID) #else: -1 #endif,
+                        projectId: #if(project.id): #(project.id) #else: -1 #endif,
                         eventDate: $('\#inpJournalDate').val(),
                         eventId: $('\#selJournalType').val(),
                         notes: $('\#taJournalNotes').val(),
@@ -164,7 +164,7 @@
                     },
                     success: function(data, status) {
                         if(data == "ok") {
-                            window.location.href="/ProjectAddEdit?projectId=#(project.ProjectID)";
+                            window.location.href="/ProjectAddEdit?projectId=#(project.id)";
                         }
                         else {
                             console.log("Error response received:");
@@ -214,7 +214,7 @@
                     url: 'ProjectAddRate',
                     type: 'post',
                     data: {
-                        projectId: #if(project.ProjectID): #(project.ProjectID) #else: -1 #endif,
+                        projectId: #if(project.id): #(project.id) #else: -1 #endif,
                         personId: $('#selRatePerson').val(),
                         rateScheduleId: $('#selRateSchedule').val(),
                         rateStartDate: $('#rateStartDate').val(),
@@ -222,7 +222,7 @@
                     },
                     success: function(data, status) {
                         if(data == "ok") {
-                            window.location.href="/ProjectAddEdit?projectId=#(project.ProjectID)";
+                            window.location.href="/ProjectAddEdit?projectId=#(project.id)";
                         }
                         else {
                             console.log("Error response received:");
@@ -247,7 +247,7 @@
 
     <h2>
         #if(project):
-            Project:  #(project.ProjectDescription)
+            Project:  #(project.description)
         #else: 
             Add New Project 
         #endif
@@ -258,26 +258,26 @@
             <div class="grid-1-1"><label>Contract:</label>
                 <select name="contractId">
                     #for(contract in lookup.contracts):
-                        <option value="#(contract.id)"  #if(contract.id == project.ContractID): selected #endif>#(contract.name)</option>
+                        <option value="#(contract.id)"  #if(contract.id == project.contractId): selected #endif>#(contract.name)</option>
                     #endfor
                 </select></div>
             <div class="grid-1-2"><label>Services For:</label>
                 <select name="companyId">
                     #for(company in lookup.companies):
-                        <option value="#(company.id)" #if(company.id == project.ServicesForCompany): selected #endif>#(company.name)</option>
+                        <option value="#(company.id)" #if(company.id == project.companyId): selected #endif>#(company.name)</option>
                     #endfor
                 </select></div>
-            <div class="grid-2-1"><label for="description">Description:</label><input value="#(project.ProjectDescription)" name="description" id="description" /></div>
-            <div class="grid-2-2"><label>#:</label><input value="#(project.ProjectNumber)" name="projectNumber" /></div>
+            <div class="grid-2-1"><label for="description">Description:</label><input value="#(project.description)" name="description" id="description" /></div>
+            <div class="grid-2-2"><label>#:</label><input value="#(project.projectNumber)" name="projectNumber" /></div>
             <div class="grid-3-1"><label>Status:</label>
                 <select name="statusId">
                     #for(status in lookup.projectStatuses):
-                        <option value="#(status.StatusID)" #if(status.StatusID == project.StatusID): selected #endif>#(status.StatusDescription)</option>
+                        <option value="#(status.StatusID)" #if(status.StatusID == project.statusId): selected #endif>#(status.StatusDescription)</option>
                     #endfor
                 </select></div>
-            <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.StatusNotes)</textarea></div>
-            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.MantisProjectID)" type="number" name="mantisId">  <a href="#(buglink)" target="_blank">link</a></div>
-            <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox" #if(project.HideTimeReporting) { checked } name="hideTimeReporting"></input></div>
+            <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.statusNotes)</textarea></div>
+            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.mantisProjectID)" type="number" name="mantisId">  <a href="#(buglink)" target="_blank">link</a></div>
+            <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox" #if(project.hideTimeReporting) { checked } name="hideTimeReporting"></input></div>
                 
             <div class="underline-1">&nbsp;</div>
 
@@ -285,16 +285,16 @@
             <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime.TotalTime)</span></div>
             <div class="grid-5-3"><div id="chartProgress"></div></div>
         
-            <div class="grid-6-1"><label>Start Date:</label><input value="#if(project.StartDate): #date(project.StartDate, "MM/dd/yyyy") #endif" name="startDate" class="datepicker"></div>
-            <div class="grid-6-2"><label>Projected End Date:</label><input value="#if(project.ProjectedDateComplete): #date(project.ProjectedDateComplete, "MM/dd/yyyy") #endif" name="endDate" class="datepicker""></div>
+            <div class="grid-6-1"><label>Start Date:</label><input value="#if(project.startDate): #date(project.startDate, "MM/dd/yyyy") #endif" name="startDate" class="datepicker"></div>
+            <div class="grid-6-2"><label>Projected End Date:</label><input value="#if(project.projectedDateComplete): #date(project.projectedDateComplete, "MM/dd/yyyy") #endif" name="endDate" class="datepicker""></div>
             <div class="underline-2">&nbsp;</div>
         </div>
         
-        <input style="display:none" value="#(project.ProjectID)" name="projectId">
+        <input style="display:none" value="#(project.id)" name="projectId">
     </form>
     <div>
         <button id="btnSave">Save</button>
-        #if(project.ProjectID):<button id="btnCloseProject">Close Project</button>#endif
+        #if(project.id):<button id="btnCloseProject">Close Project</button>#endif
     </div>
  
     #if(project):
@@ -312,7 +312,7 @@
                     #endif
                 " id="journal-entry-#(journal.id)">
                     <div class="journal-head">
-                        <span class="date">#date(journal.ReportDate, "M/d/yyyy")</span> by 
+                        <span class="date">#if(journal.ReportDate): #date(journal.ReportDate, "M/d/yyyy") #endif</span> by 
                         <span class="person">#(journal.Name)</span>
                         #if(journal.EventWhoGenerates != "SYSTEM"):
                             <button class="btnLittleHeader btnEditJournal" id="btnEditJournal-#(journal.id)"><img src="/images/edit-ben.png" alt="e"></button>
@@ -338,7 +338,7 @@
         </div>
            
         <div id="dlgConfirmCloseProject">
-            <p>Are you sure you want to close the project `#(project.ProjectDescription)` ?  This will also mark all time billing items for the project as billed and paid.</p>
+            <p>Are you sure you want to close the project `#(project.projectDescription)` ?  This will also mark all time billing items for the project as billed and paid.</p>
             <button id="btnConfirmCloseProject">Yes<br>Close the project.</button>
             <button id="btnCancelCloseProject">No<br>Cancel this request.</button>
         </div>

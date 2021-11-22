@@ -52,7 +52,7 @@ class TimeBillingController: RouteCollection {
                                          highlightRow: highlightRow,
                                          lookup: try await lookup)
             return try await req.view.render("time-table", context).encodeResponse(for: req)
-        }
+        } 
     }
     
     
