@@ -95,7 +95,7 @@
                     url: 'ProjectClose',
                     type: 'post',
                     data: {
-                        projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 }
+                        projectId: #if(project.ProjectID): #(project.ProjectID) #else: -1 #endif
                     },
                     success: function(data, status) {
                         if(data == "ok") {
@@ -156,7 +156,7 @@
                     url: 'ProjectAddJournal',
                     type: 'post',
                     data: {
-                        projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 },
+                        projectId: #if(project.ProjectID): #(project.ProjectID) #else: -1 #endif,
                         eventDate: $('\#inpJournalDate').val(),
                         eventId: $('\#selJournalType').val(),
                         notes: $('\#taJournalNotes').val(),
@@ -205,7 +205,7 @@
                 $('\#dlgAddRates').dialog('open');
             });
             
-            $('#\btnRateCancel').button().click(function() {
+            $('\#btnRateCancel').button().click(function() {
                 $('\#dlgAddRates').dialog('close');
             });
             
@@ -214,7 +214,7 @@
                     url: 'ProjectAddRate',
                     type: 'post',
                     data: {
-                        projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 },
+                        projectId: #if(project.ProjectID): #(project.ProjectID) #else: -1 #endif,
                         personId: $('#selRatePerson').val(),
                         rateScheduleId: $('#selRateSchedule').val(),
                         rateStartDate: $('#rateStartDate').val(),
@@ -281,12 +281,12 @@
                 
             <div class="underline-1">&nbsp;</div>
 
-            <div class="grid-5-1"><label>Projected Time:</label><input value="#if(project.ProjectedTime): #(project.ProjectedTime) #endif" name="projectedTime"></div>
+            <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)" name="projectedTime"></div>
             <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime.TotalTime)</span></div>
             <div class="grid-5-3"><div id="chartProgress"></div></div>
         
             <div class="grid-6-1"><label>Start Date:</label><input value="#if(project.StartDate): #date(project.StartDate, "MM/dd/yyyy") #endif" name="startDate" class="datepicker"></div>
-            <div class="grid-6-2"><label>Projected End Date:</label><input value="if(project.ProjectedDateComplete): #date(project.ProjectedDateComplete, "MM/dd/yyyy") #endif" name="endDate" class="datepicker""></div>
+            <div class="grid-6-2"><label>Projected End Date:</label><input value="#if(project.ProjectedDateComplete): #date(project.ProjectedDateComplete, "MM/dd/yyyy") #endif" name="endDate" class="datepicker""></div>
             <div class="underline-2">&nbsp;</div>
         </div>
         
@@ -330,8 +330,8 @@
             #for(rateList in rateLists):
                 <tr><td>#(rateList.Name)</td>
                     <td>#(rateList.RateDescription)</td>
-                    <td>#if(rateList.StartDate): #date(rateList.StartDate, "MM/dd/yyyy")</td>
-                    <td>#if(rateList.EndDate) #if(rateList.EndDate): #date(rateList.EndDate, "MM/dd/yyyy") #endif</td>
+                    <td>#if(rateList.StartDate): #date(rateList.StartDate, "MM/dd/yyyy") #endif</td>
+                    <td>#if(rateList.EndDate): #date(rateList.EndDate, "MM/dd/yyyy") #endif</td>
                 </tr>
             #endfor
             </table>
@@ -395,7 +395,7 @@
 
             chart: {
                 type: 'solidgauge',
-                backgroundColor: "#f5f8f9",
+                backgroundColor: "\#f5f8f9",
             },
 
             title: {
@@ -471,7 +471,7 @@
                 layout: "vertical",
                 align: 'right',
                 verticalAlign: 'middle',
-                itemStyle: {"color": "#333333", "cursor": "pointer", "fontSize": "10pt", "fontWeight": "normal", "textOverflow": "ellipsis"},
+                itemStyle: {"color": "\#333333", "cursor": "pointer", "fontSize": "10pt", "fontWeight": "normal", "textOverflow": "ellipsis"},
                 itemDistance: 20,
             },
    
