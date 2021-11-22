@@ -51,7 +51,7 @@
         
     </style>
     <script>
-    
+ 
         function enableDisable(obj, basedOnInput) {
             if (basedOnInput.val().trim() == "") {
                 obj.prop('disabled', true);
@@ -69,28 +69,28 @@
         $(document).ready(function() {
             $('.datepicker').datepicker();
             
-            $('#btnSave').button().click(function() {
-                $('#frmMain').submit();
+            $('\#btnSave').button().click(function() {
+                $('\#frmMain').submit();
             });
             
-            $('#btnCloseProject').button().click(function() {
-                $('#dlgConfirmCloseProject').dialog('open');
+            $('\#btnCloseProject').button().click(function() {
+                $('\#dlgConfirmCloseProject').dialog('open');
             });
             
-            $('#dlgConfirmCloseProject').dialog({
+            $('\#dlgConfirmCloseProject').dialog({
                 autoOpen: false,
                 title: 'Confirmation',
                 width: 515,
                 modal : true
             });
             
-            $('#description').bind('keyup change', function() {
-                enableDisable($('#btnSave'), $('#description'));
+            $('\#description').bind('keyup change', function() {
+                enableDisable($('\#btnSave'), $('\#description'));
             });
-            enableDisable($('#btnSave'), $('#description'));
+            enableDisable($('\#btnSave'), $('\#description'));
             
             
-            $('#btnConfirmCloseProject').button().click(function() {
+            $('\#btnConfirmCloseProject').button().click(function() {
                 $.ajax({
                     url: 'ProjectClose',
                     type: 'post',
@@ -116,51 +116,51 @@
             });
             
                         
-            $('#btnCancelCloseProject').button().click(function() {
-                $('#dlgConfirmCloseProject').dialog('close');
+            $('\#btnCancelCloseProject').button().click(function() {
+                $('\#dlgConfirmCloseProject').dialog('close');
             });
             
-            $('#dlgAddJournal').dialog({
+            $('#\dlgAddJournal').dialog({
                 autoOpen: false,
                 title: 'Add/Edit Journal Entry',
                 width: 515,
                 modal : true,
                 close: function() {
-                    $('#inpJournalId').val("");
-                    $('#inpJournalDate').val("");
-                    $('#selJournalType').val("");
-                    $('#taJournalNotes').val("");
+                    $('\#inpJournalId').val("");
+                    $('\#inpJournalDate').val("");
+                    $('\#selJournalType').val("");
+                    $('\#taJournalNotes').val("");
                 }
             });
             
-            $('#btnAddJournal').click(function (){
-                $('#dlgAddJournal').dialog('open');
+            $('\#btnAddJournal').click(function (){
+                $('\#dlgAddJournal').dialog('open');
             });
             
             $('.btnEditJournal').click(function (){
                 entryId = this.id.split("-")[1];
-                $('#inpJournalId').val(entryId);
-                $('#inpJournalDate').val($('#journal-entry-' + entryId + ' .date').text());
-                var optionText = $('#journal-entry-' + entryId + ' .eventDescription').text();
-                $("#selJournalType option").each(function() {
+                $('\#inpJournalId').val(entryId);
+                $('\#inpJournalDate').val($('\#journal-entry-' + entryId + ' .date').text());
+                var optionText = $('\#journal-entry-' + entryId + ' .eventDescription').text();
+                $("\#selJournalType option").each(function() {
                     if ($(this).text().trim() == optionText.trim()) {
                         $(this).attr('selected', 'selected');
                     }
                 });
-                $('#taJournalNotes').text($('#journal-entry-' + entryId + ' .notes').text());
-                $('#dlgAddJournal').dialog('open');
+                $('\#taJournalNotes').text($('\#journal-entry-' + entryId + ' .notes').text());
+                $('\#dlgAddJournal').dialog('open');
             });
                         
-            $('#btnJournalSave').button().click(function() {
+            $('\#btnJournalSave').button().click(function() {
                $.ajax({
                     url: 'ProjectAddJournal',
                     type: 'post',
                     data: {
                         projectId: #if(project.ProjectID) { #(project.ProjectID) }else{ -1 },
-                        eventDate: $('#inpJournalDate').val(),
-                        eventId: $('#selJournalType').val(),
-                        notes: $('#taJournalNotes').val(),
-                        journalId : $('#inpJournalId').val()
+                        eventDate: $('\#inpJournalDate').val(),
+                        eventId: $('\#selJournalType').val(),
+                        notes: $('\#taJournalNotes').val(),
+                        journalId : $('\#inpJournalId').val()
                     },
                     success: function(data, status) {
                         if(data == "ok") {
@@ -180,36 +180,36 @@
                 });  // end ajax call 
             });
             
-            $('#btnJournalCancel').button().click(function() {
-                $('#dlgAddJournal').dialog('close');
+            $('\#btnJournalCancel').button().click(function() {
+                $('\#dlgAddJournal').dialog('close');
             }); 
             
-            $('#inpJournalDate').bind('keyup change', function() {
-                enableDisable($('#btnJournalSave'), $('#inpJournalDate'));
+            $('\#inpJournalDate').bind('keyup change', function() {
+                enableDisable($('\#btnJournalSave'), $('\#inpJournalDate'));
             });
-            enableDisable($('#btnJournalSave'), $('#inpJournalDate')); 
+            enableDisable($('\#btnJournalSave'), $('\#inpJournalDate')); 
             
             
-            $('#dlgAddRates').dialog({
+            $('\#dlgAddRates').dialog({
                 autoOpen: false,
                 title: 'Add Rate Schedule',
                 width: 515,
                 modal : true,
                 close: function() {
-                    $('#selRatePerson').val("");
-                    $('#selRateSchedule').val("");
+                    $('\#selRatePerson').val("");
+                    $('\#selRateSchedule').val("");
                 }
             });
             
-            $('#btnAddRates').click(function(){
-                $('#dlgAddRates').dialog('open');
+            $('\#btnAddRates').click(function(){
+                $('\#dlgAddRates').dialog('open');
             });
             
-            $('#btnRateCancel').button().click(function() {
-                $('#dlgAddRates').dialog('close');
+            $('#\btnRateCancel').button().click(function() {
+                $('\#dlgAddRates').dialog('close');
             });
             
-            $('#btnRateSave').button().click(function() {
+            $('\#btnRateSave').button().click(function() {
                 $.ajax({
                     url: 'ProjectAddRate',
                     type: 'post',
@@ -237,48 +237,43 @@
                     }
                 });  // end ajax call 
                 
-                $('#dlgAddRates').dialog('close');
-            });
-            
-            
-            
-            
-                      
+                $('\#dlgAddRates').dialog('close');
+            });  
         });
     </script>
  
 </head>
 <body>
-    
+
     <h2>
-        #if(project){ 
+        #if(project):
             Project:  #(project.ProjectDescription)
-        } else { 
+        #else: 
             Add New Project 
-        }
+        #endif
     </h2>
     
     <form method="post" id="frmMain">    
         <div class="wrapper">
             <div class="grid-1-1"><label>Contract:</label>
                 <select name="contractId">
-                    #for(contract in lookup.contracts) {
-                        <option value="#(contract.id)"  #if(contract.id == project.ContractID) { selected }>#(contract.name)</option>
-                    }
+                    #for(contract in lookup.contracts):
+                        <option value="#(contract.id)"  #if(contract.id == project.ContractID): selected #endif>#(contract.name)</option>
+                    #endfor
                 </select></div>
             <div class="grid-1-2"><label>Services For:</label>
                 <select name="companyId">
-                    #for(company in lookup.companies) {
-                        <option value="#(company.id)" #if(company.id == project.ServicesForCompany) { selected }>#(company.name)</option>
-                    }
+                    #for(company in lookup.companies):
+                        <option value="#(company.id)" #if(company.id == project.ServicesForCompany): selected #endif>#(company.name)</option>
+                    #endfor
                 </select></div>
             <div class="grid-2-1"><label for="description">Description:</label><input value="#(project.ProjectDescription)" name="description" id="description" /></div>
             <div class="grid-2-2"><label>#:</label><input value="#(project.ProjectNumber)" name="projectNumber" /></div>
             <div class="grid-3-1"><label>Status:</label>
                 <select name="statusId">
-                    #for(status in lookup.projectStatuses) {
-                        <option value="#(status.StatusID)" #if(status.StatusID == project.StatusID) { selected }>#(status.StatusDescription)</option>
-                    }
+                    #for(status in lookup.projectStatuses):
+                        <option value="#(status.StatusID)" #if(status.StatusID == project.StatusID): selected #endif>#(status.StatusDescription)</option>
+                    #endfor
                 </select></div>
             <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.StatusNotes)</textarea></div>
             <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.MantisProjectID)" type="number" name="mantisId">  <a href="#(buglink)" target="_blank">link</a></div>
@@ -286,12 +281,12 @@
                 
             <div class="underline-1">&nbsp;</div>
 
-            <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)" name="projectedTime"></div>
+            <div class="grid-5-1"><label>Projected Time:</label><input value="#if(project.ProjectedTime): #(project.ProjectedTime) #endif" name="projectedTime"></div>
             <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime.TotalTime)</span></div>
             <div class="grid-5-3"><div id="chartProgress"></div></div>
         
-            <div class="grid-6-1"><label>Start Date:</label><input value="#date(project.StartDate, "MM/dd/yyyy")" name="startDate" class="datepicker"></div>
-            <div class="grid-6-2"><label>Projected End Date:</label><input value="#date(project.ProjectedDateComplete, "MM/dd/yyyy")" name="endDate" class="datepicker""></div>
+            <div class="grid-6-1"><label>Start Date:</label><input value="#if(project.StartDate): #date(project.StartDate, "MM/dd/yyyy") #endif" name="startDate" class="datepicker"></div>
+            <div class="grid-6-2"><label>Projected End Date:</label><input value="if(project.ProjectedDateComplete): #date(project.ProjectedDateComplete, "MM/dd/yyyy") #endif" name="endDate" class="datepicker""></div>
             <div class="underline-2">&nbsp;</div>
         </div>
         
@@ -299,51 +294,49 @@
     </form>
     <div>
         <button id="btnSave">Save</button>
-        #if(project.ProjectID) {<button id="btnCloseProject">Close Project</button>}
+        #if(project.ProjectID):<button id="btnCloseProject">Close Project</button>#endif
     </div>
-
-        
-    #if(project){ 
+ 
+    #if(project):
                 
         <div class="journal-section">
             <h3>Journal <button id="btnAddJournal" class="btnLittleHeader">+</button></h3>
     
-            #for(journal in journals) {
+            #for(journal in journals):
         
                 <div class="journal-entry 
-                    #if(journal.EventWhoGenerates){
+                    #if(journal.EventWhoGenerates):
                         #lowercase(journal.EventWhoGenerates) 
-                    }else{
+                    #else:
                         user
-                    }
+                    #endif
                 " id="journal-entry-#(journal.id)">
                     <div class="journal-head">
                         <span class="date">#date(journal.ReportDate, "M/d/yyyy")</span> by 
                         <span class="person">#(journal.Name)</span>
-                        #if(journal.EventWhoGenerates != "SYSTEM"){
+                        #if(journal.EventWhoGenerates != "SYSTEM"):
                             <button class="btnLittleHeader btnEditJournal" id="btnEditJournal-#(journal.id)"><img src="/images/edit-ben.png" alt="e"></button>
-                        }
+                        #endif
                     </div>
-                    #if(journal.EventDescription) { <div class="eventDescription"> #linebreak(journal.EventDescription) </div> }
-                    #if(journal.Notes) { <div class="notes"> #(journal.Notes) </div> }
+                    #if(journal.EventDescription): <div class="eventDescription"> #linebreak(journal.EventDescription) </div> #endif
+                    #if(journal.Notes): <div class="notes"> #(journal.Notes) </div> #endif
                 </div>
-            }
+            #endfor
         </div>
         
         <div class="rates-section"><h3>Rates <button id="btnAddRates" class="btnLittleHeader">+</button></h3>
             <table>
             <thead><tr><th>Person</th><th>Rate Schedule</th><th>Start</th><th>End</th></thead>
-            #for(rateList in rateLists) {
+            #for(rateList in rateLists):
                 <tr><td>#(rateList.Name)</td>
                     <td>#(rateList.RateDescription)</td>
-                    <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
-                    <td>#date(rateList.StartDate, "MM/dd/yyyy")</td>
+                    <td>#if(rateList.StartDate): #date(rateList.StartDate, "MM/dd/yyyy")</td>
+                    <td>#if(rateList.EndDate) #if(rateList.EndDate): #date(rateList.EndDate, "MM/dd/yyyy") #endif</td>
                 </tr>
-            }
+            #endfor
             </table>
         </div>
-    
-            
+           
         <div id="dlgConfirmCloseProject">
             <p>Are you sure you want to close the project `#(project.ProjectDescription)` ?  This will also mark all time billing items for the project as billed and paid.</p>
             <button id="btnConfirmCloseProject">Yes<br>Close the project.</button>
@@ -355,10 +348,11 @@
                 <div><label>Date:</label><input id="inpJournalDate" class="datepicker"></div>
                 <div><label>Type (optional):</label><select id="selJournalType">
                     <option value=""></option>
-                    #for(eventType in lookup.eventTypes) {
+                    #for(eventType in lookup.eventTypes):
                         <option value="#(eventType.id)">#(eventType.name)</option>
-                    }</div>
-                <select>
+                    
+                    #endfor 
+                </select>
             </div>
             <div><label>Notes:</label><textarea id="taJournalNotes"></textarea></div>
             <div style="display:none"><input name="inpJournalIventId" id="inpJournalId" value="#(project.id)"></div>
@@ -371,16 +365,16 @@
         <div id="dlgAddRates">
             <div><label>Person:</label>
                 <select id="selRatePerson">
-                    #for(person in lookup.timeBillers){
+                    #for(person in lookup.timeBillers):
                         <option value="#(person.PersonID)">#(person.Name)</option>
-                    }
+                    #endfor
                 </select>
             </div>
             <div><label>Rate Schedule:</label>
                 <select id="selRateSchedule">
-                    #for(rateSchedule in lookup.rateSchedules){
+                    #for(rateSchedule in lookup.rateSchedules):
                         <option value="#(rateSchedule.RateScheduleID)">#(rateSchedule.RateDescription)</option>
-                    }
+                    #endfor
                 </select>
             </div>
             <div><label>Start Date (optional):</label><input id="rateStartDate" class="datepicker"></div>
@@ -391,7 +385,7 @@
             </div>
         </div>
         
-    }        
+    #endif       
         
 
 
