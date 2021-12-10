@@ -191,9 +191,22 @@ struct TBEditProjectLabel: Codable {
     }
 }
 
+struct TBAddEditTimeContext: Codable {
+    var id: Int
+    var personId: Int
+    var projectId: Int
+    var workDate: Date
+    var duration: Double
+    var useOTRate: Bool
+    var notes: String
+    var exportStatus: Int
+    var preDeliveryFlag: Bool
+    var doNotBillFlag: Bool
+}
+
 struct TBAddEditContext: Codable {
     var project: TBEditProjectLabel
-    var time: Time?
+    var time: TBAddEditTimeContext?
     
     init(project: TBEditProjectLabel) {
         self.project = project

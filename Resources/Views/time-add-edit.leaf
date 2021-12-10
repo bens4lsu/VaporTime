@@ -52,15 +52,15 @@
         }
         
         function checkAll() {
-            var pickerNeedsValue = needsValue($('#datepicker'));
-            var durNeedsValue = needsValueGT($('#duration'), 0.1)
+            var pickerNeedsValue = needsValue($('\#datepicker'));
+            var durNeedsValue = needsValueGT($('\#duration'), 0.1)
             if (pickerNeedsValue || durNeedsValue){
-                $('#btnSubmit').addClass('disabled');
-                $('#btnSubmit').prop('disabled', true);
+                $('\#btnSubmit').addClass('disabled');
+                $('\#btnSubmit').prop('disabled', true);
             }
             else {
-                $('#btnSubmit').removeClass('disabled');
-                $('#btnSubmit').prop('disabled', false);
+                $('\#btnSubmit').removeClass('disabled');
+                $('\#btnSubmit').prop('disabled', false);
             }
         }
         
@@ -68,17 +68,17 @@
         
         $(document).ready(function() {
 
-            $("#datepicker").datepicker();
+            $("\#datepicker").datepicker();
             
-            $("#datepicker, #duration").bind('change, keyup', function() {
+            $("\#datepicker, #duration").bind('change, keyup', function() {
                 checkAll();
             });
             
-            $("#btnCancel").button().click(function(){
+            $("\#btnCancel").button().click(function(){
                 window.location = "TBTable";
             });
             
-            $("#btnSubmit").button();
+            $("\#btnSubmit").button();
             
             checkAll();
 
@@ -88,29 +88,29 @@
     </script>
     
     <h3>Add time to Project</h3>
-        <div><label>Contract:</label><span class="read-only">#(project.Description)</span></div>
-        <div><label>Services For:</label><span class="read-only">#(project.CompanyName)</span></div>
-        <div><label>Project:</label><span class="read-only">#if(project.ProjectNumber) { #(project.ProjectNumber) - }#(project.ProjectDescription)</span></div>
-        <div><label>Project ID:</label><span class="read-only">#(project.ProjectID)</span></div>
+        <div><label>Contract:</label><span class="read-only">#(project.description)</span></div>
+        <div><label>Services For:</label><span class="read-only">#(project.companyName)</span></div>
+        <div><label>Project:</label><span class="read-only">#if(project.projectNumber): #(project.projectNumber) - #endif #(project.projectDescription)</span></div>
+        <div><label>Project ID:</label><span class="read-only">#(project.projectID)</span></div>
         
-        #if(time.id) {
-            <div><label>Time ID:<span class="read-only">#(time.id)</span></div>
-        }
+        #if(time.id):
+            <div><label>Time ID: <span class="read-only">#(time.id)</span></div>
+        #endif
     
     <form method="post" id="formmain">
         <span style="display:none;">
             <input name="projectId" value="#(project.ProjectID)">
             <input name="timeId" value="#(TimeID)">
         </span>
-        <div style="margin-top:10px;"><label>Date:</label><input type="text" id="datepicker" name="datepicker" tabindex="1" value="#date(time.WorkDate, "MM/dd/yyyy")"></div>
-        <div><label>Duration:</label><input type="text" id="duration" name="duration" tabindex="2" value="#(time.Duration)"></div>
+        <div style="margin-top:10px;"><label>Date:</label><input type="text" id="datepicker" name="datepicker" tabindex="1" value="#date(time.workDate, "MM/dd/yyyy")"></div>
+        <div><label>Duration:</label><input type="text" id="duration" name="duration" tabindex="2" value="#(time.duration)"></div>
         <div>Notes:</div>
-        <textarea name="notes" tabindex="5" style="width:400px; height:8em;">#(time.Notes)</textarea>
+        <textarea name="notes" tabindex="5" style="width:400px; height:8em;">#(time.notes)</textarea>
         
         <div class="checkbox-div"><ul class="checkbox-row">
-            <li><label>OT: <input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.PreDeliveryFlag) { checked }></label></li>
-            <li><label>Pre-deliv: <input type="checkbox" id="pre" name="pre" tabindex="4" #if(time.UseOTRate) { checked }></label></li>
-            <li><label>Do Not Bill: <input type="checkbox" id="nobill" name="nobill" tabindex="6" #if(time.DoNotBillFlag) { checked }></label></li>
+            <li><label>OT: <input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.useOtRate) { checked }></label></li>
+            <li><label>Pre-deliv: <input type="checkbox" id="pre" name="pre" tabindex="4" #if(time.preDeliveryFlag) { checked }></label></li>
+            <li><label>Do Not Bill: <input type="checkbox" id="nobill" name="nobill" tabindex="6" #if(time.doNotBillFlag) { checked }></label></li>
         </ul></div>
         
         <div class="buttonGroup">

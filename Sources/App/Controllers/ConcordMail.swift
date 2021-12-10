@@ -71,9 +71,12 @@ class ConcordMail {
         return .success
     }
     
+    #if DEBUG
     func testMail() async throws -> ConcordMail.Result {
+        let name = smtp.friendlyName ?? smtp.username
+        let email = smtp.fromEmail ?? smtp.username
         let mail = Mail(
-            from: Mail.User(name: smtp.username, email: smtp.username),
+            from: Mail.User(name: name, email: email),
             to: Mail.User(name: "ben schultz", email: "bens4lsu@gmail.com"),
             subject: "Welcome to our app!",
             contentType: .plain,
@@ -82,9 +85,5 @@ class ConcordMail {
         return try await send(mail: mail)
         
     }
-    
-    
-    
-    
-    
+    #endif
 }

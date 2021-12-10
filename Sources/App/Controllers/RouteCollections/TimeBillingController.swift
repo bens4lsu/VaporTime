@@ -76,11 +76,10 @@ class TimeBillingController: RouteCollection {
             }
             var context = TBAddEditContext(project: project)
             if let timeId = timeId {
-                guard let time = try await Time.find(timeId, on: req.db) else {
+                guard let time = try await Time.query(on: req.db).filter(\.$id == timeId).first() else {
                     return try await req.view.render("time-add-edit", context).encodeResponse(for: req)
                 }
-                time.workDate = time.workDate.addingTimeInterval(12*3600)
-                context.time = time
+                context.time = time.tbAddEditTimeContext
                 return try await req.view.render("time-add-edit", context).encodeResponse(for: req)
             } else {
                 return try await req.view.render("time-add-edit", context).encodeResponse(for: req)

@@ -32,6 +32,8 @@ class ConfigKeys: Codable {
         var username: String
         var password: String
         var timeout: UInt
+        var friendlyName: String?
+        var fromEmail: String?
     }
     
     var database: ConfigKeys.Database

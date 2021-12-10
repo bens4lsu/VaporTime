@@ -9,7 +9,7 @@ import Foundation
 import Fluent
 import Vapor
 
-final class Time: Content, Model, Codable {
+final class Time: Content, Model {
     
     @ID(custom: "TimeID")
     var id: Int?
@@ -48,18 +48,18 @@ final class Time: Content, Model, Codable {
 //    static let idKey: IDKey = \.id
     static let schema = "fTime"
     
-    private enum CodingKeys: String, CodingKey {
-        case id = "TimeID",
-             personId = "PersonID",
-             projectId = "ProjectID",
-             workDate = "WorkDate",
-             duration = "Duration",
-             useOTRate = "UseOTRate",
-             notes = "Notes",
-             exportStatus = "ExportStatus",
-             preDeliveryFlag = "PreDeliveryFlag",
-             doNotBillFlag = "DoNotBillFlag"
-    }
+//    private enum CodingKeys: String, CodingKey {
+//        case id = "TimeID",
+//             personId = "PersonID",
+//             projectId = "ProjectID",
+//             workDate = "WorkDate",
+//             duration = "Duration",
+//             useOTRate = "UseOTRate",
+//             notes = "Notes",
+//             exportStatus = "ExportStatus",
+//             preDeliveryFlag = "PreDeliveryFlag",
+//             doNotBillFlag = "DoNotBillFlag"
+//    }
     
     required init() { }
     
@@ -80,5 +80,13 @@ final class Time: Content, Model, Codable {
                                     //              that the id property is set.  It was trying
                                     //              to insert where I needed an update.
         }
+    }
+    
+    var tbAddEditTimeContext: TBAddEditTimeContext? {
+        if let id = self.id {
+            let workDate = self.workDate.addingTimeInterval(12 * 3600)
+            return TBAddEditTimeContext(id: id, personId: self.personId, projectId: self.projectId, workDate: workDate, duration: self.duration, useOTRate: self.useOTRate, notes: self.notes, exportStatus: self.exportStatus, preDeliveryFlag: self.preDeliveryFlag, doNotBillFlag: self.doNotBillFlag)
+        }
+        return nil
     }
 }
