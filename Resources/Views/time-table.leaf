@@ -174,16 +174,17 @@
                 buttons: {
                     "Delete" : function() {
                         $.ajax({
+                            async: false,
                             url: "ajax/deleteTimeRecord",
                             dataType:"json",
                             async: false,
                             data: {timeId: myVars.rowToDelete},
                             type: "post",
-                            success: function(data, textStatus ){
-                                location.reload(true);
-                            },
                             fail: function(xhr, textStatus, errorThrown){
                                alert('The request to delete was unsuccessful.');
+                            },
+                            complete: function() {
+                                location.reload(true);
                             }
                         })
                     },
