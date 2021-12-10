@@ -63,6 +63,12 @@ struct TBTableColumns: Codable {
         temp.workDate = temp.workDate.asLocal
         return temp
     }
+    
+    func forGrid() -> TBTableColumns {
+        var temp = self.toLocalTime()
+        temp.notes = temp.notes.replaceLineBreaksHtml()
+        return temp
+    }
 }
 
 struct TBTableContext: Encodable {

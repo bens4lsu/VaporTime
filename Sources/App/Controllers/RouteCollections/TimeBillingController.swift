@@ -22,11 +22,11 @@ class TimeBillingController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         routes.get("TBTable", use: renderTimeTable)
-        routes.post("ajax/savesession", use: updateSessionFilters)
+        routes.post("ajax", "savesession", use: updateSessionFilters)
         routes.get("TBTree", use: renderTimeTree)
         routes.get("TBAddEdit", use: renderTimeAddEdit)
         routes.post("TBAddEdit", use: addEditTimeEntry)
-        routes.post("ajax/deleteTimeRecord", use: deleteTimeEntry)
+        routes.post("ajax", "deleteTimeRecord", use: deleteTimeEntry)
     }
     
     private func sessionSortOptions(_ req: Request) -> TimeBillingSessionFilter {
@@ -123,9 +123,6 @@ class TimeBillingController: RouteCollection {
         }
         
         let pv = try req.content.decode(PostVars.self)
-        
-        print(pv)
-        
         let timeId = Int(pv.timeId ?? "")
         let projectIdOpt = Int(pv.projectId ?? "")
         let workDateOpt = pv.datepicker.toDate()
@@ -134,9 +131,7 @@ class TimeBillingController: RouteCollection {
         let preDelivery = pv.preDeliver.toBool()
         let notes = pv.notes ?? ""
         let doNotBill = pv.nobill.toBool()
-        
-        print ("\(timeId) \(projectIdOpt) \(workDateOpt)")
-            
+
         guard let projectId = projectIdOpt, let workDate = workDateOpt, let duration = durationOpt else {
             throw Abort(.badRequest, reason: "Time entry submitted without at least one required value (project, date, duration).")
         }
@@ -153,11 +148,18 @@ class TimeBillingController: RouteCollection {
     }
     
     private func deleteTimeEntry(_ req: Request) async throws -> Response {
+        struct PostVars: Content {
+            var timeId: String?
+        }
+        
+        let pv = try req.content.decode(PostVars.self)
+        
+        guard let timeId = Int(pv.timeId ?? "") else {
+            throw Abort(.badRequest, reason: "Attempt to delete time entry, but no time ID received in the post.")
+        }
+        
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
-            guard let time = try? req.query.get(Int.self, at: "timeId") else {
-                throw Abort(.internalServerError, reason: "Attempt to delete time row that is not in the database.")
-            }
-            try await Time.query(on: req.db).filter(\.$id == time).delete()
+            try await Time.query(on: req.db).filter(\.$id == timeId).delete()
             return try await ("[\"OK\" : \"OK\"]").encodeResponse(for: req)
         }
     }

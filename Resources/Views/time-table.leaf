@@ -217,7 +217,7 @@
             </td><td>#if(row.DoNotBillFlag): <img src="./images/do-not-bill.png" alt ="&lt;Not Billed&gt;" style="height:1.25em; margin-right:0.33em;" title="Do Not Bill"> #endif
                 #if(row.PreDeliveryFlag): <img src="./images/preDeliv.png" title="Pre-delivery: early concept or design work" alt="pre-deliv" style="height:1.25em; margin-right:0.33em;"> #endif
                 #if(row.UseOTRate): <img src="./images/ot.png" title="Night, weekend, or overtime rate" alt="ot rate" style="height:1.25em; margin-right:0.33em;"> #endif
-                #linebreak(row.Notes)   
+                #unsafeHTML(row.Notes)   
             </td><td><a href="TBAddEdit?timeId=#(row.TimeID)&projectId=#(row.ProjectID)"><img src=images/edit-ben.png style=border-style:hidden></a>
             </td><td><a onclick="myVars.rowToDelete = #(row.TimeID); $('#dlgConfirmDelete').dialog('open');"><img src=images/delete-ben.png style=border-style:hidden></a>
             </td>

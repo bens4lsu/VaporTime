@@ -55,7 +55,7 @@ class MySQLDirect {
             WHERE t.PersonID = \(userId) AND ExportStatus = 0 ORDER BY t.WorkDate
         """
         
-        return try await getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self).map { $0.toLocalTime() }
+        return try await getResultsRows(req, query: sql, decodeUsing: TBTableColumns.self).map { $0.forGrid() }
     }
     
     func getTBTree(_ req: Request, userId: Int) async throws -> [TBTreeColumn] {
