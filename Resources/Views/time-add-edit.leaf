@@ -100,7 +100,7 @@
     <form method="post" id="formmain">
         <span style="display:none;">
             <input name="projectId" value="#(project.ProjectID)">
-            <input name="timeId" value="#(TimeID)">
+            <input name="timeId" value="#(time.id)">
         </span>
         <div style="margin-top:10px;"><label>Date:</label><input type="text" id="datepicker" name="datepicker" tabindex="1" value="#if(time.workDate): #date(time.workDate, "MM/dd/yyyy") #endif"></div>
         <div><label>Duration:</label><input type="text" id="duration" name="duration" tabindex="2" value="#(time.duration)"></div>

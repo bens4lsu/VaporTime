@@ -42,40 +42,40 @@ public func routes(_ app: Application) throws {
         }
     }
     
+    app.get("blankpage") { req async throws in
+        ("")
+    }
+    
     // MARK: Routes for developer
+   
+    // test sql connectivity
+    app.get("sql") { req async throws -> String in
+        struct MySQLVersion: Decodable {
+            let version: String
+        }
+        
+        let queryString = SQLQueryString(stringLiteral: "SELECT @@version as version")
+        let mySqlVersion = try await (req.db as! SQLDatabase).raw(queryString).first(decoding: MySQLVersion.self).get()
+        return mySqlVersion?.version ?? "error retrieving mysql version"
+    }
+    
+    
+    app.get("clearcache") { req async throws -> String in
+        cache.clear()
+        return "Caches Cleard."
+    }
+    
     #if DEBUG
-        // test sql connectivity
-        app.get("sql") { req async throws -> String in
-            struct MySQLVersion: Decodable {
-                let version: String
-            }
-            
-            let queryString = SQLQueryString(stringLiteral: "SELECT @@version as version")
-            let mySqlVersion = try await (req.db as! SQLDatabase).raw(queryString).first(decoding: MySQLVersion.self).get()
-            return mySqlVersion?.version ?? "error retrieving mysql version"
+    app.get("testEmail") { req async throws -> String in
+        let concordMail = ConcordMail(configKeys: ConfigKeys())
+        let mailResult = try await concordMail.testMail()
+        switch mailResult {
+        case .success:
+            return ("Test mail send success")
+        case .failure(let error):
+            return ("Test mail send error: \(error)")
         }
-        
-        
-        app.get("blankpage") { req async throws in
-            ("")
-        }
-        
-        
-        app.get("clearcache") { req async throws -> String in
-            cache.clear()
-            return "Caches Cleard."
-        }
-        
-        app.get("testEmail") { req async throws -> String in
-            let concordMail = ConcordMail(configKeys: ConfigKeys())
-            let mailResult = try await concordMail.testMail()
-            switch mailResult {
-            case .success:
-                return ("Test mail send success")
-            case .failure(let error):
-                return ("Test mail send error: \(error)")
-            }
-        }
+    }
     
     #endif
 

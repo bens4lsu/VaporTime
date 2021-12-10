@@ -110,28 +110,33 @@ class TimeBillingController: RouteCollection {
     }
     
     private func addEditTimeEntry(_ req: Request) async throws -> Response {
-        struct PostVars: Content {
-            let timeId: Int?
-            let projectId: Int?
-            let datepicker: String?
-            let duration: Double?
-            let ot: String?
-            let preDelivery: String?
-            let notes: String?
-            let nobill: String?
-        }
-        let vars = try? req.query.decode(PostVars.self)
-        print(vars)
         
-        let timeId = vars?.timeId
-        let projectIdOpt = vars?.projectId
-        let workDateOpt = vars?.datepicker.toDate()
-        let durationOpt = vars?.duration
-        let useOtRate = vars?.ot.toBool() ?? false
-        let preDelivery = vars?.preDelivery.toBool() ?? false
-        let notes = vars?.notes ?? ""
-        let doNotBill = vars?.nobill.toBool() ?? false
-    
+        struct PostVars: Content {
+            var timeId: String?
+            var projectId: String?
+            var datepicker: String?
+            var duration: String?
+            var ot: String?
+            var preDeliver: String?
+            var notes: String?
+            var nobill: String?
+        }
+        
+        let pv = try req.content.decode(PostVars.self)
+        
+        print(pv)
+        
+        let timeId = Int(pv.timeId ?? "")
+        let projectIdOpt = Int(pv.projectId ?? "")
+        let workDateOpt = pv.datepicker.toDate()
+        let durationOpt = Double(pv.duration ?? "")
+        let useOtRate = pv.ot.toBool()
+        let preDelivery = pv.preDeliver.toBool()
+        let notes = pv.notes ?? ""
+        let doNotBill = pv.nobill.toBool()
+        
+        print ("\(timeId) \(projectIdOpt) \(workDateOpt)")
+            
         guard let projectId = projectIdOpt, let workDate = workDateOpt, let duration = durationOpt else {
             throw Abort(.badRequest, reason: "Time entry submitted without at least one required value (project, date, duration).")
         }
