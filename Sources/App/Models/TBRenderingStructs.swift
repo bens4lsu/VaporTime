@@ -181,7 +181,7 @@ struct TBEditProjectLabel: Codable {
     var projectDescription: String
     var projectNumber: String?
     var projectId: Int
-    
+
     private enum CodingKeys: String, CodingKey {
         case description = "Description"
         case companyName = "CompanyName"

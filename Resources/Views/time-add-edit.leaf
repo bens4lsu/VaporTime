@@ -88,13 +88,13 @@
     </script>
     
     <h3>Add time to Project</h3>
-        <div><label>Contract:</label><span class="read-only">#(project.description)</span></div>
-        <div><label>Services For:</label><span class="read-only">#(project.companyName)</span></div>
-        <div><label>Project:</label><span class="read-only">#if(project.projectNumber): #(project.projectNumber) - #endif #(project.projectDescription)</span></div>
-        <div><label>Project ID:</label><span class="read-only">#(project.projectID)</span></div>
+        <div><label>Contract:</label><span class="read-only">#(project.Description)</span></div>
+        <div><label>Services For:</label><span class="read-only">#(project.CompanyName)</span></div>
+        <div><label>Project:</label><span class="read-only">#if(project.ProjectNumber): #(project.ProjectNumber) - #endif #(project.ProjectDescription)</span></div>
+        <div><label>Project ID:</label><span class="read-only">#(project.ProjectID)</span></div>
         
         #if(time.id):
-            <div><label>Time ID: <span class="read-only">#(time.id)</span></div>
+            <div><label>Time ID:</label><span class="read-only">#(time.id)</span></div>
         #endif
     
     <form method="post" id="formmain">
@@ -102,15 +102,15 @@
             <input name="projectId" value="#(project.ProjectID)">
             <input name="timeId" value="#(TimeID)">
         </span>
-        <div style="margin-top:10px;"><label>Date:</label><input type="text" id="datepicker" name="datepicker" tabindex="1" value="#date(time.workDate, "MM/dd/yyyy")"></div>
+        <div style="margin-top:10px;"><label>Date:</label><input type="text" id="datepicker" name="datepicker" tabindex="1" value="#if(time.workDate): #date(time.workDate, "MM/dd/yyyy") #endif"></div>
         <div><label>Duration:</label><input type="text" id="duration" name="duration" tabindex="2" value="#(time.duration)"></div>
         <div>Notes:</div>
         <textarea name="notes" tabindex="5" style="width:400px; height:8em;">#(time.notes)</textarea>
         
         <div class="checkbox-div"><ul class="checkbox-row">
-            <li><label>OT: <input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.useOtRate) { checked }></label></li>
-            <li><label>Pre-deliv: <input type="checkbox" id="pre" name="pre" tabindex="4" #if(time.preDeliveryFlag) { checked }></label></li>
-            <li><label>Do Not Bill: <input type="checkbox" id="nobill" name="nobill" tabindex="6" #if(time.doNotBillFlag) { checked }></label></li>
+            <li><label>OT: <input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.useOtRate): checked #endif></label></li>
+            <li><label>Pre-deliv: <input type="checkbox" id="pre" name="pre" tabindex="4" #if(time.preDeliveryFlag): checked #endif></label></li>
+            <li><label>Do Not Bill: <input type="checkbox" id="nobill" name="nobill" tabindex="6" #if(time.doNotBillFlag): checked #endif></label></li>
         </ul></div>
         
         <div class="buttonGroup">
