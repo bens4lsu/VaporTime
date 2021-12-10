@@ -110,14 +110,27 @@ class TimeBillingController: RouteCollection {
     }
     
     private func addEditTimeEntry(_ req: Request) async throws -> Response {
-        let timeId = try? req.query.get(Int.self, at: "timeId")
-        let projectIdOpt = try? req.query.get(Int.self, at: "projectId")
-        let workDateOpt = (try? req.query.get(at: "datepicker")).toDate()
-        let durationOpt: Double? = try? req.query.get(at: "duration")
-        let useOtRate = (try? req.query.get(at: "ot")).toBool()
-        let preDelivery = (try? req.query.get(at: "pre")).toBool()
-        let notes: String = (try? req.query.get(at: "notes")) ?? ""
-        let doNotBill = (try? req.query.get(at: "nobill")).toBool()
+        struct PostVars: Content {
+            let timeId: Int?
+            let projectId: Int?
+            let datepicker: String?
+            let duration: Double?
+            let ot: String?
+            let preDelivery: String?
+            let notes: String?
+            let nobill: String?
+        }
+        let vars = try? req.query.decode(PostVars.self)
+        print(vars)
+        
+        let timeId = vars?.timeId
+        let projectIdOpt = vars?.projectId
+        let workDateOpt = vars?.datepicker.toDate()
+        let durationOpt = vars?.duration
+        let useOtRate = vars?.ot.toBool() ?? false
+        let preDelivery = vars?.preDelivery.toBool() ?? false
+        let notes = vars?.notes ?? ""
+        let doNotBill = vars?.nobill.toBool() ?? false
     
         guard let projectId = projectIdOpt, let workDate = workDateOpt, let duration = durationOpt else {
             throw Abort(.badRequest, reason: "Time entry submitted without at least one required value (project, date, duration).")
