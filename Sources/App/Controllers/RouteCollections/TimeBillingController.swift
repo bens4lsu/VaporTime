@@ -91,16 +91,31 @@ class TimeBillingController: RouteCollection {
     // MARK:  Methods connected to routes that return data or redirect
     
     private func updateSessionFilters(_ req: Request) async throws -> Response {
+        
+        struct PostVars: Content {
+            var sesContract: String?
+            var sesProject: String?
+            var sesDateTo: String?
+            var sesDateFrom: String?
+            var sesDurTo: String?
+            var sesDurFrom: String?
+            var sesNote: String?
+            var sortCol: String?
+            var sortDir: String?
+            var filter: String?
+        }
+        let pv = try req.content.decode(PostVars.self)
+        
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
-            let sesContract = try? req.query.get(String.self, at: "sesContract").trimmingCharacters(in: .whitespaces)
-            let sesProject = try? req.query.get(String.self, at: "sesProject").trimmingCharacters(in: .whitespaces)
-            let sesDateTo = try? req.query.get(String.self, at: "sesDateTo").trimmingCharacters(in: .whitespaces)
-            let sesDateFrom = try? req.query.get(String.self, at: "sesDateFrom").trimmingCharacters(in: .whitespaces)
-            let sesDurTo = try? req.query.get(String.self, at: "sesDurTo").trimmingCharacters(in: .whitespaces)
-            let sesDurFrom = try? req.query.get(String.self, at: "sesDurFrom").trimmingCharacters(in: .whitespaces)
-            let sesNote = try? req.query.get(String.self, at: "sesNote").trimmingCharacters(in: .whitespaces)
-            let sortCol = try? req.query.get(Int.self, at: "sortCol")
-            let sortDir = try? req.query.get(String.self, at: "sortDir").trimmingCharacters(in: .whitespaces)
+            let sesContract = pv.sesContract?.trimmingCharacters(in: .whitespaces)
+            let sesProject = pv.sesProject?.trimmingCharacters(in: .whitespaces)
+            let sesDateTo = pv.sesDateTo?.trimmingCharacters(in: .whitespaces)
+            let sesDateFrom = pv.sesDateFrom?.trimmingCharacters(in: .whitespaces)
+            let sesDurTo = pv.sesDurTo?.trimmingCharacters(in: .whitespaces)
+            let sesDurFrom = pv.sesDurFrom?.trimmingCharacters(in: .whitespaces)
+            let sesNote = pv.sesNote?.trimmingCharacters(in: .whitespaces)
+            let sortCol = Int(pv.sortCol ?? "")
+            let sortDir = pv.sortDir?.trimmingCharacters(in: .whitespaces)
             let filter = TimeBillingSessionFilter(contract: sesContract, project: sesProject, dateFrom: sesDateFrom, dateTo: sesDateTo, durationFrom: sesDurFrom, durationTo: sesDurTo, noteFilter: sesNote, sortColumn: sortCol ?? 3, sortDirection: sortDir ?? "desc")
             
             try UserAndTokenController.saveSessionInfo(req: req, info: filter, sessionKey: "filter")
