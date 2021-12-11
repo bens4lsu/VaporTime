@@ -152,11 +152,11 @@ class TimeBillingController: RouteCollection {
         }
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
             let time = Time(id: timeId, personId: user.id, projectId: projectId, workDate: workDate, duration: duration, useOTRate: useOtRate, notes: notes, exportStatus: 0, preDeliveryFlag: preDelivery, doNotBillFlag: doNotBill)
-            try await time.save(on: req.db)
+            let savedTime: Time = try await time.saveAndReturn(on: req.db)
             var urlAddString = ""
-            if time.id != nil {
+            if savedTime.id != nil {
                 // i can't think of how this comes back nil, but I'll stick this line in an if, just in case...
-                urlAddString = "?highlightRow=\(time.id!)"
+                urlAddString = "?highlightRow=\(savedTime.id!)"
             }
             return req.redirect(to: "TBTable\(urlAddString)")
         }
