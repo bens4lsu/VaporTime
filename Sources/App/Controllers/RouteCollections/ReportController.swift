@@ -64,7 +64,7 @@ class ReportController: RouteCollection {
                         
             async let reportData = db.getReportData(req, filters: filters, userId: user.id)
             async let lookupData = cache.getLookupContext(req)
-            let footnote = self.getFootnote(from: filters, and: try await lookupData)
+            let footnote = self.getFootnote(from: filters, and: try await lookupData).replaceLineBreaksHtml()
             var records = [ReportRendererGroup]()
             for row in try await reportData {
                 records.add(row, group1: ReportGroupBy.fromRaw(groupBy1) ?? nil,

@@ -25,50 +25,50 @@
 <body class="mainbox">
 
 <div class="nav"><a href="Report">Back to report selector</a></div>
- #if(levels == 0) {
+ #if(levels == 0):
     <p>There were no records that match your report criteria, or the results are assigned to projects that you do not have permission to view.</p>
- }
+ #endif
  
- #if(levels == 1) {
-    #for(group1 in top) {
+ #if(levels == 1):
+    #for(group1 in top):
         <table>
         <tr class="group-heading-1"><td colspan="4">#(group1.title)</tr>
-        #for(record in group1.childRecords) {
+        #for(record in group1.childRecords):
             <tr class="row-#zebra(index)"><td width="18%">#(record.BilledByName)</td><td width="18%">#date(record.WorkDate, "MM/dd/yyyy")</td><td width="8%">#(record.Duration)</td><td>#(record.Notes)</tr>
-        }
+        #endfor
         <tr class="group-footer-1"><td>Count: #(group1.count)</td><td>&nbsp;</td><td>#(group1.total)</td><td>&nbsp;</td></tr>
         </table>
         
-    }
+    #endfor
     <table>
         <tr class="table-footer"><td width="18%">Count: #(count)</td><td width="18%">&nbsp;</td><td width="9%">#(grandTotal)  </td><td>&nbsp;</td></tr>
     </table>
-}
+#endif
  
- #if(levels == 2) {
-    #for(group1 in top) {
+ #if(levels == 2):
+    #for(group1 in top):
         
         <table>
         <tr class="group-heading-1"><td colspan="4">#(group1.title)</tr>
-        #for(group2 in group1.childGroups) {
+        #for(group2 in group1.childGroups):
             <tr class="group-heading-2"><td colspan="4">#(group2.title)</td></tr>
             <tbody>
-            #for(record in group2.childRecords) {
+            #for(record in group2.childRecords):
                 <tr class="row-#zebra(index)"><td width="18%">#(record.BilledByName)</td><td width="18%">#date(record.WorkDate, "MM/dd/yyyy")</td><td width="9%">#(record.Duration)</td><td>#(record.Notes)</tr>
-            }
+            #endfor
             <tr class="group-footer-2"><td>Count: #(group2.count)</td><td>&nbsp;</td><td>#(group2.total)</td><td>&nbsp;</td></tr>
-        }
+        #endfor
         
         <tr class="group-footer-1"><td>Count: #(group1.count)</td><td>&nbsp;</td><td>#(group1.total)</td><td>&nbsp;</td></tr>
 
-    }
+    #endfor
     </table>
     <table>
         <tr class="table-footer"><td width="18%">Count: #(count)</td><td width="18%">&nbsp;</td><td width="9%">#(grandTotal)  </td><td>&nbsp;</td></tr>
     </table>
     
- }
+ #endif
                         
-<div class="report-footnote">#linebreak(footnote)</div>
+<div class="report-footnote">#unsafeHtml(footnote)</div>
 </body>
 </html>
