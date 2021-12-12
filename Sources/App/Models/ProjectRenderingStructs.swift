@@ -5,6 +5,8 @@
 //  Created by Ben Schultz on 3/3/20.
 //
 
+
+#warning( "bms - Add coding keys so that properties can start with lowercase letters.")
 import Foundation
 
 struct TotalTime: Codable {
@@ -31,9 +33,10 @@ struct Journal: Codable {
     var Name: String?
     var id: Int
     
-    func reportDateToLocal() -> Journal {
+    func formatForDisplay() -> Journal {
         var tmpJournal = self
         tmpJournal.ReportDate = tmpJournal.ReportDate.asLocal
+        tmpJournal.Notes = tmpJournal.Notes?.replaceLineBreaksHtml()
         return tmpJournal
     }
 }

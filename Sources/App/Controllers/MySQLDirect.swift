@@ -178,7 +178,7 @@ class MySQLDirect {
             WHERE ev.ProjectID = \(projectId)
             ORDER BY ev.ReportDate DESC, ev.ProjectEventID DESC
         """
-        return try await getResultsRows(req, query: sql, decodeUsing: Journal.self).map {  $0.reportDateToLocal() }
+        return try await getResultsRows(req, query: sql, decodeUsing: Journal.self).map {  $0.formatForDisplay() }
     }
     
     func getRatesForProject(_ req: Request, projectId: Int) async throws -> [RateList] {

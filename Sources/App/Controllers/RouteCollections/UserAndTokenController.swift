@@ -181,7 +181,7 @@ class UserAndTokenController: RouteCollection {
         }
         
         if !token.user.access.contains(accessLevel)  {
-            // TODO: reroute to a no permission for this resource page
+            #warning("bms - reroute to a no permission for this resource page")
             throw Abort (.unauthorized)
         }
         
@@ -267,6 +267,7 @@ extension UserAndTokenController {
             return resetKey
         }()
                         
+        #warning("bms - implement handling keys")
         // TODO:  Delete expired keys
         // TODO:  Delete any older (even unexpired) keys for this user.
                         
@@ -337,6 +338,7 @@ extension UserAndTokenController {
         
         let resetRequest: PasswordResetRequest = try await verifyKey(req, resetKey: resetKey)
   
+        #warning("bms - password enforcement")
         // TODO:  enforce minimum password requirement (configuration?)
         // TODO:  verify no white space.  any other invalid characrters?
                 
