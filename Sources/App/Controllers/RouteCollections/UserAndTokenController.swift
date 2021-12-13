@@ -14,8 +14,6 @@ enum UserAccessLevel: String, Codable {
     case timeBilling = "T"
     case admin = "A"
     case report = "R"
-    case doc = "D"
-    case crm = "C"
     case activeOnly = "X"
 }
 

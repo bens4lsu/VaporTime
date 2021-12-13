@@ -47,7 +47,6 @@ class DataCache {
                                     projectStatuses: statuses,
                                     eventTypes: try await eventTypes,
                                     rateSchedules: try await rateSchedules)
-        print(statuses)
         cachedLookupContext = context
         return context
     }

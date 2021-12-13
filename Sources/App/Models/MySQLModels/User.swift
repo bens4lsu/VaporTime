@@ -106,8 +106,6 @@ final class User: Content, Model, Codable {
         if self.isAdmin { access.insert(.admin) }
         if self.isTimeBiller { access.insert(.timeBilling) }
         if self.isReportViewer { access.insert(.report) }
-        if self.isCRMUser { access.insert(.crm) }
-        if self.isDocUser { access.insert(.doc) }
         return UserPersistInfo (id: id, name: self.name, emailAddress: self.emailAddress, access: access)
     }
         
@@ -124,7 +122,7 @@ extension User: Validatable {
     }
 }
 
-
+#warning ("make new permission levels for read project page and add/edit project page")
 struct UserPersistInfo: Codable {
     // Non-secret struct represntation of a user that can be saved in the session
     var id: Int
@@ -137,8 +135,6 @@ struct UserPersistInfo: Codable {
         dict["timeBilling"] = access.contains(.timeBilling)
         dict["admin"] = access.contains(.admin)
         dict["report"] = access.contains(.report)
-        dict["doc"] = access.contains(.doc)
-        dict["crm"] = access.contains(.crm)
         return dict
     }
 }

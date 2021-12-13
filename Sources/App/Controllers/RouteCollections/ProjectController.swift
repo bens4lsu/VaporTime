@@ -83,24 +83,43 @@ class ProjectController: RouteCollection {
     // MARK: Updating routes
     
     private func addEditProject(_ req: Request) async throws -> Response {
+        struct PostVars: Content {
+            var projectId: String?
+            var contractId: String?
+            var companyId: String?
+            var description: String?
+            var projectNumber: String?
+            var statusId: String?
+            var notes: String?
+            var mantisId: String?
+            var hideTimeReporting: String?
+            var projectedTime: String?
+            var startDate: String?
+            var endDate: String?
+        }
+        let pv = try req.content.decode(PostVars.self)
         
-        let projectId = try? req.query.get(Int.self, at: "projectId")
-        let inp_contractId = try? req.query.get(Int.self, at: "contractId")
-        let inp_servicesForCompanyId = try? req.query.get(Int.self, at: "companyId")
-        let inp_description = try? req.query.get(String.self, at: "description")
-        let projectNumber = (try? req.query.get(String.self, at: "projectNumber")) ?? ""
-        let statusId = try? req.query.get(Int.self, at: "statusId")
-        let notes = (try? req.query.get(String.self, at: "notes")) ?? ""
-        let mantisId = try? req.query.get(Int.self, at: "mantisId")
-        let hideTimeReporting = (try? req.query.get(String.self, at: "hideTimeReporting")).toBool()
-        let projectedTime = try? req.query.get(Int.self, at: "projectedTime")
-        let startDate = (try? req.query.get(at: "startDate")).toDate()
-        let endDate = (try? req.query.get(at: "endDate")).toDate()
+        let projectId = Int(pv.projectId ?? "")
+        let inp_contractId = Int(pv.contractId ?? "")
+        let inp_servicesForCompanyId = Int(pv.companyId ?? "")
+        let inp_description = pv.description
+        let projectNumber = pv.projectNumber
+        let statusId = Int(pv.statusId ?? "")
+        let notes = pv.notes ?? ""
+        let mantisId = Int(pv.mantisId ?? "")
+        let hideTimeReporting = pv.hideTimeReporting.toBool()
+        let projectedTime = Int(pv.projectedTime ?? "")
+        let startDate = pv.startDate.toDate()
+        let endDate = pv.endDate.toDate()
         
         let isNewProject = projectId == nil
         
         guard let contractId = inp_contractId, let servicesForCompanyId = inp_servicesForCompanyId, let description = inp_description else {
             throw Abort(.badRequest, reason: "Project add or update entry submitted without at least one required value (contract, services for, description).")
+        }
+        
+        guard description.trimmingCharacters(in: .whitespaces) != "" else {
+            throw Abort(.badRequest, reason: "Project description can not be empty.")
         }
         
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in

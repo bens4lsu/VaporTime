@@ -276,12 +276,12 @@
                     #endfor
                 </select></div>
             <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.statusNotes)</textarea></div>
-            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.mantisProjectID)" type="number" name="mantisId">  <a href="#(buglink)" target="_blank">link</a></div>
+            <div class="grid-4-1"><label>Bug Tracking ID:</label><input value="#(project.mantisProjectId)" type="number" name="mantisId" />  <a href="#(buglink)" target="_blank">link</a></div>
             <div class="grid-4-3"><label>Hide Time Reporting:</label><input type="checkbox" #if(project.hideTimeReporting) { checked } name="hideTimeReporting"></input></div>
                 
             <div class="underline-1">&nbsp;</div>
 
-            <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.ProjectedTime)" name="projectedTime"></div>
+            <div class="grid-5-1"><label>Projected Time:</label><input value="#(project.projectedTime)" name="projectedTime"></div>
             <div class="grid-5-2"><label>Actual Time:</label><span class="read-only">#(totalTime.TotalTime)</span></div>
             <div class="grid-5-3"><div id="chartProgress"></div></div>
         
