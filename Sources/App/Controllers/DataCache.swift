@@ -37,7 +37,7 @@ class DataCache {
         async let projectStatuses = try RefProjectStatuses.query(on: req.db).all()
         async let eventTypes = try db.getEventTypes(req)
         async let rateSchedules = try LuRateSchedules.query(on: req.db).all()
-        let statuses = try await projectStatuses.sorted()
+        let statuses = try await projectStatuses.dto
         let lookupTrinity = try await lookupTrinitiyTask
         let context = LookupContext(contracts: lookupTrinity.contracts.sorted(),
                                     companies: lookupTrinity.companies.sorted(),
@@ -47,6 +47,7 @@ class DataCache {
                                     projectStatuses: statuses,
                                     eventTypes: try await eventTypes,
                                     rateSchedules: try await rateSchedules)
+        print(statuses)
         cachedLookupContext = context
         return context
     }

@@ -41,20 +41,31 @@ class ReportController: RouteCollection {
     
     
     private func renderReport(_ req: Request) async throws -> Response {
-        let startDateReqStr: String? = try? req.query.get(at: "dateFrom")
-        let endDateReqStr: String? = try? req.query.get(at: "dateTo")
-        let billedById: Int? = try? req.query.get(at: "billedById")
-        let contractId: Int? = try? req.query.get(at: "contractId")
-        let servicesForCompanyId: Int? = try? req.query.get(at: "companyId")
-        let projectId: Int? = try? req.query.get(at: "projectId")
-        let groupBy1: Int? = try? req.query.get(at: "group1")
-        let groupBy2: Int? = try? req.query.get(at: "group2")
-        let display: String? = try? req.query.get(at: "display")
+        struct PostVars: Content{
+            var dateFrom: String?
+            var dateTo: String?
+            var billedById: String?
+            var contractId: String?
+            var companyId: String?
+            var projectId: String?
+            var group1: String?
+            var group2: String?
+            var display: String?
+        }
         
-        guard let startDateReq = startDateReqStr,
-            let endDateReq = endDateReqStr,
-            let startDate = self.df.date(from: startDateReq),
-            let endDate = self.df.date(from: endDateReq) else
+        let pv = try req.content.decode(PostVars.self)
+        let startDateReqOpt: Date? = pv.dateFrom.toDate()
+        let endDateReqOpt: Date? = pv.dateTo.toDate()
+        let billedById: Int? = Int(pv.billedById ?? "")
+        let contractId: Int? = Int(pv.contractId ?? "")
+        let servicesForCompanyId: Int? = Int(pv.companyId ?? "")
+        let projectId: Int? = Int(pv.projectId ?? "")
+        let groupBy1: Int? = Int(pv.group1 ?? "")
+        let groupBy2: Int? = Int(pv.group2 ?? "")
+        let display: String? = pv.display
+        
+        guard let startDate = startDateReqOpt,
+            let endDate = endDateReqOpt else
         {
             throw Abort(.badRequest, reason: "Start Date and End Date are required for reporting.")
         }
@@ -78,7 +89,7 @@ class ReportController: RouteCollection {
         }
     }
     
-    func getFootnote(from filters: ReportFilters, and lookupData: LookupContext) -> String {
+    private func getFootnote(from filters: ReportFilters, and lookupData: LookupContext) -> String {
         var footnote = "Data for dates from \(self.df.string(from: filters.startDate)) to \(self.df.string(from: filters.endDate)).\n"
        
         if let billedById = filters.billedById {

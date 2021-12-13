@@ -281,7 +281,7 @@ class ProjectController: RouteCollection {
             return "not set"
         }
             
-        return ourStatusUnwrapped.description
+        return ourStatusUnwrapped.statusDescription
     }
     
     private func validateNoOverlappingRateSchedules(_ req: Request, contractId: Int, projectId: Int, personId: Int, startDate: Date, endDate: Date) -> Bool {

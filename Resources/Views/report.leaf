@@ -69,6 +69,6 @@
     
  #endif
                         
-<div class="report-footnote">#unsafeHtml(footnote)</div>
+<div class="report-footnote">#unsafeHTML(footnote)</div>
 </body>
 </html>

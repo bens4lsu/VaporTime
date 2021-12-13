@@ -272,7 +272,7 @@
             <div class="grid-3-1"><label>Status:</label>
                 <select name="statusId">
                     #for(status in lookup.projectStatuses):
-                        <option value="#(status.StatusID)" #if(status.StatusID == project.statusId): selected #endif>#(status.StatusDescription)</option>
+                        <option value="#(status.id)" #if(status.id == project.statusId): selected #endif>#(status.statusDescription)</option>
                     #endfor
                 </select></div>
             <div class="grid-3-2"><label>Status Notes:</label><textarea name="notes">#(project.statusNotes)</textarea></div>
@@ -318,7 +318,7 @@
                             <button class="btnLittleHeader btnEditJournal" id="btnEditJournal-#(journal.id)"><img src="/images/edit-ben.png" alt="e"></button>
                         #endif
                     </div>
-                    #if(journal.EventDescription): <div class="eventDescription"> #linebreak(journal.EventDescription) </div> #endif
+                    #if(journal.EventDescription): <div class="eventDescription"> #unsafeHTML(journal.EventDescription) </div> #endif
                     #if(journal.Notes): <div class="notes"> #(journal.Notes) </div> #endif
                 </div>
             #endfor
