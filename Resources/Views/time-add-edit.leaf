@@ -108,8 +108,8 @@
         <textarea name="notes" tabindex="5" style="width:400px; height:8em;">#(time.notes)</textarea>
         
         <div class="checkbox-div"><ul class="checkbox-row">
-            <li><label>OT: <input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.useOtRate): checked #endif></label></li>
-            <li><label>Pre-deliv: <input type="checkbox" id="pre" name="pre" tabindex="4" #if(time.preDeliveryFlag): checked #endif></label></li>
+            <li><label>OT: <input type="checkbox" id="ot" name="ot" tabindex="3" class="required" #if(time.useOTRate): checked #endif></label></li>
+            <li><label>Pre-deliv: <input type="checkbox" id="preDeliver" name="preDeliver" tabindex="4" #if(time.preDeliveryFlag): checked #endif></label></li>
             <li><label>Do Not Bill: <input type="checkbox" id="nobill" name="nobill" tabindex="6" #if(time.doNotBillFlag): checked #endif></label></li>
         </ul></div>
         
