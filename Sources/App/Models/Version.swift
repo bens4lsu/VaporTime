@@ -15,7 +15,7 @@ class Version: Codable {
     init() {
     
         let path = DirectoryConfiguration.detect().resourcesDirectory
-        let url = URL(fileURLWithPath: path).appendingPathComponent("Resources", isDirectory: true).appendingPathComponent("Version.json")
+        let url = URL(fileURLWithPath: path).appendingPathComponent("Version.json")
         do {
             let data = try Data(contentsOf: url)
             let decoder = try JSONDecoder().decode(Version.self, from: data)
