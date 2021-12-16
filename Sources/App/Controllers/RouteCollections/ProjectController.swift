@@ -85,7 +85,7 @@ class ProjectController: RouteCollection {
                 strBugID = "\(bugId)"
             }
             let bugLink = cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
-            print (try await journalsTask)
+            print (try await rateListsTask)
             let context = ProjectAddEdit(lookup: try await lookupTask,
                                          project: project,
                                          totalTime: try await totalTimeTask,
@@ -163,9 +163,12 @@ class ProjectController: RouteCollection {
     
     
     private func closeProject(_ req: Request) async throws -> Response {
-        let ajaxProjectId = try? req.query.get(Int.self, at: "projectId")
+        struct PostVars: Content {
+            var projectId: String?
+        }
+        let pv = try req.content.decode(PostVars.self)
         
-        guard let projectId = ajaxProjectId else {
+        guard let projectId = pv.projectId.toInt() else {
             throw Abort (.badRequest, reason: "Request to close a project without a projectID")
         }
         
@@ -221,15 +224,21 @@ class ProjectController: RouteCollection {
     
     
     private func addRateSchedule(_ req: Request) async throws -> Response {
-        let ajaxProjectId = try? req.query.get(Int.self, at: "projectId")
-        let ajaxPersonId = try? req.query.get(Int.self, at: "personId")
-        let ajaxRateScheduleId = try? req.query.get(Int.self, at: "rateScheduleId")
-        let rateStartDate = (try? req.query.get(at: "rateStartDate")).toDate()
-        let rateEndDate = (try? req.query.get(at: "rateEndDate")).toDate()
-        
-        guard let projectId = ajaxProjectId, let personId = ajaxPersonId, let rateScheduleId = ajaxRateScheduleId else {
+        struct PostVars: Content {
+            var projectId: String?
+            var personId: String?
+            var rateScheduleId: String?
+            var rateStartDate: String?
+            var rateEndDate: String?
+        }
+        let pv = try req.content.decode(PostVars.self)
+
+        guard let projectId = pv.projectId.toInt(), let personId = pv.projectId.toInt(), let rateScheduleId = pv.rateScheduleId.toInt() else {
             throw Abort(.badRequest, reason: "Add Rate Schedule requested with at least one required field missing (project ID, person ID, rate schedule ID.")
         }
+        
+        let rateStartDate = pv.rateStartDate.toDate()
+        let rateEndDate = pv.rateEndDate.toDate()
     
         #warning ("bms  - call function to verify no overlap")
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
@@ -336,6 +345,8 @@ class ProjectController: RouteCollection {
 
         //  1.  it has an endDate, which is < newStartDate
         //  2.  it has a startDate which is > newEndDate
+        //  3.  it has no endDate, in which case we have to set its endDate to one day before the new record's
+        //      start date
         
         
         #warning ("bms - complete logic for this method")
