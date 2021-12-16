@@ -10,6 +10,22 @@ import Vapor
 import FluentMySQLDriver
 import Leaf
 
+//enum ProjectNonFatalError: Codable {
+//    // associated value is for the project id that has an error
+//    case projectDescriptionMissing
+//    case overlappingRateSchedules
+//
+//    var message: String {
+//        switch self {
+//        case .projectDescriptionMissing:
+//            return "Project Description can not be empty.  Change was not saved."
+//        case .overlappingRateSchedules:
+//            return "Overlapping Rate Schedules are not allowed.  Change was not saved."
+//        }
+//    }
+//}
+
+
 class ProjectController: RouteCollection {
     
     let cache: DataCache
@@ -69,12 +85,15 @@ class ProjectController: RouteCollection {
                 strBugID = "\(bugId)"
             }
             let bugLink = cache.configKeys.bugUrl.replacingOccurrences(of: "#(projectId)", with: strBugID)
+            print (try await journalsTask)
             let context = ProjectAddEdit(lookup: try await lookupTask,
                                          project: project,
                                          totalTime: try await totalTimeTask,
                                          buglink: bugLink,
                                          journals: try await journalsTask,
-                                         rateLists: try await rateListsTask)
+                                         rateLists: try await rateListsTask
+            //                             errorMessage: nonFatalError?.message
+            )
             return try await req.view.render("project", context).encodeResponse(for: req)
         }
     }
@@ -99,30 +118,28 @@ class ProjectController: RouteCollection {
         }
         let pv = try req.content.decode(PostVars.self)
         
-        let projectId = Int(pv.projectId ?? "")
-        let inp_contractId = Int(pv.contractId ?? "")
-        let inp_servicesForCompanyId = Int(pv.companyId ?? "")
-        let inp_description = pv.description
+        guard let contractId = pv.contractId.toInt(), let servicesForCompanyId = pv.companyId.toInt(), let description = pv.description else {
+            throw Abort(.badRequest, reason: "Project add or update entry submitted without at least one required value (contract, services for, description).")
+        }
+        
+        let projectId = pv.projectId.toInt()
         let projectNumber = pv.projectNumber
-        let statusId = Int(pv.statusId ?? "")
+        let statusId = pv.statusId.toInt()
         let notes = pv.notes ?? ""
-        let mantisId = Int(pv.mantisId ?? "")
+        let mantisId = pv.mantisId.toInt()
         let hideTimeReporting = pv.hideTimeReporting.toBool()
-        let projectedTime = Int(pv.projectedTime ?? "")
+        let projectedTime = pv.projectedTime.toInt()
         let startDate = pv.startDate.toDate()
         let endDate = pv.endDate.toDate()
         
         let isNewProject = projectId == nil
-        
-        guard let contractId = inp_contractId, let servicesForCompanyId = inp_servicesForCompanyId, let description = inp_description else {
-            throw Abort(.badRequest, reason: "Project add or update entry submitted without at least one required value (contract, services for, description).")
-        }
-        
-        guard description.trimmingCharacters(in: .whitespaces) != "" else {
-            throw Abort(.badRequest, reason: "Project description can not be empty.")
-        }
-        
+
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
+                        
+            guard description.trimmingCharacters(in: .whitespaces) != "" else {
+                throw Abort(.internalServerError, reason: "The project description can not be empty.")
+            }
+            
             async let oldProject = getPreUpdatedProject(projectId, on: req)
             let project = Project(id: projectId, contractId: contractId, companyId: servicesForCompanyId, description: description, statusId: statusId, projectNumber: projectNumber, statusNotes: notes, mantisProjectId: mantisId, isActive: true, projectedTime: projectedTime, projectedDateComplete: endDate, pmProjectId: nil, hideTimeReporting: hideTimeReporting, startDate: startDate)
             try await project.save(on: req.db)
@@ -173,13 +190,21 @@ class ProjectController: RouteCollection {
     
     
     private func addJournal(_ req: Request) async throws -> Response {
-        let ajaxProjectId = try? req.query.get(Int.self, at: "projectId")
-        let journalId = try? req.query.get(Int.self, at: "journalId")
-        let eventId = try? req.query.get(Int.self, at: "eventId")
-        let ajaxEventDate = (try? req.query.get(at: "eventDate")).toDate()
-        let notes = (try? req.query.get(String.self, at: "notes")) ?? ""
+        struct PostVars: Content {
+            var projectId: String?
+            var journalId: String?
+            var eventId: String?
+            var eventDate: String?
+            var notes: String?
+        }
+        let pv = try req.content.decode(PostVars.self)
 
-        guard let projectId = ajaxProjectId else {
+        let journalId = pv.journalId.toInt()
+        let eventId = pv.eventId.toInt()
+        let ajaxEventDate = pv.eventDate.toDate()
+        let notes = pv.notes ?? ""
+
+        guard let projectId = pv.projectId.toInt() else {
             throw Abort (.badRequest, reason: "Request to close a project without a projectID")
         }
         
@@ -206,6 +231,7 @@ class ProjectController: RouteCollection {
             throw Abort(.badRequest, reason: "Add Rate Schedule requested with at least one required field missing (project ID, person ID, rate schedule ID.")
         }
     
+        #warning ("bms  - call function to verify no overlap")
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
             try await db.addProjectRateSchedule(req, projectId: projectId, personId: personId, rateScheduleId: rateScheduleId, startDate: rateStartDate, endDate: rateEndDate)
             return try await ("ok").encodeResponse(for: req)

@@ -48,6 +48,7 @@
         \#chartProgress{height: 170px;}
         .btnLittleHeader{display: inline; margin-left: 1em; max-height: 17px; padding: 2px;}
         .btnLittleHeader img {object-fit: scale-down;}
+        .error-banner {width: 100%; background-color: red; color: white; font-weight: bold;}
         
     </style>
     <script>
@@ -135,6 +136,10 @@
             
             $('\#btnAddJournal').click(function (){
                 $('\#dlgAddJournal').dialog('open');
+                $('\#inpJournalId').val("");
+                $('\#inpJournalDate').val("");
+                $('\#selJournalType').val("");
+                $('\#taJournalNotes').val("");
             });
             
             $('.btnEditJournal').click(function (){
@@ -245,6 +250,9 @@
 </head>
 <body>
 
+    #if(errorMessage): 
+        <div class="error-banner">#(errorMessage)</div> 
+    #endif
     <h2>
         #if(project):
             Project:  #(project.description)

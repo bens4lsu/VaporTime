@@ -26,6 +26,7 @@ public func configure(_ app: Application) throws {
     app.views.use(.leaf)
     
     app.leaf.tags["zebra"] = ZebraTag()
+    app.leaf.tags["lowercase"] = LowercaseTag()
     
     /// setup public file middleware (for hosting our uploaded files)
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))

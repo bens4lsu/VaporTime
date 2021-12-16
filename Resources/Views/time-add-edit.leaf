@@ -97,7 +97,7 @@
             <div><label>Time ID:</label><span class="read-only">#(time.id)</span></div>
         #endif
     
-    <form method="post" id="formmain">
+    <form method="post" id="formmain" autocomplete="off">
         <span style="display:none;">
             <input name="projectId" value="#(project.ProjectID)">
             <input name="timeId" value="#(time.id)">

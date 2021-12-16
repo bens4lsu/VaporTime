@@ -13,10 +13,7 @@ struct TotalTime: Codable {
     var TotalTime: Double?
     var CompletionByTime: Double?
     var CompletionByDate: Double?   // not an error on the type.  This is the measure used for the progress circle
-    
-    
 }
-
 
 struct ProjectAddEdit: Codable {
     var lookup: LookupContext
@@ -25,6 +22,7 @@ struct ProjectAddEdit: Codable {
     var buglink: String?
     var journals: [Journal]?
     var rateLists: [RateList]?
+    var errorMessage: String?  //not currently used
 }
 
 struct Journal: Codable {

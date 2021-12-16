@@ -16,13 +16,13 @@ final class ProjectEvent: Content, Model, Codable {
     @ID(custom: "ProjectEventID")
     var id: Int?
     
-    @OptionalField(key: "EventID")
+    @Field(key: "EventID")
     var eventId: Int?
     
     @Field(key: "ReportDate")
     var reportDate: Date
     
-    @OptionalField(key: "Notes")
+    @Field(key: "Notes")
     var notes: String?
     
     @Field(key: "PersonID")

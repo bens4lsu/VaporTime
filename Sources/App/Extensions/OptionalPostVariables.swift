@@ -29,4 +29,12 @@ extension Optional where Wrapped == String {
         }
         return nil
     }
+    
+    func toInt() -> Int? {
+        Int(self ?? "")
+    }
+    
+    func toDouble() -> Double? {
+        Double(self ?? "")
+    }
 }
