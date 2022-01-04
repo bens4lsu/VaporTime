@@ -240,7 +240,7 @@ class ProjectController: RouteCollection {
         let rateStartDate = pv.rateStartDate.toDate()
         let rateEndDate = pv.rateEndDate.toDate()
     
-        #warning ("bms  - call function to verify no overlap")
+        //TODO: ("bms  - call function to verify no overlap")
         return try await UserAndTokenController.ifVerifiedDo(req, accessLevel: .timeBilling) { user in
             try await db.addProjectRateSchedule(req, projectId: projectId, personId: personId, rateScheduleId: rateScheduleId, startDate: rateStartDate, endDate: rateEndDate)
             return try await ("ok").encodeResponse(for: req)
@@ -349,7 +349,7 @@ class ProjectController: RouteCollection {
         //      start date
         
         
-        #warning ("bms - complete logic for this method")
+        //TODO:  ("bms - complete logic for this method")
         return true
     }
 }

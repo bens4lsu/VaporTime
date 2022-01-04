@@ -122,7 +122,7 @@ extension User: Validatable {
     }
 }
 
-#warning ("make new permission levels for read project page and add/edit project page")
+#warning ("BMS - make new permission levels for read project page and add/edit project page")
 struct UserPersistInfo: Codable {
     // Non-secret struct represntation of a user that can be saved in the session
     var id: Int

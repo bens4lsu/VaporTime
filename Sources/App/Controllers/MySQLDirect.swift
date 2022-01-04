@@ -161,9 +161,9 @@ class MySQLDirect {
         """
         let tt =  try await getResultRow(req, query: sql, decodeUsing: TotalTime.self)
         return TotalTime (
-            TotalTime: tt?.TotalTime ?? 0.0,
-            CompletionByTime: tt?.CompletionByTime ?? 0.1,
-            CompletionByDate: tt?.CompletionByDate ?? 0.1)
+            totalTime: tt?.totalTime ?? 0.0,
+            completionByTime: tt?.completionByTime ?? 0.1,
+            completionByDate: tt?.completionByDate ?? 0.1)
         
     }
     

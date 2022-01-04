@@ -8,13 +8,15 @@
 import Foundation
 import Vapor
 import Fluent
-import CryptoKit
+//import CryptoKit
 
 enum UserAccessLevel: String, Codable {
     case timeBilling = "T"
     case admin = "A"
     case report = "R"
     case activeOnly = "X"
+    case project = "P"
+    case invoice = "I"
 }
 
 enum VerifyAccessResponse {

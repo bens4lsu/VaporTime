@@ -6,13 +6,18 @@
 //
 
 
-#warning( "bms - Add coding keys so that properties can start with lowercase letters.")
 import Foundation
 
 struct TotalTime: Codable {
-    var TotalTime: Double?
-    var CompletionByTime: Double?
-    var CompletionByDate: Double?   // not an error on the type.  This is the measure used for the progress circle
+    var totalTime: Double?
+    var completionByTime: Double?
+    var completionByDate: Double?   // not an error on the type.  This is the measure used for the progress circle
+    
+    private enum CodingKeys: String, CodingKey {
+        case totalTime = "TotalTime"
+        case completionByTime = "CompletionByTime"
+        case completionByDate = "CompletionByDate"
+    }
 }
 
 struct ProjectAddEdit: Codable {
@@ -26,31 +31,46 @@ struct ProjectAddEdit: Codable {
 }
 
 struct Journal: Codable {
-    var ReportDate: Date
-    var Notes: String?
-    var EventDescription: String?
-    var EventWhoGenerates: String?
-    var Name: String?
+    var reportDate: Date
+    var notes: String?
+    var eventDescription: String?
+    var eventWhoGenerates: String?
+    var name: String?
     var id: Int
+    
+    private enum CodingKeys: String, CodingKey {
+        case reportDate = "ReportDate"
+        case notes = "Notes"
+        case eventDescription = "EventDescription"
+        case name = "Name"
+        case id = "id"
+    }
     
     func formatForDisplay() -> Journal {
         var tmpJournal = self
-        tmpJournal.ReportDate = tmpJournal.ReportDate.asLocal
-        tmpJournal.Notes = tmpJournal.Notes?.replaceLineBreaksHtml()
+        tmpJournal.reportDate = tmpJournal.reportDate.asLocal
+        tmpJournal.notes = tmpJournal.notes?.replaceLineBreaksHtml()
         return tmpJournal
     }
 }
 
 struct RateList: Codable {
-    var Name: String
-    var RateDescription: String
-    var StartDate: Date?
-    var EndDate: Date?
+    var name: String
+    var rateDescription: String
+    var startDate: Date?
+    var endDate: Date?
+    
+    private enum CodingKeys: String, CodingKey {
+        case name = "Name"
+        case rateDescription = "RateDescription"
+        case startDate = "StartDate"
+        case endDate = "EndDate"
+    }
     
     func toLocalDates() -> RateList {
         var temp = self
-        temp.StartDate = temp.StartDate?.asLocal
-        temp.EndDate = temp.EndDate?.asLocal
+        temp.startDate = temp.startDate?.asLocal
+        temp.endDate = temp.endDate?.asLocal
         return temp
     }
 }

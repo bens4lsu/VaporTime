@@ -15,6 +15,7 @@ class DataCache {
     private var cachedLookupContext: LookupContext?
     private var savedTrees: [Int : TBTreeContext] = [:]
     private let db = MySQLDirect()
+    private var invoiceTree = [InvoiceTreeContext]()
     
     public var configKeys = ConfigKeys()
     
@@ -51,7 +52,35 @@ class DataCache {
         return context
     }
     
+    public func getInvoiceTreeContext(_ req: Request) async throws -> [InvoiceTreeContext] {
+        var lookupContext = self.cachedLookupContext
+        
+        if lookupContext == nil {
+            lookupContext = try await getLookupContext(req)
+        }
+        
+        guard let contracts = lookupContext?.contracts else {
+            return []
+        }
+        
+        self.invoiceTree = try await withThrowingTaskGroup(of: InvoiceTreeContext.self) { group in
+            var tree = [InvoiceTreeContext]()
+            for contract in contracts {
+                group.addTask {
+                    let invoices = [Invoice(123), Invoice(456)]	 // #warning: look up id #s here
+                    return InvoiceTreeContext(contract: contract, invoices: invoices)
+                }
+            }
+            for try await treeData in group {
+                tree.append(treeData)
+            }
+            self.invoiceTree = tree
+            return tree
+        }
+        return self.invoiceTree
+    }
     
+
     public func getProjectTree(_ req: Request, userId: Int) async throws -> TBTreeContext {
         if let tree = self.savedTrees[userId] {
             return tree
