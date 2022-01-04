@@ -235,7 +235,15 @@ extension UserAndTokenController {
     
     
     private func sendPWResetEmail(_ req: Request) async throws -> Response {
-        let email = req.parameters.get("emailAddress") ?? ""
+        struct Form: Content {
+            var emailAddress: String?
+        }
+        
+        let content = try req.content.decode(Form.self)
+
+        guard let email = content.emailAddress else {
+            throw Abort(.badRequest,  reason:  "No email address received in the form submission.")
+        }
         
         guard email.count > 0 else {
             throw Abort(.badRequest, reason:  "No email address received for password reset.")
