@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import NIOSSL
 
 class ConfigKeys: Codable {
     
@@ -16,6 +17,17 @@ class ConfigKeys: Codable {
         var username: String
         var password: String
         var database: String
+        var certificateVerificationString: String
+        
+        var certificateVerification: CertificateVerification {
+            if certificateVerificationString == "noHostnameVerification" {
+                return .noHostnameVerification
+            }
+            else if certificateVerificationString == "fullVerification" {
+                return .fullVerification
+            }
+            return .none
+        }
     }
     
     struct MyCompany: Codable {
