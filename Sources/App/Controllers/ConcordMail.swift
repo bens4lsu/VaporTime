@@ -11,7 +11,7 @@ import SMTPKitten
 
 class ConcordMail {
     
-    struct Mail {
+    struct InternalMail {
         
         struct User {
             var name: String?
@@ -26,20 +26,20 @@ class ConcordMail {
             case plain
             case html
             
-            var smtpKittenContentType: SMTPKitten.Mail.ContentType {
+            var smtpKittenContentType: (String) -> SMTPKitten.Mail.Content {
                 switch self {
                 case .plain:
-                    return SMTPKitten.Mail.ContentType.plain
+                    return Mail.Content.plain
                 case .html:
-                    return SMTPKitten.Mail.ContentType.html
+                    return Mail.Content.html
                 }
             }
         }
         
-        var from: Mail.User
-        var to: Mail.User
+        var from: InternalMail.User
+        var to: InternalMail.User
         var subject: String
-        var contentType: Mail.ContentType
+        var contentType: InternalMail.ContentType
         var text: String
         
         var smtpKittenMail: SMTPKitten.Mail {
@@ -47,8 +47,7 @@ class ConcordMail {
                             to: [to.smtpKittenUser],
                             cc: Set<SMTPKitten.MailUser>(),
                             subject: subject,
-                            contentType: contentType.smtpKittenContentType,
-                            text: text
+                            content: contentType.smtpKittenContentType(text)
             )
         }
     }
@@ -64,10 +63,10 @@ class ConcordMail {
         case failure(error: Error)
     }
     
-    func send(mail: Mail) async throws -> ConcordMail.Result  {
-        let client = try await SMTPClient.connect(hostname: smtp.hostname, ssl: .startTLS(configuration: .default)).get()
-        try await client.login(user: smtp.username,password: smtp.password).get()
-        try await client.sendMail(mail.smtpKittenMail).get()
+    func send(mail: InternalMail) async throws -> ConcordMail.Result  {
+        let client = try await SMTPClient.connect(hostname: smtp.hostname, ssl: .startTLS(configuration: .default))
+        try await client.login(user: smtp.username,password: smtp.password)
+        try await client.sendMail(mail.smtpKittenMail)
         return .success
     }
     
@@ -75,9 +74,9 @@ class ConcordMail {
     func testMail() async throws -> ConcordMail.Result {
         let name = smtp.friendlyName ?? smtp.username
         let email = smtp.fromEmail ?? smtp.username
-        let mail = Mail(
-            from: Mail.User(name: name, email: email),
-            to: Mail.User(name: "ben schultz", email: "bens4lsu@gmail.com"),
+        let mail = InternalMail(
+            from: InternalMail.User(name: name, email: email),
+            to: InternalMail.User(name: "ben schultz", email: "bens4lsu@gmail.com"),
             subject: "Welcome to our app!",
             contentType: .plain,
             text: "Welcome to our app, you're all set up & stuff."

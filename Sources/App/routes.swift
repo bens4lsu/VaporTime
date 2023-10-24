@@ -10,12 +10,11 @@ public func routes(_ app: Application) throws {
     let cache = DataCache()
     
     // route collections
-    let userAndTokenController = UserAndTokenController(cache)
-    try app.register(collection: userAndTokenController)
+    try app.register(collection: UserAndTokenController(cache))
     try app.register(collection: TimeBillingController(cache))
     try app.register(collection: ReportController(cache))
     try app.register(collection: ProjectController(cache))
-    
+    try app.register(collection: AdminController(cache))
     
     // MARK:  Miscellaneous Routes
     

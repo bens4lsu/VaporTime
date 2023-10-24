@@ -16,8 +16,8 @@ public func configure(_ app: Application) throws {
     
     // Register database
     
-        // TLS configuration from the Config.json.  Values "noHostnameVerification"  and "fullVerification"
-        // map to their corresponding enum value in CertificateVerification enum.  Any other value maps to .none
+    // TLS configuration from the Config.json.  Values "noHostnameVerification"  and "fullVerification"
+    // map to their corresponding enum value in CertificateVerification enum.  Any other value maps to .none
     
     var tls = TLSConfiguration.makeClientConfiguration()
     tls.certificateVerification = keys.database.certificateVerification
@@ -38,5 +38,6 @@ public func configure(_ app: Application) throws {
     /// setup public file middleware (for hosting our uploaded files)
     app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
     app.middleware.use(app.sessions.middleware)
+    app.sessions.configuration.cookieName = "scramfile"
     
 }

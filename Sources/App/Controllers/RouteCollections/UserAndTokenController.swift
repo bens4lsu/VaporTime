@@ -284,10 +284,10 @@ extension UserAndTokenController {
         //print ("Sending email to \(user.emailAddress)")
         //let mail = Mailer.Message(from: mailSender, to: user.emailAddress, subject: "Project/Time Reset request", text: text, html: html)
                         
-        let mailFrom = ConcordMail.Mail.User(name: nil, email: mailSender)
-        let mailTo = ConcordMail.Mail.User(name: nil, email: user.emailAddress)
+        let mailFrom = ConcordMail.InternalMail.User(name: nil, email: mailSender)
+        let mailTo = ConcordMail.InternalMail.User(name: nil, email: user.emailAddress)
 
-        let mail = ConcordMail.Mail(
+        let mail = ConcordMail.InternalMail(
             from: mailFrom,
             to: mailTo,
             subject: "Project/Time Reset request",

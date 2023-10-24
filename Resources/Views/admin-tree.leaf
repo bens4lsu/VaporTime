@@ -1,0 +1,94 @@
+<html>
+<head>
+    <title>Concord Business Services Time Billing System</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./css/jquery-ui-1.9.0.custom.min.css" />
+    <link rel="stylesheet" href="./css/concordtb.css" />
+    <link rel="stylesheet" type="text/css" href="./css/jstree.style.css">
+     <script language="javascript" type="text/javascript"  src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="./js/jstree.js"></script>
+    <style>
+        \#tree .jstree-closed > a > i { background-image:url("./images/folder.png");  background-position:left center;}
+        \#tree .jstree-open > a > i { background-image:url("./images/folder.png");  background-position:left center;}
+        \#tree .jstree-leaf > a > i { background-image:url("./images/blueplus.png"); background-position:left center;  }
+        h2 {font-size:90%; width:100%; background-color: \#C4C4C4; padding:4px 1.8em; font-family:Verdana, Arial, Sans-Serif; }
+        \#btnAddNewProject {margin-top:22px;}
+        li {list-style-type: none; margin-bottom:4px;}
+        .div-other-list img {max-height: 28px;}
+
+    
+    </style>
+
+</head>
+<body>
+
+    <script type="text/javascript">
+        var detailFrameId;
+        
+        $(document).ready(function() {    
+        
+            // figure out which window is our details and save to detailFrameId
+            for (var i = 0; i < parent.window.frames.length; i++) {
+                if (parent.window.frames[i].name == "frAdmDetails") {
+                    alert (parent.window.frames[i].name);
+                    detailFrameId = i;
+                }
+            }
+            
+            
+            $('\#dlgAllContracts').dialog({
+                autoOpen: false,
+                title: 'All Contracts',
+                width: 315,
+                modal : true,
+                open: function() {
+                    // ask the server for the list of inactive contracts and 
+                    // add them to the list in the dialog
+                },
+                close: function() {
+                    $('\#selRatePerson').val("");
+                    $('\#selRateSchedule').val("");
+                }
+            });
+ 
+        });
+    </script>
+
+    <h2>Contracts</h2>
+    
+    <div id="contracts-list"><ul>    
+         #for(contract in contracts):
+            <li><a href="\#" title="#(contract.name)" onclick="parent.window.frames[detailFrameId].location='ContractAddEdit?contractId=#(contract.id)'">#(contract.name)</a></li>
+        #endfor
+        <li>...More...</li>
+    </ul></div>
+    
+    <h2>Companies</h2>
+    
+    <div id="companies-list"><ul>    
+         #for(company in companies):
+            <li><a href="\#" title="#(company.name)" onclick="parent.window.frames[detailFrameId].location='ContractAddEdit?contractId=#(company.id)'">#(company.name)</a></li>
+        #endfor
+    </ul></div>
+    
+    <h2>People</h2>
+    
+    <div id="people-list"><ul>    
+         #for(person in timeBillers):
+            <li><a href="\#" title="#(person.name)" onclick="parent.window.frames[detailFrameId].location='ContractAddEdit?contractId=#(contract.id)'">#(person.name)</a></li>
+        #endfor
+    </ul></div>
+    
+    <div id="dlgAllContracts">
+        <h2>Active Contracts</h2>
+        
+        <h2>Other Contracts</h2>
+        <div id="div-other-contracts" class="div-other-list">
+            <img src="img/progress.gif" alt="Loading...">
+        </div>
+    </div>
+
+    
+</body>
+</html>

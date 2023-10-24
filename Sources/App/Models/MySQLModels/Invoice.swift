@@ -10,6 +10,7 @@ import Fluent
 import FluentMySQLDriver
 import Vapor
 
+#warning ("None of this is implemented.  See also InvoiceRenderingStructs.swift")
 
 final class Invoice: Content, Model, Codable {
     static var schema = "InvoiceItems"

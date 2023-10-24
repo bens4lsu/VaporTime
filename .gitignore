@@ -1,0 +1,12 @@
+Packages
+.build
+xcuserdata
+*.xcodeproj
+DerivedData/
+.DS_Store
+.swiftpm
+db.sqlite
+Resources/Config.json
+Public/Highcharts-6.0.0/examples
+Package.resolved
+
