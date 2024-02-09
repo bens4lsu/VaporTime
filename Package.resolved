@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/vapor/console-kit.git",
         "state": {
           "branch": null,
-          "revision": "ccd0773b3ad3c67a19918aaef6903678592bb087",
-          "version": "4.9.0"
+          "revision": "a31f44ebfbd15a2cc0fda705279676773ac16355",
+          "version": "4.14.1"
         }
       },
       {
@@ -186,8 +186,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "3db5c4aeee8100d2db6f1eaf3864afdad5dc68fd",
-          "version": "2.59.0"
+          "revision": "635b2589494c97e48c62514bc8b37ced762e0a62",
+          "version": "2.63.0"
         }
       },
       {
@@ -236,12 +236,21 @@
         }
       },
       {
+        "package": "swift-system",
+        "repositoryURL": "https://github.com/apple/swift-system.git",
+        "state": {
+          "branch": null,
+          "revision": "025bcb1165deab2e20d4eaba79967ce73013f496",
+          "version": "1.2.1"
+        }
+      },
+      {
         "package": "vapor",
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "288d73a368ac0d0e228dd9b81eecc576b50b9d6d",
-          "version": "4.84.6"
+          "revision": "6db3d917b5ce5024a84eb265ef65691383305d70",
+          "version": "4.90.0"
         }
       },
       {
